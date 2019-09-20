@@ -1,0 +1,26 @@
+Package: shinymodules
+Title: Shiny module tools 
+Version: 0.0.1.0000
+Authors@R: 
+    person(given = "Datastorm",
+           family = "Datastorm",
+           role = c("aut", "cre"),
+           email = "datastorm@datastorm.fr",
+           comment = c())
+Description: Shiny module tools
+License: GPL-3 
+Encoding: UTF-8
+Depends: R (>= 3.5)
+LazyData: true
+Suggests: 
+    testthat (>= 2.1.0)
+RoxygenNote: 6.1.1
+Imports: 
+    shiny,
+    data.table,
+    DT,
+    sparkline,
+    magrittr,
+    PerformanceAnalytics,
+    htmlwidgets
+    
