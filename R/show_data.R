@@ -41,6 +41,14 @@ show_dataUI <- function(id) {
     shiny::fluidRow(
       column(12,
              shiny::conditionalPanel(
+               condition = paste0("output['", ns("have_dt_dates"), "'] === true"),
+               DT::DTOutput(ns("dt_dates")))
+      )
+    ),
+    shiny::hr(),
+    shiny::fluidRow(
+      column(12,
+             shiny::conditionalPanel(
                condition = paste0("output['", ns("have_dt_fact"), "'] === true"),
                DT::DTOutput(ns("dt_fact")))
       )
@@ -102,6 +110,19 @@ show_data <- function(input, output, session, data = NULL,
     
   })
   
+  output$dt_dates <- DT::renderDT({
+    dt <- data_num_fact()$dt_dates
+    print(dt)
+    if(!is.null(dt)){
+      dt %>%  DT::formatStyle(
+        'pct_NA',
+        color = DT::styleInterval(0, c("green", 'red'))
+      ) %>% DT::formatPercentage(c(
+        'pct_NA'), 2) 
+    } else NULL
+    
+  })
+  
   output$dt_fact <- DT::renderDT({
     dt <- data_num_fact()$dt_fact
     if(!is.null(dt)){
@@ -122,10 +143,13 @@ show_data <- function(input, output, session, data = NULL,
   })
   shiny::outputOptions(output, "have_dt_num", suspendWhenHidden = FALSE)
   
+  output$have_dt_dates <- shiny::reactive({
+    !is.null(data_num_fact()$dt_dates)
+  })
+  shiny::outputOptions(output, "have_dt_dates", suspendWhenHidden = FALSE)
+  
   output$have_dt_fact <- shiny::reactive({
     !is.null(data_num_fact()$dt_fact)
   })
   shiny::outputOptions(output, "have_dt_fact", suspendWhenHidden = FALSE)
-  
-  
 }
