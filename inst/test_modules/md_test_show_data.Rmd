@@ -1,0 +1,23 @@
+---
+title: "Test show data on R Markdown"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Exemple of text
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+
+```{r , eval = TRUE, echo = FALSE, message = FALSE, warning = TRUE, results='asis'}
+
+obj <- get_dt_num_dt_fac(data = nycflights13::flights, optional_stats = "all", nb_modal2show = 4)
+obj$dt_num
+obj$dt_dates
+obj$dt_fact
+```
+
+

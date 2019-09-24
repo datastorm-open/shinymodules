@@ -5,6 +5,7 @@
 #' @param data \code{data.table} input data which will be preprocessed
 #' @param optional_stats \code{character} optional statistics computed on data,
 #' you can look at \link{show_data} for more information.
+#' @param nb_modal2show \code{integer} number of modalities to show for factor variables.
 #' @return list with two DT, one with statistics on numeric data and one with
 #' statistics on factor data
 #' @import data.table
@@ -17,7 +18,7 @@
 #' 
 #' }
 #' 
-get_dt_num_dt_fac <- function(data, optional_stats) {
+get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
   # check if there is constant variables, if yes ignore them
   data.table::setDT(data)
   cst_vars <- names(which(unlist(data[, lapply(
@@ -38,18 +39,18 @@ get_dt_num_dt_fac <- function(data, optional_stats) {
   
   # add Dates on numeric variables ?
   dates_vars <- names(which(
-    sapply(data, function(var) class(var) %in% c("Date", "POSIXct", "POSIXlt"))))
+    sapply(data, function(var) any(class(var) %in% c("Date", "POSIXct", "POSIXlt")))))
   
   # generate table with stats on numeric
   if (length(num_vars) > 0) {
-    dt_num <- get_stat_indicators(data, num_vars, optional_stats = optional_stats)
+    dt_num <- .get_stat_indicators(data, num_vars, optional_stats = optional_stats)
   } else {
     dt_num <- NULL
   }
   
-  #generate table with stats on dates
+  # generate table with stats on dates
   if (length(dates_vars) > 0) {
-    dt_dates <- get_dates_indicators(data, dates_vars)
+    dt_dates <- .get_dates_indicators(data, dates_vars)
   } else {
     dt_dates <- NULL
   }
@@ -57,7 +58,7 @@ get_dt_num_dt_fac <- function(data, optional_stats) {
   
   # same for factors
   if (length(fact_vars) > 0) {
-    dt_fact <- get_factor_indicators(data, fact_vars)
+    dt_fact <- .get_factor_indicators(data, fact_vars, nb_modal2show)
   } else {
     dt_fact <- NULL
   }
@@ -74,7 +75,7 @@ get_dt_num_dt_fac <- function(data, optional_stats) {
 #' @return data.table with statistics on numeric data
 #' @import sparkline PerformanceAnalytics
 #' 
-get_indicators <- function(data, var, absolute = FALSE, optional_stats){
+.get_indicators <- function(data, var, absolute = FALSE, optional_stats){
   
   
   data.table::setDT(data)
@@ -150,11 +151,11 @@ get_indicators <- function(data, var, absolute = FALSE, optional_stats){
 #' @param optional_stats \code{character}
 #' @return DT with statistics on numeric data
 #' @import sparkline PerformanceAnalytics
-#' @export
 #' 
-get_stat_indicators <- function(data, vars, optional_stats){
+.get_stat_indicators <- function(data, vars, optional_stats){
+  
   data_copy <- data.table::copy(data)
-  res <- sapply(vars, function(var) get_indicators(
+  res <- sapply(vars, function(var) .get_indicators(
     data_copy, var, optional_stats = optional_stats), simplify = FALSE)
   stats_table <- data.table::rbindlist(res, use.names=TRUE, idcol = "variable")
   
@@ -168,7 +169,10 @@ get_stat_indicators <- function(data, vars, optional_stats){
                         columnDefs = list(
                           list(className = 'dt-center', 
                                targets = c(ncol(stats_table)-1:ncol(stats_table))))
-                      )) 
+                      )) %>%  DT::formatStyle(
+                        'pct_NA',
+                        color = DT::styleInterval(0, c("green", 'red'))
+                      ) %>% DT::formatPercentage(c('pct_NA', "pct_zero"), 2)
   
   dt$dependencies <- append(dt$dependencies, htmlwidgets::getDependency("sparkline"))
   return(dt)
@@ -178,12 +182,11 @@ get_stat_indicators <- function(data, vars, optional_stats){
 #' @description return statistics from dates data, is called by 
 #' \link{get_dt_num_dt_fac}
 #' @param data \code{data.table}
-#' @param vars \code{character}
+#' @param dates_vars \code{character}
 #' @param optional_stats \code{character}
 #' @return DT with statistics on dates data
-#' @export
 #' 
-get_dates_indicators <- function(data, dates_vars){
+.get_dates_indicators <- function(data, dates_vars){
   dt_fact <- DT::datatable(
     data.table::rbindlist(lapply(
       dates_vars, 
@@ -202,7 +205,11 @@ get_dates_indicators <- function(data, dates_vars){
     selection = "none", width = "100%",
     options = list(columnDefs = list(
       list(className = 'dt-center', targets = 0:5
-      )))) 
+      )))) %>%  DT::formatStyle(
+        'pct_NA',
+        color = DT::styleInterval(0, c("green", 'red'))
+      ) %>% DT::formatPercentage(c(
+        'pct_NA'), 2) 
 }
 
 #' @title  get stats indicator on factor data
@@ -210,11 +217,11 @@ get_dates_indicators <- function(data, dates_vars){
 #' \link{get_dt_num_dt_fac}
 #' @param data \code{data.table}
 #' @param fact_vars \code{character}
+#' @param nb_modal2show \code{integer}
 #' @return DT with statistics on factor data
 #' @import sparkline PerformanceAnalytics
-#' @export
 #' 
-get_factor_indicators <- function(data, fact_vars) {
+.get_factor_indicators <- function(data, fact_vars, nb_modal2show) {
   dt_fact <- DT::datatable(
     data.table::rbindlist(lapply(
       fact_vars, 
@@ -226,16 +233,22 @@ get_factor_indicators <- function(data, fact_vars) {
         # get pct na
         pct_na <- round(sum(is.na(data[[var]]))/nrow(data), 2)
         
-        data.table::data.table(variable = var,
+        txt <- paste0("data.table::data.table(variable = var,
                                nb_modalities = nrow(data_det),
-                               pct_NA = pct_na,
-                               modality1 = modalities[1],
-                               modality2 = modalities[2],
-                               modality3 = modalities[3]
-        )})),
+                               pct_NA = pct_na,",
+                      paste(sapply(1:nb_modal2show, function(i){
+                        paste0(" modality", i, " = modalities[", i, "]")
+                      }), collapse = ","), ")")
+        
+        eval(parse(text = txt))
+      })),
     rownames = FALSE, filter = "bottom", escape = FALSE, 
     selection = "none", width = "100%",
     options = list(columnDefs = list(
       list(className = 'dt-center', targets = 0:5
-      )))) 
+      )))) %>%  DT::formatStyle(
+        'pct_NA',
+        color = DT::styleInterval(0, c("green", 'red'))
+      ) %>% DT::formatPercentage(c(
+        'pct_NA'), 2) 
 }

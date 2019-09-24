@@ -4,13 +4,15 @@
 \alias{get_dt_num_dt_fac}
 \title{preprocessing on data}
 \usage{
-get_dt_num_dt_fac(data, optional_stats)
+get_dt_num_dt_fac(data, optional_stats, nb_modal2show)
 }
 \arguments{
 \item{data}{\code{data.table} input data which will be preprocessed}
 
 \item{optional_stats}{\code{character} optional statistics computed on data,
 you can look at \link{show_data} for more information.}
+
+\item{nb_modal2show}{\code{integer} number of modalities to show for factor variables.}
 }
 \value{
 list with two DT, one with statistics on numeric data and one with

@@ -5,7 +5,7 @@
 #' @return UI page
 #' @export
 #' @import shiny DT
-#'
+#' 
 #' @examples 
 #' \dontrun{
 #' # In UI :
@@ -19,7 +19,6 @@
 #' 
 #' }
 #'
-#' @export
 show_dataUI <- function(id) {
   ns <- shiny::NS(id)
   shiny::fluidPage(
@@ -37,19 +36,19 @@ show_dataUI <- function(id) {
                DT::DTOutput(ns("dt_num")))
       )
     ),
-    shiny::hr(),
     shiny::fluidRow(
       column(12,
              shiny::conditionalPanel(
                condition = paste0("output['", ns("have_dt_dates"), "'] === true"),
+               shiny::hr(),
                DT::DTOutput(ns("dt_dates")))
       )
     ),
-    shiny::hr(),
     shiny::fluidRow(
       column(12,
              shiny::conditionalPanel(
                condition = paste0("output['", ns("have_dt_fact"), "'] === true"),
+               shiny::hr(),
                DT::DTOutput(ns("dt_fact")))
       )
     )
@@ -90,35 +89,24 @@ show_dataUI <- function(id) {
 #' 
 #' }
 #'
-#' @export
 show_data <- function(input, output, session, data = NULL,
-                      optional_stats = "all") {
+                      optional_stats = "all", nb_modal2show = 3) {
   ns <- session$ns
   data_num_fact <- shiny::reactive({ 
-    get_dt_num_dt_fac(data(), optional_stats = optional_stats)
+    get_dt_num_dt_fac(data(), optional_stats = optional_stats, nb_modal2show)
   })
   
   output$dt_num <- DT::renderDT({
     dt <- data_num_fact()$dt_num
     if(!is.null(dt)){
-      dt %>%  DT::formatStyle(
-        'pct_NA',
-        color = DT::styleInterval(0, c("green", 'red'))
-      ) %>% DT::formatPercentage(c('pct_NA', "pct_zero"), 2)
-      
+      dt 
     } else NULL
-    
   })
   
   output$dt_dates <- DT::renderDT({
     dt <- data_num_fact()$dt_dates
-    print(dt)
     if(!is.null(dt)){
-      dt %>%  DT::formatStyle(
-        'pct_NA',
-        color = DT::styleInterval(0, c("green", 'red'))
-      ) %>% DT::formatPercentage(c(
-        'pct_NA'), 2) 
+      dt 
     } else NULL
     
   })
@@ -126,16 +114,8 @@ show_data <- function(input, output, session, data = NULL,
   output$dt_fact <- DT::renderDT({
     dt <- data_num_fact()$dt_fact
     if(!is.null(dt)){
-      dt %>%  DT::formatStyle(
-        'pct_NA',
-        color = DT::styleInterval(0, c("green", 'red'))
-      ) %>% DT::formatPercentage(c(
-        'pct_NA'), 2) %>%
-        DT::formatStyle(
-          'nb_modalities',
-          color = DT::styleInterval(1, c('red', "black")))
+      dt 
     } else NULL
-    
   })
   
   output$have_dt_num <- shiny::reactive({
