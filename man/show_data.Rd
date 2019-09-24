@@ -4,7 +4,8 @@
 \alias{show_data}
 \title{server part of the module show_data}
 \usage{
-show_data(input, output, session, data = NULL, optional_stats = "all")
+show_data(input, output, session, data = NULL, optional_stats = "all",
+  nb_modal2show = 3)
 }
 \arguments{
 \item{input}{Not a real parameter, should not be set manually. 
