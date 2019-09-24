@@ -1,6 +1,6 @@
 #' @title  preprocessing on data 
 #' @description preprocessing of input data, return two DT, one with
-#' statistics onnumeric variables and another one with statistics on factor variables
+#' statistics on numeric variables and another one with statistics on factor variables
 #' 
 #' @param data \code{data.table} input data which will be preprocessed
 #' @param optional_stats \code{character} optional statistics computed on data,

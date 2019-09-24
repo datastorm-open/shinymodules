@@ -10,8 +10,12 @@
 #' \dontrun{
 #' # In UI :
 #' show_dataUI(id = "id")
-#' # In Server
-#' callModule(module = show_data, id = "id", variable = reactive(data))
+#' # In Server, with data in a reactiveValues 
+#' # for example
+#' data <- reactiveValues(data = iris)
+#' optional_stats = "all"
+#' callModule(module = show_data, id = "id", data = reactive(data$data),
+#' optional_stats = optional_stats)
 #' 
 #' ## For a complete example, you can run the function \link{run_app_show_data}
 #' optional_stats <- "all"
@@ -72,13 +76,22 @@ show_dataUI <- function(id) {
 #' \dontrun{
 #' # In UI :
 #' show_dataUI(id = "id")
-#' # In Server
-#' callModule(module = show_data, id = "id", variable = reactive(data))
+#' # In Server, with data in a reactiveValues 
+#' # for example
+#' data <- reactiveValues(data = iris)
+#' optional_stats <- "all"
+#' callModule(module = show_data, id = "id", data = reactive(data$data),
+#' optional_stats = optional_stats)
 #' 
 #' ## For a complete example, you can run the function \link{run_app_show_data}
 #'
 #' optional_stats <- "all"
 #' run_app_show_data(optional_stats)
+#' 
+#' ## For another example which also uses the module \link{filter_data}, you can
+#' ## run \link{run_app_filter_and_show_data}
+#' optional_stats <- "all"
+#' run_app_filter_and_show_data(optional_stats)
 #' 
 #' }
 #'
