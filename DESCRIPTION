@@ -22,5 +22,7 @@ Imports:
     sparkline,
     magrittr,
     PerformanceAnalytics,
-    htmlwidgets
+    htmlwidgets,
+    nycflights13,
+    rmarkdown
     

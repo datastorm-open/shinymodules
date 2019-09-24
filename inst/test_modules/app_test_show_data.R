@@ -10,7 +10,7 @@ ui <- fluidPage(
   shiny::fluidRow(
     shiny::column(12,
                   shiny::selectInput("data_load", label = "Choose data",
-                                     choices = c("mtcars", "iris"))
+                                     choices = c("mtcars", "flights"))
     ),
     shiny::column(12, show_dataUI(id = "id")
     )
@@ -18,26 +18,27 @@ ui <- fluidPage(
 )
 
 server <- function(input, output, session) {
+  optional_stats <- c("min", "max")
   
-  {
-    if (!exists("optional_stats")) {
-      optional_stats <- "all"
-    }
-    # Create & update reactiveValues
-    reactive_data <- shiny::reactiveValues(data = NULL)
-    observe({
-      if (input$data_load == "mtcars") {
-        reactive_data$data <- data.table::data.table(copy(mtcars))
-      } else if (input$data_load == "iris") {
-        reactive_data$data <- data.table::data.table(copy(iris))
-      }
-    })
-    
-    callModule(module = show_data, id = "id",
-               data = shiny::reactive(reactive_data$data), 
-               optional_stats = optional_stats)
+  if (!exists("optional_stats")) {
+    optional_stats <- "all"
+  }
+  if (!exists("nb_modal2show")) {
+    nb_modal2show <- 6
   }
   
+  # Create & update reactiveValues
+  reactive_data <- shiny::reactiveValues(data = NULL)
+  observe({
+    if (input$data_load == "mtcars") {
+      reactive_data$data <- data.table::data.table(copy(mtcars))
+    } else if (input$data_load == "flights") {
+      reactive_data$data <- data.table::data.table(copy(nycflights13::flights))
+    }
+  })
+  callModule(module = show_data, id = "id",
+             data = shiny::reactive(reactive_data$data), 
+             optional_stats = optional_stats, nb_modal2show = nb_modal2show)
 }
 
 # Run the application
