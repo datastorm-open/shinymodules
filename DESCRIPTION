@@ -10,7 +10,7 @@ Authors@R:
 Description: Shiny module tools
 License: GPL-3 
 Encoding: UTF-8
-Depends: R (>= 3.5)
+Depends: R (>= 3.4)
 LazyData: true
 Suggests: 
     testthat (>= 2.1.0)

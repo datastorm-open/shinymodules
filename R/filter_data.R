@@ -129,7 +129,7 @@ filter_data <- function(input, output, session, data = NULL) {
               }
               choices <- c("single select", "multiple select")
               
-            }else if(any(ctrlclass%in%c("numeric", "integer"))){
+            }else if(any(ctrlclass%in%c("numeric", "integer", "POSIXct", "POSIXlt"))){
               
               selectedtype <- "range slider"
               choices <- c("single slider", "range slider")
@@ -194,7 +194,7 @@ filter_data <- function(input, output, session, data = NULL) {
                                   na.rm = TRUE)
                 }
                 
-              }else if(any(ctrlclass %in% c("integer", "numeric"))){
+              }else if(any(ctrlclass %in% c("integer", "numeric", "POSIXct", "POSIXlt"))){
                 if(selectedtype %in% c("single select", "multiple select")){
                   values <- unique(as.character(data[, get(colname)]))
                   
@@ -276,11 +276,12 @@ filter_data <- function(input, output, session, data = NULL) {
               colname <<- c(colname, name)
               fun <<- c(fun, "%in%")
               values[[length(values)+1]] <<- filter
+      
             }
             NULL
           }
         })
-        if(length(colname) > 0){
+        if(length(colname) > 0 && nrow(data()) > 0){
           res <- lapply(1:length(colname), function(x){
             list(column = colname[x], fun = fun[x], values = values[[x]])
           })
