@@ -10,7 +10,7 @@ ui <- fluidPage(
   shiny::fluidRow(
     shiny::column(12,
                   shiny::selectInput("data_load", label = "Choose data",
-                                     choices = c("mtcars", "iris"))
+                                     choices = c("mtcars", "iris", "nycflights"))
     ),
     shiny::column(12, filter_dataUI(id = "id")
     ),
@@ -32,26 +32,25 @@ server <- function(input, output, session) {
         reactive_data$data_filtered <- data.table::data.table(copy(mtcars))
       } else if (input$data_load == "iris") {
         reactive_data$data_filtered <- data.table::data.table(copy(iris))
-      } 
+      } else if (input$data_load == "nycflights"){
+        reactive_data$data_filtered <- data.table::data.table(copy(nycflights13::flights))
+      }
       
       reactive_data$data_shown <- reactive_data$data_filtered
     })
     
     
-    data_filtered <<- callModule(module = filter_data, id = "id",
+    data_filtered <- callModule(module = filter_data, id = "id",
                                  data = shiny::reactive(reactive_data$data_filtered))
     
     observeEvent(data_filtered$data, {
       datafilt <- data_filtered$data
-      # print(datafilt)
       reactive_data$data_shown <- datafilt
+      print(str(datafilt))
     })
     
     callModule(module = show_data, id = "idshow",
-               data = shiny::reactive(reactive_data$data_shown))
-    
-    
-    
+               data = shiny::reactive(reactive_data$data_shown), nb_modal2show = 6)
   }
   
 }
