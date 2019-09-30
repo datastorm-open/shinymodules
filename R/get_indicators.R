@@ -67,7 +67,7 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
 
 #' @title  get stats indicator on numeric column
 #' @description return statistics from numeric data, is called by 
-#' \link{get_stat_indicators}
+#' \link{.get_stat_indicators}
 #' @param data \code{data.table}
 #' @param var \code{character}
 #' @param absolute \code{logical}
@@ -183,7 +183,6 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
 #' \link{get_dt_num_dt_fac}
 #' @param data \code{data.table}
 #' @param dates_vars \code{character}
-#' @param optional_stats \code{character}
 #' @return DT with statistics on dates data
 #' 
 .get_dates_indicators <- function(data, dates_vars){

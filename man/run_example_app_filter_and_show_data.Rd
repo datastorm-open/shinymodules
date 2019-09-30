@@ -15,7 +15,8 @@ want to be computed on your numeric data, default is "all". "pct_zero",
 "min", "max", "var", "ecart_interquartile",
 "mode_max", "kurtosis", "skewness", "boxplot", "density".}
 
-\item{nb_modal2show}{\code{integer} number of modalities to show for factor variables.}
+\item{nb_modal2show}{\code{integer} number of modalities to show 
+for factor variables.}
 }
 \description{
 Run a shiny application calling the modules show_data and filter_data, 

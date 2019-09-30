@@ -10,8 +10,6 @@
 \item{data}{\code{data.table}}
 
 \item{dates_vars}{\code{character}}
-
-\item{optional_stats}{\code{character}}
 }
 \value{
 DT with statistics on dates data

@@ -78,7 +78,8 @@ show_dataUI <- function(id) {
 #' data, default is "all". "pct_zero", "pct_NA", "mean", "median", "sd" are
 #' always computed, possible values are "min", "max", "var", "ecart_interquartile",
 #' "mode_max", "kurtosis", "skewness", "boxplot", "density".
-#' 
+#' @param nb_modal2show \code{integer} number of modalities to show 
+#' for factor variables. 
 #' @return Server logic
 #' @export
 #' @import shiny DT data.table magrittr sparkline PerformanceAnalytics htmlwidgets

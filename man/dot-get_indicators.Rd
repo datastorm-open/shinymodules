@@ -20,5 +20,5 @@ data.table with statistics on numeric data
 }
 \description{
 return statistics from numeric data, is called by 
-\link{get_stat_indicators}
+\link{.get_stat_indicators}
 }

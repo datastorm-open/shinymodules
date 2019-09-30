@@ -33,6 +33,7 @@ run_example_app_show_data(optional_stats)
 ## For another example which also uses the module \\link{filter_data}, you can
 ## run \\link{run_app_filter_and_show_data}
 optional_stats <- "all"
-run_app_filter_and_show_data(optional_stats)#' }
+run_app_filter_and_show_data(optional_stats)
+}
 
 }

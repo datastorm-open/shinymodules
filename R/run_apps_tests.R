@@ -75,7 +75,8 @@ run_example_app_filter_data <- function(){
 #' "pct_NA", "mean", "median", "sd" are always computed, possible values are 
 #' "min", "max", "var", "ecart_interquartile",
 #' "mode_max", "kurtosis", "skewness", "boxplot", "density".
-#' @param nb_modal2show \code{integer} number of modalities to show for factor variables.
+#' @param nb_modal2show \code{integer} number of modalities to show 
+#' for factor variables.
 #' 
 #' @examples 
 #' \dontrun{
@@ -99,6 +100,32 @@ run_example_app_filter_and_show_data <- function(
                             package = "shinymodules"), launch.browser = TRUE)
   
 }
+
+
+#' @title Run a shiny example application to visualize graphics on data
+#'  
+#' @description
+#' Run a shiny application calling the module visualize_data, 
+#' allowing the user to visualize his data with diffrent type of graphics 
+#' 
+#' @examples 
+#' \dontrun{
+#' 
+#' run_example_app_visualize_data()
+#' }
+#'
+#' @import shiny
+#'
+#' @export
+run_example_app_visualize_data <- function() {
+  
+  G <- .GlobalEnv
+  shiny::runApp(system.file("test_modules/app_test_visuallize_data.R", 
+                            package = "shinymodules"), launch.browser = TRUE)
+  
+}
+
+
 #' @title Run an R Markdown example application to visualise statistics
 #' 
 #' @description

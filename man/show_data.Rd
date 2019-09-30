@@ -23,6 +23,9 @@ Done by callModule automatically.}
 data, default is "all". "pct_zero", "pct_NA", "mean", "median", "sd" are
 always computed, possible values are "min", "max", "var", "ecart_interquartile",
 "mode_max", "kurtosis", "skewness", "boxplot", "density".}
+
+\item{nb_modal2show}{\code{integer} number of modalities to show 
+for factor variables.}
 }
 \value{
 Server logic
