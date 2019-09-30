@@ -120,7 +120,7 @@ run_example_app_filter_and_show_data <- function(
 run_example_app_visualize_data <- function() {
   
   G <- .GlobalEnv
-  shiny::runApp(system.file("test_modules/app_test_visuallize_data.R", 
+  shiny::runApp(system.file("test_modules/app_test_visualize_data.R", 
                             package = "shinymodules"), launch.browser = TRUE)
   
 }
