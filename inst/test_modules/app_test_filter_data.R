@@ -7,7 +7,7 @@ ui <- fluidPage(
   shiny::fluidRow(
     shiny::column(12,
                   shiny::selectInput("data_load", label = "Choose data",
-                                     choices = c("mtcars", "iris", "cif"))
+                                     choices = c("mtcars", "iris"))
     ),
     shiny::column(12, filter_dataUI(id = "id")
     ),
@@ -27,10 +27,8 @@ server <- function(input, output, session) {
         reactive_data$data <- data.table::data.table(copy(mtcars))
       } else if (input$data_load == "iris") {
         reactive_data$data <- data.table::data.table(copy(iris))
-      } else if (input$data_load == "cif") {
-        reactive_data$data <- data.table::fread(
-          "../../../../CIF/Demande Thibaut/2019-08-23dt_dtx_after_2015.csv")
       }
+      
       reactive_data$data_filtered <- reactive_data$data
 
     })

@@ -18,7 +18,8 @@ test_that(".get_stat_indicators", {
 })
 
 test_that(".get_factor_indicators", {
-  stats_fact <- .get_factor_indicators(data = iris, fact_vars = "Species", nb_modal2show = 3)
+  stats_fact <- .get_factor_indicators(data = iris, fact_vars = "Species", 
+                                       nb_modal2show = 3)
   expect_true("datatables" %in% class(stats_fact))
   expect_true("htmlwidget" %in% class(stats_fact))
   
