@@ -201,8 +201,7 @@ visualize_data <- function(input, output, session, data = NULL) {
     if(!is.null(input$type_plot)) {
       if (!(nrow(dataplot()) > javascript.limit & 
             input$type_plot %in% c("point", "line", "timeseries"))) {
-        selectInput(ns("dynamic"), " dynamic : ", c("yes", "no"), 
-                    multiple = FALSE)
+        shiny::checkboxInput(ns("dynamic"), " dynamic", value = TRUE)
       }
     }
   })
@@ -242,7 +241,7 @@ visualize_data <- function(input, output, session, data = NULL) {
       shiny::isolate({
         data <- dataplot()
         !((input$type_plot %in% c("line", "point", "timeseries") &
-            nrow(data) > javascript.limit) | input$dynamic == "no")
+            nrow(data) > javascript.limit) | !input$dynamic)
       })
     }
   })
@@ -307,7 +306,6 @@ visualize_data <- function(input, output, session, data = NULL) {
         if(!javascriptplot()){
           shiny::withProgress(message = 'Graphic...', value = 0.5,{
             data <- dataplot()
-            print(palette_ggplot)
               p <- plotStaticExploratory(data, type = input$type_plot,
                                          aggregation = input$aggregation,
                                          palette_ggplot = palette_ggplot)
