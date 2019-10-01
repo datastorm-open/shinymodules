@@ -34,9 +34,14 @@ visualize_dataUI <- function(id) {
                     shiny::uiOutput(ns("y_input_ui"))),
       shiny::column(2, 
                     shiny::uiOutput(ns("graph"))),
+      shiny::column(1, 
+                    shiny::uiOutput(ns("graph_type"))
+                    
+      ),
       shiny::column(2, 
                     shiny::uiOutput(ns("explore_aggregation"))
       ),
+
       shiny::column(1,tags$br(), shiny::div(
         shiny::actionButton(ns("goscatter"), "Go!"), align = "center"))
     ),
@@ -100,7 +105,7 @@ visualize_dataUI <- function(id) {
 visualize_data <- function(input, output, session, data = NULL) {
   ns <- session$ns
   javascript.limit <- 10000
-  
+  palette_ggplot <- "PuOr"
   ####### VISUALISATION
   
   # VARIABLE X POUR L'EXPLORATION
@@ -156,13 +161,13 @@ visualize_data <- function(input, output, session, data = NULL) {
         }
         
         if(any(classx %in% c("numeric", "integer"))) {
-          if(classy == "NULL"){
+          if (classy == "NULL") {
             ctype <- c("hist", "point", "line", "boxplot")
-          }else if(any(classy %in% c("numeric", "integer"))) {
+          } else if (any(classy %in% c("numeric", "integer"))) {
             ctype <- c("point", "line")
-          }else if(any(classy %in% c("factor", "character","boolean"))) {
+          } else if (any(classy %in% c("factor", "character","boolean"))) {
             ctype <- c("boxplot")
-          }else if(any(classy %in% c("IDate", "Date"))) {
+          } else if (any(classy %in% c("IDate", "Date"))) {
             ctype <- c("timeseries")
           }
         }
@@ -171,19 +176,19 @@ visualize_data <- function(input, output, session, data = NULL) {
             ctype <- c("boxplot")
           }
         }
-        if(!any(classx %in% c("numeric", "integer")) &
-           !any(classy %in% c("numeric", "integer"))){
+        if (!any(classx %in% c("numeric", "integer")) &
+            !any(classy %in% c("numeric", "integer"))) {
           ctype <- c("heatmap")
         }
-        if(!any(classx %in% c("numeric", "integer")) & classy == "NULL") {
+        if (!any(classx %in% c("numeric", "integer")) & classy == "NULL") {
           ctype <- c("barplot")
         }
-        if(any(classx %in% c("IDate", "Date")) &
-           any(classy %in% c("numeric", "integer"))){
+        if (any(classx %in% c("IDate", "Date")) &
+            any(classy %in% c("numeric", "integer"))) {
           ctype <- c("timeseries")
         }
-        if(any(classx %in% c("IDate", "Date")) &
-           !any(classy%in%c("numeric", "integer"))){
+        if (any(classx %in% c("IDate", "Date")) &
+            !any(classy%in%c("numeric", "integer"))) {
           ctype <- NULL
         }
         
@@ -193,11 +198,22 @@ visualize_data <- function(input, output, session, data = NULL) {
     
   })
   
+<<<<<<< HEAD
+=======
+  output$graph_type <- shiny::renderUI({
+    if(!is.null(input$type_plot)) {
+      if (!(nrow(dataplot()) > javascript.limit & 
+            input$type_plot %in% c("point", "line", "timeseries"))) {
+        shiny::checkboxInput(ns("dynamic"), " dynamic", value = TRUE)
+      }
+    }
+  })
+  
   output$explore_aggregation <- shiny::renderUI({
-    if(!is.null(input$type_plot)){
+    if(!is.null(input$type_plot)) {
       if(input$type_plot == "timeseries" &
          #!(input$type_plot %in% c("line", "point", "timeseries") &
-         nrow(dataplot()) > javascript.limit){
+         nrow(dataplot()) > javascript.limit) {
         shiny::selectInput(ns("aggregation"), "Aggregation :",
                            c("Average", "Sum", "Low", "High"))
       }
@@ -208,15 +224,15 @@ visualize_data <- function(input, output, session, data = NULL) {
     data <- data()
     varx <- input$x_input
     vary <- input$y_input
-    if(length(varx) > 0 & length(vary)){
+    if (length(varx) > 0 & length(vary)) {
       if(vary == "NULL"){
         data <- data[ , c(varx), with = FALSE]
-      }else{
-        if(varx != "date" & vary != "date"){
+      } else{
+        if (varx != "date" & vary != "date") {
           data <- data[ , c(varx, vary), with = FALSE]
-        }else if(varx == "date"){
+        } else if(varx == "date") {
           data <- data[ , c("date", "time", vary), with = FALSE]
-        }else if(vary == "date"){
+        } else if(vary == "date") {
           data <- data[ , c("date", "time", varx), with = FALSE]
         }
       }
@@ -224,11 +240,11 @@ visualize_data <- function(input, output, session, data = NULL) {
   })
   
   javascriptplot <- shiny::reactive({
-    if(input$goscatter > 0){
+    if(input$goscatter > 0) {
       shiny::isolate({
         data <- dataplot()
-        !(input$type_plot %in% c("line", "point", "timeseries") &
-            nrow(data) > javascript.limit)
+        !((input$type_plot %in% c("line", "point", "timeseries") &
+            nrow(data) > javascript.limit) | !input$dynamic)
       })
     }
   })
@@ -245,7 +261,8 @@ visualize_data <- function(input, output, session, data = NULL) {
         if(javascriptplot()){
           shiny::withProgress(message = 'Graphic...', value = 0.5,{
             data <- dataplot()
-            if(!(input$type_plot %in% c("line", "point","heatmap") & ncol(data) == 2)){
+            if(!(input$type_plot %in% c("line", "point","heatmap") & 
+                 ncol(data) == 2)){
               plotExploratory(data, type = input$type_plot,
                               aggregation = input$aggregation)
             }
@@ -292,8 +309,9 @@ visualize_data <- function(input, output, session, data = NULL) {
         if(!javascriptplot()){
           shiny::withProgress(message = 'Graphic...', value = 0.5,{
             data <- dataplot()
-            p <- plotStaticExploratory(data, type = input$type_plot,
-                                       aggregation = input$aggregation)
+              p <- plotStaticExploratory(data, type = input$type_plot,
+                                         aggregation = input$aggregation,
+                                         palette_ggplot = palette_ggplot)
             print(p)
           })
         }

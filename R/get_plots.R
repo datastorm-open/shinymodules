@@ -22,7 +22,8 @@
 #' plotScatterplot(mtcars[, list(drat, wt)], type = "point", js = F)
 #' }
 #'
-plotScatterplot <- function(data, type = "line", js = TRUE, id = NULL){
+plotScatterplot <- function(data, type = "line", js = TRUE, id = NULL,
+                            palette_ggplot){
   
   tmpdata <- data.table::data.table(data)
   ctrl <- sapply(colnames(tmpdata), function(quanti.var){
@@ -64,17 +65,20 @@ plotScatterplot <- function(data, type = "line", js = TRUE, id = NULL){
         tmpdata$observation <- 1:nrow(tmpdata)
         if(type != "line") {
           graph <- ggplot2::ggplot(tmpdata, environment = environment()) + 
-            ggplot2::geom_point(ggplot2::aes(x =  observation, 
-                           y = get(colnames(tmpdata)[1]))) + 
+            # ggplot2::geom_point(ggplot2::aes(x =  observation, 
+            #                                  y = get(colnames(tmpdata)[1]))) +
+            geom_hex(ggplot2::aes(x =  observation, 
+                                  y = get(colnames(tmpdata)[1]))) + 
+            scale_fill_gradientn(colours = brewer.pal(8, palette_ggplot)) +
             ggplot2::ylab(colnames(tmpdata)[1]) + 
             ggplot2::ggtitle(colnames(tmpdata)[1]) + 
-            ggplot2::theme_bw() +
+            ggplot2::theme_bw() + 
             ggplot2::theme(plot.title = element_text(hjust = 0.5))
           
         } else {
           graph <- ggplot2::ggplot(tmpdata, environment = environment()) + 
             ggplot2::geom_line(ggplot2::aes( x =  observation, 
-                                             y = get(colnames(tmpdata)[1]))) + 
+                                             y = get(colnames(tmpdata)[1]))) +
             ggplot2::ylab(colnames(tmpdata)[1]) + 
             ggplot2::ggtitle(colnames(tmpdata)[1]) + 
             ggplot2::theme_bw() +
@@ -83,9 +87,20 @@ plotScatterplot <- function(data, type = "line", js = TRUE, id = NULL){
       }
       
     } else if (type == "hist") {
-      graph <- rAmCharts::amHist(x = tmpdata[, get(colnames(tmpdata)[1])], 
-                                 main = colnames(tmpdata)[1], ylab ="", 
-                                 xlab = colnames(tmpdata)[1])
+      if (js) {
+        graph <- rAmCharts::amHist(x = tmpdata[, get(colnames(tmpdata)[1])], 
+                                   main = colnames(tmpdata)[1], ylab ="", 
+                                   xlab = colnames(tmpdata)[1])
+      } else {
+        graph <- ggplot2::ggplot(tmpdata, environment = environment()) +
+          ggplot2::geom_histogram(
+            ggplot2::aes(x = get(colnames(tmpdata)[1])), 
+            color = "purple", fill = "lightblue") +
+          ggplot2::xlab(colnames(tmpdata)[1]) +
+          ggplot2::ggtitle(colnames(tmpdata)[1]) +
+          ggplot2::theme_bw() +
+          ggplot2::theme(plot.title = element_text(hjust = 0.5))
+      }
     }
     
   } else {
@@ -127,21 +142,24 @@ plotScatterplot <- function(data, type = "line", js = TRUE, id = NULL){
       if (type != "line") {
         graph <- ggplot2::ggplot(tmpdata, environment = environment()) + 
           ggplot2::geom_point(ggplot2::aes( x =  get(colnames(tmpdata)[1]), 
-                                  y = get(colnames(tmpdata)[2]))) + 
+                                            y = get(colnames(tmpdata)[2]))) + 
+          geom_hex(ggplot2::aes( x =  get(colnames(tmpdata)[1]), 
+                                 y = get(colnames(tmpdata)[2]))) +
+          scale_fill_gradientn(colours = brewer.pal(8, palette_ggplot)) +
           ggplot2::ylab(colnames(tmpdata)[2]) + 
           ggplot2::xlab(colnames(tmpdata)[1]) + 
           ggplot2::ggtitle(paste(colnames(tmpdata)[1], 
-                                colnames(tmpdata)[2], sep = " ~ ")) + 
+                                 colnames(tmpdata)[2], sep = " ~ ")) + 
           ggplot2::theme_bw() +
           ggplot2::theme(plot.title = element_text(hjust = 0.5))
         
       } else {
         graph <- ggplot2::ggplot(tmpdata, environment = environment()) + 
           ggplot2::geom_line(aes( x =  get(colnames(tmpdata)[1]), 
-                                 y = get(colnames(tmpdata)[2]))) + 
+                                  y = get(colnames(tmpdata)[2]))) + 
           ggplot2::ylab(colnames(tmpdata)[2]) + xlab(colnames(tmpdata)[1]) + 
           ggplot2::ggtitle(paste(colnames(tmpdata)[1],
-                                colnames(tmpdata)[2], sep = " ~ ")) + 
+                                 colnames(tmpdata)[2], sep = " ~ ")) + 
           ggplot2::theme_bw() +
           ggplot2::theme(plot.title = element_text(hjust = 0.5))
       }
@@ -151,35 +169,70 @@ plotScatterplot <- function(data, type = "line", js = TRUE, id = NULL){
   graph
 }
 
-plotBoxplot <- function(data, quanti.var, quali.var = NULL, main =""){
+plotBoxplot <- function(data, quanti.var, quali.var = NULL, main ="", js, palette_ggplot){
   
   data[, c(quanti.var) := round(get(quanti.var), 2)]
   
   if (is.null(quali.var)) {
-    amBoxplot(data[, get(quanti.var)], 
-              ylab = quanti.var, main = quanti.var)
+    if (js) {
+      amBoxplot(data[, get(quanti.var)], 
+                ylab = quanti.var, main = quanti.var)
+    } else {
+      ggplot2::ggplot(data = data, aes(y = get(quanti.var))) +
+        ggplot2::geom_boxplot(notch = TRUE, color = "purple", fill = "lightblue") +
+        ggplot2::ylab(c(quanti.var)) + 
+        ggplot2::ggtitle(c(quanti.var)) + 
+        ggplot2::theme_bw() +
+        ggplot2::theme(plot.title = element_text(hjust = 0.5))
+      
+    }
   } else {
     formule <- paste(quanti.var, "~", quali.var)
-    amBoxplot(as.formula(formule), data = data, 
-              xlab = quali.var, ylab = quanti.var,
-              main = paste(quanti.var, quali.var, sep = " ~ "))
+    if (js) {
+      amBoxplot(as.formula(formule), data = data, 
+                xlab = quali.var, ylab = quanti.var,
+                main = paste(quanti.var, quali.var, sep = " ~ "))
+    } else {
+      ggplot2::ggplot(data = data, 
+                      aes(x = get(quali.var), y = get(quanti.var), fill = get(quali.var))) +
+        ggplot2::geom_boxplot(notch = TRUE) +
+        ggplot2::scale_fill_brewer(palette = palette_ggplot) +
+        ggplot2::stat_summary(fun.y = mean, geom = "point", shape = 23, size = 4) +
+        ggplot2::xlab(c(quali.var)) + 
+        ggplot2::ylab(c(quanti.var)) + 
+        ggplot2::ggtitle(paste(quanti.var, quali.var, sep = " ~ ")) + 
+        ggplot2::theme_bw() +
+        ggplot2::theme(plot.title = element_text(hjust = 0.5))
+      
+    }
   }
 }
 
-plotBarplot <- function(data){
+plotBarplot <- function(data, js){
   
   var <- colnames(data)[1]
-  data <- data[, list(count = .N), by = get(var)]
-  amSerialChart(theme = "light", categoryField = colnames(data)[1], 
-                creditsPosition = "top-left") %>>% 
-    addTitle(text = var) %>>%
-    setDataProvider(data) %>>% 
-    setCategoryAxis(title = var) %>>% 
-    addValueAxes(title = "count") %>>%
-    addGraph(balloonText = "[[category]]: <b>[[value]]</b>", type = "column",
-             valueField = "count", fillAlphas = .8, lineAlpha = .2) %>>% 
-    setExport(position = "top-right") %>>% setChartCursor() %>>% 
-    plot()
+  data <- data[, list(count = .N), by = c(var)]
+  if (js) {
+    amSerialChart(theme = "light", categoryField = colnames(data)[1], 
+                  creditsPosition = "top-left") %>>% 
+      addTitle(text = var) %>>%
+      setDataProvider(data) %>>% 
+      setCategoryAxis(title = var) %>>% 
+      addValueAxes(title = "count") %>>%
+      addGraph(balloonText = "[[category]]: <b>[[value]]</b>", type = "column",
+               valueField = "count", fillAlphas = .8, lineAlpha = .2) %>>% 
+      setExport(position = "top-right") %>>% setChartCursor() %>>% 
+      plot()
+  } else {
+    ggplot2::ggplot(data = data, aes(x = get(var), y = count, fill = get(var))) +
+      ggplot2::geom_bar(stat = "identity", color = "blue") +
+      ggplot2::scale_fill_brewer(palette = palette_ggplot) +
+      ggplot2::geom_text(aes(label = count), vjust=1.6, color="white", size=3.5) +
+      ggplot2::xlab(c(var)) +
+      ggplot2::ggtitle(c(var)) + 
+      ggplot2::theme_bw() +
+      ggplot2::theme(plot.title = element_text(hjust = 0.5))
+  }
 }
 
 
@@ -214,7 +267,7 @@ plotHeatmap <- function(data) {
 #'
 #' @import ggplot2 rAmCharts
 #' @export
-#' @examples 
+#' @examples
 #' \dontrun{
 #' iris <- data.table::copy(data.table(datasets::iris))
 #' flights <- data.table(nycflights13::flights)
@@ -241,14 +294,14 @@ plotExploratory <- function (data, type, aggregation = NULL, js = TRUE) {
   
   if (type == "boxplot") {
     if (ncol(data) == 2) {
-      graph <- plotBoxplot(data, colnames(data)[2], colnames(data)[1])
+      graph <- plotBoxplot(data, colnames(data)[2], colnames(data)[1], js = js)
     } else {
-      graph <- plotBoxplot(data, quanti.var = colnames(data)[1], quali.var = NULL)
+      graph <- plotBoxplot(data, quanti.var = colnames(data)[1], 
+                           quali.var = NULL, js = js)
     }
   } else if (type == "barplot") {
-    graph <- plotBarplot(data)
-    # }else if(type == "heatmap"){
-    #   graph <- plotHeatmap(data)
+    graph <- plotBarplot(data, js = js)
+    
   } else if (type == "timeseries") {
     dataseries <- data.table(data)
     
@@ -261,7 +314,8 @@ plotExploratory <- function (data, type, aggregation = NULL, js = TRUE) {
   graph
 }
 
-plotStaticExploratory <- function(data, type, aggregation = NULL, js = TRUE) {
+plotStaticExploratory <- function(data, type, aggregation = NULL, js = FALSE,
+                                  palette_ggplot) {
   
   classx <- class(data[, get(colnames(data)[1])])
   if (ncol(data) > 1) {
@@ -279,8 +333,22 @@ plotStaticExploratory <- function(data, type, aggregation = NULL, js = TRUE) {
     graph <- plotTimeSeries(dataseries, col.date = colnames(dataseries)[1], 
                             col.series = colnames(dataseries)[2], 
                             aggregation = aggregation, point.size = 0, js = js)
+    
+  } else if (type == "boxplot") {
+    if (ncol(data) == 2) {
+      graph <- plotBoxplot(data, colnames(data)[2], colnames(data)[1], js = js,
+                           palette_ggplot = palette_ggplot)
+    } else {
+      graph <- plotBoxplot(data, quanti.var = colnames(data)[1], 
+                           quali.var = NULL, js = js, 
+                           palette_ggplot = palette_ggplot)
+    }
+    
+  } else if (type == "barplot") {
+    graph <- plotBarplot(data, js = js, palette_ggplot = palette_ggplot)
   } else {
-    graph <- plotScatterplot(data, type = type, js = FALSE)
+    graph <- plotScatterplot(data, type = type, js = js, 
+                             palette_ggplot = palette_ggplot)
   }
   graph
 }
