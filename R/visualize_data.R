@@ -105,7 +105,7 @@ visualize_dataUI <- function(id) {
 visualize_data <- function(input, output, session, data = NULL) {
   ns <- session$ns
   javascript.limit <- 10000
-  
+  palette_ggplot <- "PuOr"
   ####### VISUALISATION
   
   # VARIABLE X POUR L'EXPLORATION
@@ -307,8 +307,10 @@ visualize_data <- function(input, output, session, data = NULL) {
         if(!javascriptplot()){
           shiny::withProgress(message = 'Graphic...', value = 0.5,{
             data <- dataplot()
+            print(palette_ggplot)
               p <- plotStaticExploratory(data, type = input$type_plot,
-                                         aggregation = input$aggregation)
+                                         aggregation = input$aggregation,
+                                         palette_ggplot = palette_ggplot)
             print(p)
           })
         }
