@@ -59,7 +59,7 @@ visualize_dataUI <- function(id) {
       ),
       shiny::conditionalPanel(condition = paste0(
         "output['", ns("ctrlplot"), "'] === 'heatmap'"),
-        DT::dataTableOutput(ns("heatmap"))
+        DT::DTOutput(ns("heatmap"))
       )
     ),
     shiny::conditionalPanel(condition = paste0(
@@ -85,7 +85,9 @@ visualize_dataUI <- function(id) {
 #' 
 #' @return Server logic
 #' @export
-#' @import shiny DT data.table magrittr sparkline PerformanceAnalytics htmlwidgets
+#' @importFrom DT DTOutput renderDT
+#' @import shiny data.table magrittr sparkline PerformanceAnalytics htmlwidgets 
+#' RColorBrewer hexbin stats grDevices stats
 #'
 #' @examples 
 #' \dontrun{
@@ -105,7 +107,7 @@ visualize_dataUI <- function(id) {
 visualize_data <- function(input, output, session, data = NULL) {
   ns <- session$ns
   javascript.limit <- 10000
-  palette_ggplot <- "PuOr"
+  palette_ggplot <- "RdYlGn"
   ####### VISUALISATION
   
   # VARIABLE X POUR L'EXPLORATION
@@ -167,7 +169,7 @@ visualize_data <- function(input, output, session, data = NULL) {
             ctype <- c("point", "line")
           } else if (any(classy %in% c("factor", "character","boolean"))) {
             ctype <- c("boxplot")
-          } else if (any(classy %in% c("IDate", "Date"))) {
+          } else if (any(classy %in% c("IDate", "Date", "POSIXlt", "POSIXct"))) {
             ctype <- c("timeseries")
           }
         }
@@ -176,18 +178,18 @@ visualize_data <- function(input, output, session, data = NULL) {
             ctype <- c("boxplot")
           }
         }
-        if (!any(classx %in% c("numeric", "integer")) &
-            !any(classy %in% c("numeric", "integer"))) {
+        if (!any(classx %in% c("numeric", "integer", "IDate", "Date", "POSIXlt", "POSIXct")) &
+            !any(classy %in% c("numeric", "integer", "IDate", "Date", "POSIXlt", "POSIXct"))) {
           ctype <- c("heatmap")
         }
         if (!any(classx %in% c("numeric", "integer")) & classy == "NULL") {
           ctype <- c("barplot")
         }
-        if (any(classx %in% c("IDate", "Date")) &
+        if (any(classx %in% c("IDate", "Date", "POSIXlt", "POSIXct")) &
             any(classy %in% c("numeric", "integer"))) {
           ctype <- c("timeseries")
         }
-        if (any(classx %in% c("IDate", "Date")) &
+        if (any(classx %in% c("IDate", "Date", "POSIXlt", "POSIXct")) &
             !any(classy%in%c("numeric", "integer"))) {
           ctype <- NULL
         }
@@ -198,22 +200,21 @@ visualize_data <- function(input, output, session, data = NULL) {
     
   })
   
-<<<<<<< HEAD
-=======
   output$graph_type <- shiny::renderUI({
     if(!is.null(input$type_plot)) {
       if (!(nrow(dataplot()) > javascript.limit & 
             input$type_plot %in% c("point", "line", "timeseries"))) {
-        shiny::checkboxInput(ns("dynamic"), " dynamic", value = TRUE)
+       shiny::checkboxInput(ns("dynamic"), " dynamic", value = TRUE)
       }
     }
   })
   
   output$explore_aggregation <- shiny::renderUI({
     if(!is.null(input$type_plot)) {
-      if(input$type_plot == "timeseries" &
-         #!(input$type_plot %in% c("line", "point", "timeseries") &
-         nrow(dataplot()) > javascript.limit) {
+      if(input$type_plot == "timeseries" 
+         # & !(input$type_plot %in% c("line", "point", "timeseries") 
+         # & nrow(dataplot()) > javascript.limit
+         ) {
         shiny::selectInput(ns("aggregation"), "Aggregation :",
                            c("Average", "Sum", "Low", "High"))
       }
@@ -221,13 +222,15 @@ visualize_data <- function(input, output, session, data = NULL) {
   })
   
   dataplot <- shiny::reactive({
+    # browser()
     data <- data()
     varx <- input$x_input
     vary <- input$y_input
-    if (length(varx) > 0 & length(vary)) {
+    if (length(varx) > 0) {
       if(vary == "NULL"){
         data <- data[ , c(varx), with = FALSE]
-      } else{
+      } 
+      else{
         if (varx != "date" & vary != "date") {
           data <- data[ , c(varx, vary), with = FALSE]
         } else if(varx == "date") {
@@ -243,8 +246,12 @@ visualize_data <- function(input, output, session, data = NULL) {
     if(input$goscatter > 0) {
       shiny::isolate({
         data <- dataplot()
+        print(input$type_plot %in% c("line", "point", "timeseries") &
+                nrow(data) > javascript.limit)
         !((input$type_plot %in% c("line", "point", "timeseries") &
-            nrow(data) > javascript.limit) | !input$dynamic)
+            nrow(data) > javascript.limit) || !input$dynamic)
+        # (!(input$type_plot %in% c("line", "point", "timeseries") &&
+        #      nrow(data) > javascript.limit) && input$dynamic)
       })
     }
   })
@@ -252,7 +259,6 @@ visualize_data <- function(input, output, session, data = NULL) {
   output$javascriptexplore <- shiny::reactive({
     javascriptplot()
   })
-  
   outputOptions(output, "javascriptexplore", suspendWhenHidden = FALSE)
   
   output$stockPlot <- rAmCharts::renderAmCharts({
@@ -261,9 +267,10 @@ visualize_data <- function(input, output, session, data = NULL) {
         if(javascriptplot()){
           shiny::withProgress(message = 'Graphic...', value = 0.5,{
             data <- dataplot()
-            if(!(input$type_plot %in% c("line", "point","heatmap") & 
+            if(!(input$type_plot %in% c("line", "point", "heatmap") & 
                  ncol(data) == 2)){
-              plotExploratory(data, type = input$type_plot,
+              print("time_series_check dynamic")
+              .plotExploratory(data, type = input$type_plot,
                               aggregation = input$aggregation)
             }
           })
@@ -278,8 +285,8 @@ visualize_data <- function(input, output, session, data = NULL) {
         if(javascriptplot()){
           shiny::withProgress(message = 'Graphic...', value = 0.5,{
             data <- dataplot()
-            if(input$type_plot%in%c("line", "point") & ncol(data) == 2){
-              plotExploratory(data, type = input$type_plot)
+            if(input$type_plot %in% c("line", "point") & ncol(data) == 2){
+              .plotExploratory(data, type = input$type_plot)
             }
           })
         }
@@ -293,8 +300,7 @@ visualize_data <- function(input, output, session, data = NULL) {
           shiny::withProgress(message = 'Graphic...', value = 0.5,{
             data <- dataplot()
             if(input$type_plot == "heatmap" & ncol(data) == 2){
-              get_Heatmapdt(data)
-              
+              .get_Heatmapdt(data)
             }
           })
         }
@@ -309,7 +315,8 @@ visualize_data <- function(input, output, session, data = NULL) {
         if(!javascriptplot()){
           shiny::withProgress(message = 'Graphic...', value = 0.5,{
             data <- dataplot()
-              p <- plotStaticExploratory(data, type = input$type_plot,
+            print("time_series_check static")
+              p <- .plotStaticExploratory(data, type = input$type_plot,
                                          aggregation = input$aggregation,
                                          palette_ggplot = palette_ggplot)
             print(p)

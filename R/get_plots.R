@@ -8,23 +8,14 @@
 #' values are "line", "point" and "hist"
 #' @param js \code{logical} if TRUE, the graph is interactive (default TRUE)
 #' @param id \code{character} if you use an id column, default NULL
-#'
+#' @param palette_ggplot \code{character} ggplot color palette for scale_fill_gradientn function, default NULL "RdYlGn"
+
 #' @import ggplot2 rAmCharts
-#' @export
 #' 
-#' @examples 
-#' \dontrun{
-#' mtcars <- data.table::copy(data.table(datasets::mtcars))
-#' 
-#' plotScatterplot(mtcars[, list(mpg, cyl)], type = "line", js = T)
-#' plotScatterplot(mtcars[, list(mpg, drat)], type = "point", js = T)
-#' plotScatterplot(mtcars[, list(drat)], type = "hist", js = T)
-#' plotScatterplot(mtcars[, list(drat, wt)], type = "point", js = F)
-#' }
 #'
-plotScatterplot <- function(data, type = "line", js = TRUE, id = NULL,
-                            palette_ggplot){
-  
+.plotScatterplot <- function(data, type = "line", js = TRUE, id = NULL,
+                            palette_ggplot = "RdYlGn"){
+  observation <- NULL # for checking R package
   tmpdata <- data.table::data.table(data)
   ctrl <- sapply(colnames(tmpdata), function(quanti.var){
     tmpdata[, c(quanti.var) := round(get(quanti.var), 2)]
@@ -208,7 +199,8 @@ plotBoxplot <- function(data, quanti.var, quali.var = NULL, main ="", js, palett
   }
 }
 
-plotBarplot <- function(data, js){
+plotBarplot <- function(data, js, palette_ggplot){
+  count <- NULL # for checking R package
   
   var <- colnames(data)[1]
   data <- data[, list(count = .N), by = c(var)]
@@ -237,6 +229,8 @@ plotBarplot <- function(data, js){
 
 
 plotHeatmap <- function(data) {
+  count <- NULL # for checking R package
+  
   keep.column <- colnames(data)
   # b = paste0("list(", paste(keep.column, collapse = ","), ")")
   datacount <- data[, list(count = .N), by = c(keep.column)]
@@ -249,7 +243,7 @@ plotHeatmap <- function(data) {
   
   res <- res[, -1]
   rownames(res) <- rownames
-  amHeatmap(res, nclasses = ifelse(unval <= 10, 10, 5), rownames = rownames,
+  .amHeatmap(res, nbclasses = ifelse(unval <= 10, 10, 5), rownames = rownames,
             main = paste0(colnames(data)[1], " ~ ", colnames(data)[2]))
 }
 
@@ -266,7 +260,7 @@ plotHeatmap <- function(data) {
 #' @param js \code{logical} TRUE if you want dynamic graph
 #'
 #' @import ggplot2 rAmCharts
-#' @export
+#' 
 #' @examples
 #' \dontrun{
 #' iris <- data.table::copy(data.table(datasets::iris))
@@ -280,8 +274,8 @@ plotHeatmap <- function(data) {
 #'
 #' }
 #'
-plotExploratory <- function (data, type, aggregation = NULL, js = TRUE) {
-  
+.plotExploratory <- function (data, type, aggregation = NULL, js = TRUE) {
+
   classx <- class(data[, get(colnames(data)[1])])
   if (ncol(data) > 1) {
     classy <- class(data[, get(colnames(data)[2])])
@@ -304,17 +298,17 @@ plotExploratory <- function (data, type, aggregation = NULL, js = TRUE) {
     
   } else if (type == "timeseries") {
     dataseries <- data.table(data)
-    
-    graph <- plotTimeSeries(dataseries, col.date = colnames(dataseries)[1], 
+    browser()
+    graph <- .plotTimeSeries(dataseries, col.date = colnames(dataseries)[1], 
                             col.series = colnames(dataseries)[2], 
                             aggregation = aggregation, js = js)
   } else {
-    graph <- plotScatterplot(data, type = type)
+    graph <- .plotScatterplot(data, type = type)
   }
   graph
 }
 
-plotStaticExploratory <- function(data, type, aggregation = NULL, js = FALSE,
+.plotStaticExploratory <- function(data, type, aggregation = NULL, js = FALSE,
                                   palette_ggplot) {
   
   classx <- class(data[, get(colnames(data)[1])])
@@ -329,8 +323,8 @@ plotStaticExploratory <- function(data, type, aggregation = NULL, js = FALSE,
   
   if (type == "timeseries") {
     dataseries <- data.table(data)
-    
-    graph <- plotTimeSeries(dataseries, col.date = colnames(dataseries)[1], 
+
+    graph <- .plotTimeSeries(dataseries, col.date = colnames(dataseries)[1], 
                             col.series = colnames(dataseries)[2], 
                             aggregation = aggregation, point.size = 0, js = js)
     
@@ -347,7 +341,7 @@ plotStaticExploratory <- function(data, type, aggregation = NULL, js = FALSE,
   } else if (type == "barplot") {
     graph <- plotBarplot(data, js = js, palette_ggplot = palette_ggplot)
   } else {
-    graph <- plotScatterplot(data, type = type, js = js, 
+    graph <- .plotScatterplot(data, type = type, js = js, 
                              palette_ggplot = palette_ggplot)
   }
   graph
@@ -386,9 +380,8 @@ plotStaticExploratory <- function(data, type, aggregation = NULL, js = FALSE,
 #'  col = c("blue", "purple"), point.size = 2, js = FALSE)
 #'  }
 #'  
-#' @export
 #' 
-plotTimeSeries <- function(data, col.date, col.series, ylab = "values",
+.plotTimeSeries <- function(data, col.date, col.series, ylab = "values",
                            main = NULL, aggregation = "Average", 
                            col = c("red", "black"),
                            point.size = 5,
@@ -396,7 +389,7 @@ plotTimeSeries <- function(data, col.date, col.series, ylab = "values",
   if ("data.table" %in% class(data)) {
     data <- as.data.frame(data)
   }
-  
+  browser()
   if (any(!col.date %in% colnames(data))) {
     stop("Can't find '", col.date, "' in data")
   }

@@ -77,7 +77,7 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
 #' 
 .get_indicators <- function(data, var, absolute = FALSE, optional_stats){
   
-  
+  tmp_compute_ind <- NULL
   data.table::setDT(data)
   if(absolute){
     data[, tmp_compute_ind := abs(get(var))]
@@ -116,14 +116,14 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
              "length(which(is.na(tmp_compute_ind)))/.N",
              "round(min(tmp_compute_ind, na.rm = T), 2)",
              "round(mean(tmp_compute_ind, na.rm = T), 2)",
-             "round(median(tmp_compute_ind, na.rm = T), 2)",
+             "round(stats::median(tmp_compute_ind, na.rm = T), 2)",
              "round(max(tmp_compute_ind, na.rm = T), 2)",
-             "round(sd(tmp_compute_ind, na.rm = TRUE), 2)",
-             "round(var(tmp_compute_ind, na.rm = TRUE), 2)",
-             "round(IQR(tmp_compute_ind, na.rm = TRUE), 2)",
+             "round(stats::sd(tmp_compute_ind, na.rm = TRUE), 2)",
+             "round(stats::var(tmp_compute_ind, na.rm = TRUE), 2)",
+             "round(stats::IQR(tmp_compute_ind, na.rm = TRUE), 2)",
              "round(getmode(tmp_compute_ind, na.rm = TRUE), 2)",
-             "round(kurtosis(tmp_compute_ind, na.rm = TRUE), 2)",
-             "round(skewness(tmp_compute_ind, na.rm = TRUE), 2)",
+             "round(PerformanceAnalytics::kurtosis(tmp_compute_ind, na.rm = TRUE), 2)",
+             "round(PerformanceAnalytics::skewness(tmp_compute_ind, na.rm = TRUE), 2)",
              # "spk_chr(getboxplotValues(tmp_compute_ind), type ='box', raw=TRUE , chartRangeMin = range_ind[1], chartRangeMax = range_ind[2], boxLineColor = '#0000ff', boxFillColor = '#aaffff', whiskerColor = '#0000ff', outlierLineColor = '#0000ff', medianColor = '#0000ff', outlierLineColor = '#0000ff', outlierFillColor = '#aad4ff')",
              "spk_chr(getboxplotValues(tmp_compute_ind), type ='box', raw=TRUE , boxLineColor = '#0000ff', boxFillColor = '#aaffff', whiskerColor = '#0000ff', outlierLineColor = '#0000ff', medianColor = '#0000ff', outlierLineColor = '#0000ff', outlierFillColor = '#aad4ff')",
              "spk_chr(tryCatch(density(tmp_compute_ind, n= 100, na.rm = T)$y, error = function(e) NULL))"),
@@ -197,7 +197,7 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
                                pct_NA = pct_na,
                                min = min(data[[var]], na.rm = T),
                                mean = mean(data[[var]], na.rm = T),
-                               median = median(data[[var]], na.rm = T),
+                               median = stats::median(data[[var]], na.rm = T),
                                max = max(data[[var]], na.rm = T)
         )})),
     rownames = FALSE, filter = "bottom", escape = FALSE, 
@@ -221,6 +221,7 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
 #' @import sparkline PerformanceAnalytics
 #' 
 .get_factor_indicators <- function(data, fact_vars, nb_modal2show) {
+  N <- NULL
   dt_fact <- DT::datatable(
     data.table::rbindlist(lapply(
       fact_vars, 

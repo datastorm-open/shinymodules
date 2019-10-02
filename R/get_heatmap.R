@@ -16,7 +16,7 @@ colorData <- function(data, nbclasses = NULL, col=c("#FF0000","#FFFFFF","#0000FF
     framclasses <- matrix(0, nrow = nrow(data), ncol = ncol(data))
     values <- unlist(c(data))
     if(nbclasses < length(unique(values))){
-      classes <- quantile(values, seq(from = 0, to = 1, length.out = nbclasses + 1))
+      classes <- stats::quantile(values, seq(from = 0, to = 1, length.out = nbclasses + 1))
       for(i in 1:(length(classes) - 1))
       {
         framclasses = framclasses + ((data >= classes[i]) + 1 - 1)
@@ -36,7 +36,7 @@ colorData <- function(data, nbclasses = NULL, col=c("#FF0000","#FFFFFF","#0000FF
     framclasses <- matrix(0, nrow = nrow(data), ncol = ncol(data))
     for(j in 1:ncol(data))
     {
-      classes <- quantile(sort((unlist(c(data[,j])))),
+      classes <- stats::quantile(sort((unlist(c(data[,j])))),
                           seq(from = 0, to = 1,length.out = nbclasses+1))
       
       for(i in 1:(length(classes)-1))
@@ -52,7 +52,7 @@ colorData <- function(data, nbclasses = NULL, col=c("#FF0000","#FFFFFF","#0000FF
     for(j in 1:nrow(data))
     {
       
-      classes <- quantile(sort((unlist(c(data[j,])))), 
+      classes <- stats::quantile(sort((unlist(c(data[j,])))), 
                           seq(from = 0, to = 1,length.out = nbclasses+1))
       for(i in 1:(length(classes)-1))
       {
@@ -61,7 +61,7 @@ colorData <- function(data, nbclasses = NULL, col=c("#FF0000","#FFFFFF","#0000FF
     }
   }
   
-  color <- colorRampPalette(col)(nbclasses)
+  color <- grDevices::colorRampPalette(col)(nbclasses)
   for(i in 1:length(color)){
     framclasses[framclasses == as.character(i)] <- color[i]
   }
@@ -152,7 +152,7 @@ heatmap <- function(data, classes, labels = TRUE, cex = 10, main = "",
     
     nbclasses <- classes$nclasses
     classes <- classes$labels
-    color <- colorRampPalette(col)(nbclasses)
+    color <- grDevices::colorRampPalette(col)(nbclasses)
     
     associated <- NULL
     if(nbclasses < length(classes)){
@@ -331,9 +331,8 @@ heatmap <- function(data, classes, labels = TRUE, cex = 10, main = "",
 #' }
 #' @return data.frame compound to original data.frame and associated constructor data.frame
 #' @import rAmCharts pipeR
-#' @export
 
-amHeatmap <- function(data, nbclasses = 5, col = c("#FF0000","#FFFFFF","#0000FF"), 
+.amHeatmap <- function(data, nbclasses = 5, col = c("#FF0000","#FFFFFF","#0000FF"), 
                       labels = TRUE, cex=10, main="", rownames,
                       xLabelsRotation=45, colorby="all", legend = TRUE) {
   
@@ -352,7 +351,7 @@ amHeatmap <- function(data, nbclasses = 5, col = c("#FF0000","#FFFFFF","#0000FF"
 #' @param data \code{data.table} data.table with two character columns
 #' @return DT in a heatmap form
 #' @import DT data.table
-#' @export
+
 #' @examples 
 #' \dontrun{
 #' titanic <- data.table(datasets::Titanic)
@@ -360,7 +359,7 @@ amHeatmap <- function(data, nbclasses = 5, col = c("#FF0000","#FFFFFF","#0000FF"
 #' 
 #' 
 #' }
-get_Heatmapdt <- function(data) {
+.get_Heatmapdt <- function(data) {
 
   dtCast <- data[, .N, by = c(colnames(data)[1], colnames(data)[2])]
   uniq_var1 <-length(unique(dtCast[, get(colnames(dtCast)[1])]))
@@ -383,7 +382,7 @@ get_Heatmapdt <- function(data) {
                             '</span></b>')
   
   
-  brks <- quantile(dtCast, probs = seq(.05, .95, .05), na.rm = TRUE)
+  brks <- stats::quantile(dtCast, probs = seq(.05, .95, .05), na.rm = TRUE)
   color <- round(seq(255, 40, length.out = length(brks) + 1), 0)
   color <- paste0("rgb(", color, ", ", color, ", ", "255)")
   

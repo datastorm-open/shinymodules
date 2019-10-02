@@ -1,13 +1,13 @@
 Package: shinymodules
-Title: Shiny module tools 
-Version: 0.0.1.0000
+Title: Shiny module tools
+Version: 0.0.1
 Authors@R: 
     person(given = "Datastorm",
            family = "Datastorm",
            role = c("aut", "cre"),
            email = "datastorm@datastorm.fr",
            comment = c())
-Description: Shiny module tools
+Description: Shiny module tools.
 License: GPL-3 
 Encoding: UTF-8
 Depends: R (>= 3.4)
@@ -27,5 +27,9 @@ Imports:
     rmarkdown,
     rAmCharts,
     pipeR,
-    ggplot2
+    ggplot2,
+    RColorBrewer,
+    hexbin,
+    stats,
+    grDevices
     
