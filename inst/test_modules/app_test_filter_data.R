@@ -42,7 +42,6 @@ server <- function(input, output, session) {
     
     observeEvent(data_filtered$data, {
       datafilt <- data_filtered$data
-      # print(datafilt)
       reactive_data$data_filtered <- datafilt
     })
     

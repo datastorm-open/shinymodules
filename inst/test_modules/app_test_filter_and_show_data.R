@@ -46,7 +46,6 @@ server <- function(input, output, session) {
     observeEvent(data_filtered$data, {
       datafilt <- data_filtered$data
       reactive_data$data_shown <- datafilt
-      print(str(datafilt))
     })
     
     callModule(module = show_data, id = "idshow",

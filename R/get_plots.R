@@ -196,7 +196,6 @@ plotBoxplot <- function(data, quanti.var, quali.var = NULL, main ="", js, palett
   } else {
     formule <- paste(quanti.var, "~", quali.var)
     if (js) {
-      print(palette_ggplot)
       amBoxplot(as.formula(formule), data = data, 
                 xlab = quali.var, ylab = quanti.var,
                 main = paste(quanti.var, quali.var, sep = " ~ "),
@@ -254,7 +253,6 @@ plotHeatmap <- function(data) {
   
   res <- dcast(datacount, as.formula(paste0(
     colnames(data)[1], "~", colnames(data)[2])), value.var='count', fill=0)
-  print(res)
   rownames <- res[, get(colnames(res)[1])]
   unval <- length(unique(datacount[, count]))
   

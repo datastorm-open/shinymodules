@@ -10,7 +10,7 @@ ui <- fluidPage(
   shiny::fluidRow(
     shiny::column(12,
                   shiny::selectInput("data_load", label = "Choose data",
-                                     choices = c("mtcars", "flights"))
+                                     choices = c("mtcars", "flights", "iris"))
     ),
     shiny::column(12, show_dataUI(id = "id")
     )
@@ -18,7 +18,7 @@ ui <- fluidPage(
 )
 
 server <- function(input, output, session) {
-  optional_stats <- c("min", "max")
+  # optional_stats <- c("min", "max")
   
   if (!exists("optional_stats")) {
     optional_stats <- "all"
@@ -34,6 +34,8 @@ server <- function(input, output, session) {
       reactive_data$data <- data.table::data.table(copy(mtcars))
     } else if (input$data_load == "flights") {
       reactive_data$data <- data.table::data.table(copy(nycflights13::flights))
+    } else if (input$data_load == "iris") {
+      reactive_data$data <- data.table::data.table(copy(iris))
     }
   })
   callModule(module = show_data, id = "id",

@@ -15,7 +15,6 @@
         values = paste0("c('", paste(values, collapse = "','"), "')")
       }else {
         values = paste0("c(", paste(values, collapse = ","), ")")
-        print("No!!")
       }
     }
     paste0(x$column, x$fun, values)

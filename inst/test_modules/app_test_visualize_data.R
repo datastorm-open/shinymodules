@@ -38,7 +38,6 @@ server <- function(input, output, session) {
         dt <- as.data.table(nycflights13::flights)[month(time_hour)==1]
         dt[, date_test := as.Date(time_hour)]
         reactive_data$data <- dt[sample(1:nrow(dt), 2000)]
-        print(nrow(reactive_data$data))
       }
       reactive_data$data_filtered <- reactive_data$data
       
