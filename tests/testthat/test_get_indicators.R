@@ -31,6 +31,4 @@ test_that("get_dt_num_dt_fac", {
   expect_true("list" %in% class(dt_num_fact))
   expect_true("datatables" %in% class(dt_num_fact$dt_num))
   expect_true("htmlwidget" %in% class(dt_num_fact$dt_num))
-  expect_true("datatables" %in% class(dt_num_fact$dt_fact))
-  expect_true("htmlwidget" %in% class(dt_num_fact$dt_fact))
 })
