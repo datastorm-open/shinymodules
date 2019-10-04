@@ -48,7 +48,7 @@ visualize_dataUI <- function(id, titles = TRUE) {
       shiny::column(2, 
                     shiny::uiOutput(ns("graph"))),
       shiny::column(1, 
-                    shiny::uiOutput(ns("graph_type"))
+                    shiny::checkboxInput(ns("dynamic"), " dynamic", value = TRUE)
                     
       ),
       shiny::column(2, 
@@ -108,7 +108,7 @@ visualize_data <- function(input, output, session, data = NULL) {
     data <- data()
     values <- colnames(data)
     shiny::isolate({
-      if(nrow(data) > 0){
+      if(nrow(data) > 0 ){
         shiny::selectInput(inputId = ns("x_input"), " X : ", choices = values,
                     selected = values[1], multiple = FALSE)
       }
@@ -138,7 +138,6 @@ visualize_data <- function(input, output, session, data = NULL) {
     vary <- input$y_input
     shiny::isolate({
       data <-  data()
-      
       if(!is.null(varx) | !is.null(vary)){
         classx <- class(data[, get(varx)])
         
@@ -186,19 +185,11 @@ visualize_data <- function(input, output, session, data = NULL) {
     })
     
   })
-  
-  output$graph_type <- shiny::renderUI({
-    if(!is.null(input$type_plot)) {
-      if (!(nrow(dataplot()) > javascript.limit & 
-            input$type_plot %in% c("point", "line", "timeseries"))) {
-       shiny::checkboxInput(ns("dynamic"), " dynamic", value = TRUE)
-      }
-    }
-  })
-  
+
   output$explore_aggregation <- shiny::renderUI({
-    if(!is.null(input$type_plot)) {
-      if(input$type_plot == "timeseries" 
+    plot_type <- input$type_plot
+    if(!is.null(plot_type)) {
+      if(plot_type == "timeseries" 
          # & !(input$type_plot %in% c("line", "point", "timeseries") 
          # & nrow(dataplot()) > javascript.limit
          ) {
@@ -209,12 +200,12 @@ visualize_data <- function(input, output, session, data = NULL) {
   })
   
   dataplot <- shiny::reactive({
-    # browser()
+    
     data <- data()
     varx <- input$x_input
     vary <- input$y_input
-    if (length(varx) > 0) {
-      if(vary == "NULL"){
+    if (length(varx) > 0 & varx %in% colnames(data)) {
+      if (vary == "NULL") {
         data <- data[ , c(varx), with = FALSE]
       } 
       else{
@@ -226,6 +217,9 @@ visualize_data <- function(input, output, session, data = NULL) {
           data <- data[ , c("date", "time", varx), with = FALSE]
         }
       }
+    } else {
+      varx <- colnames(data)[1]
+      vary <- "NULL"
     }
   })
   
