@@ -24,7 +24,6 @@ Imports:
     PerformanceAnalytics,
     htmlwidgets,
     nycflights13,
-    rmarkdown,
     rAmCharts,
     pipeR,
     ggplot2,
