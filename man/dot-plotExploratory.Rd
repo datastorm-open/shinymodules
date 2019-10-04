@@ -18,6 +18,9 @@ values are "boxplot", "barplot" and "timeseries"}
 (if timeseries), possible values are "Average", "Sum", "Low" and "High"}
 
 \item{js}{\code{logical} TRUE if you want dynamic graph}
+
+\item{palette_ggplot}{\code{character} palette you want to use for your graphics
+(one of the palettes from the package RColorBrew)}
 }
 \description{
 This function takes a data.table with one numeric

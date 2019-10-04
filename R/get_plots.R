@@ -275,6 +275,8 @@ plotHeatmap <- function(data) {
 #' @param aggregation \code{character} how you want to do the aggregation 
 #' (if timeseries), possible values are "Average", "Sum", "Low" and "High"
 #' @param js \code{logical} TRUE if you want dynamic graph
+#' @param palette_ggplot \code{character} palette you want to use for your graphics
+#' (one of the palettes from the package RColorBrew)
 #'
 #' @import ggplot2 rAmCharts
 #' 
