@@ -220,7 +220,7 @@ plotBoxplot <- function(data, quanti.var, quali.var = NULL, main ="", js, palett
 
 plotBarplot <- function(data, js, palette_ggplot){
   count <- NULL # for checking R package
-  
+  color <- NULL # for checking R package
   var <- colnames(data)[1]
   data <- data[, list(count = .N), by = c(var)]
   if (js) {
@@ -236,7 +236,7 @@ plotBarplot <- function(data, js, palette_ggplot){
     ggplot2::ggplot(data = data, aes(x = get(var), y = count, fill = get(var))) +
       ggplot2::geom_bar(stat = "identity", color = "blue") +
       ggplot2::scale_fill_brewer(palette = palette_ggplot) +
-      ggplot2::geom_text(aes(label = count), vjust=1.6, color="white", size=3.5) +
+      ggplot2::geom_text(aes(label = count), vjust = 1.6, color = "white", size = 3.5) +
       ggplot2::xlab(c(var)) +
       ggplot2::ggtitle(c(var)) + 
       ggplot2::theme_bw() +
