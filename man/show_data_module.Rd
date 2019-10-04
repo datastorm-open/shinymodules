@@ -5,7 +5,7 @@
 \alias{show_data}
 \title{UI part of the module show_data}
 \usage{
-show_dataUI(id)
+show_dataUI(id, titles = TRUE)
 
 show_data(input, output, session, data = NULL, optional_stats = "all",
   nb_modal2show = 3)
@@ -14,6 +14,8 @@ show_data(input, output, session, data = NULL, optional_stats = "all",
 \item{id}{\code{character} An id that will be used to create a namespace
 It returns two table, one with statistics on numeric data and one with 
 statistics on factor data}
+
+\item{titles}{\code{logical} Add titles on UI ? Default to TRUE}
 
 \item{input}{Not a real parameter, should not be set manually. 
 Done by callModule automatically.}
@@ -44,7 +46,7 @@ Shiny module to show descripive statistics on data
 
 \dontrun{
 
-ui = shiny::fluidPage(show_dataUI(id = "id"))
+ui = shiny::fluidPage(show_dataUI(id = "id", titles = TRUE))
 server = function(input, output, session) {
   data <- reactiveValues(data = iris)
   shiny::callModule(module = show_data, id = "id", data = reactive(data$data),

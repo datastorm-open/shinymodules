@@ -5,6 +5,7 @@
 #' @param id \code{character} An id that will be used to create a namespace
 #' It returns two table, one with statistics on numeric data and one with 
 #' statistics on factor data
+#' @param titles \code{logical} Add titles on UI ? Default to TRUE
 #' @param input Not a real parameter, should not be set manually. 
 #' Done by callModule automatically.
 #' @param output Not a real parameter, should not be set manually. 
@@ -29,7 +30,7 @@
 #' 
 #' \dontrun{
 #' 
-#' ui = shiny::fluidPage(show_dataUI(id = "id"))
+#' ui = shiny::fluidPage(show_dataUI(id = "id", titles = TRUE))
 #' server = function(input, output, session) {
 #'   data <- reactiveValues(data = iris)
 #'   shiny::callModule(module = show_data, id = "id", data = reactive(data$data),
@@ -45,20 +46,21 @@
 #' 
 #' @rdname show_data_module
 #' 
-show_dataUI <- function(id) {
+show_dataUI <- function(id, titles = TRUE) {
   ns <- shiny::NS(id)
   shiny::fluidPage(
     ## Stats descriptives on numerical variables in a first tab
     ## then on factor variables in a second tab
     shiny::fluidRow(
       column(12,
-             shiny::div(h2("Descriptive statistics"))
+             if(titles) shiny::div(h2("Descriptive statistics"))
       )
     ),
     shiny::fluidRow(
       column(12,
              shiny::conditionalPanel(
                condition = paste0("output['", ns("have_dt_num"), "'] === true"),
+               if(titles) shiny::div(h4("Numeric variables")),
                DT::DTOutput(ns("dt_num")))
       )
     ),
@@ -67,6 +69,7 @@ show_dataUI <- function(id) {
              shiny::conditionalPanel(
                condition = paste0("output['", ns("have_dt_dates"), "'] === true"),
                shiny::hr(),
+               if(titles) shiny::div(h4("Date variables")),
                DT::DTOutput(ns("dt_dates")))
       )
     ),
@@ -75,6 +78,7 @@ show_dataUI <- function(id) {
              shiny::conditionalPanel(
                condition = paste0("output['", ns("have_dt_fact"), "'] === true"),
                shiny::hr(),
+               if(titles) shiny::div(h4("Factor variables")),
                DT::DTOutput(ns("dt_fact")))
       )
     )
