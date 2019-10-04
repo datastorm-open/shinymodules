@@ -28,8 +28,10 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
   }
   
   # get variables with 2 to 10 levels then pass them to factors
-  fact_vars <- names(which(unlist(data[, lapply(
-    .SD, function(var) length(unique(na.omit(var))) %in% 2:10)])))
+  # fact_vars <- names(which(unlist(data[, lapply(
+  #   .SD, function(var) length(unique(na.omit(var))) %in% 2:10)])))
+  fact_vars <- names(which(
+    sapply(data, function(var) is.factor(var))))
   if(length(fact_vars) > 0) {
     data[, c(fact_vars) := lapply(.SD, as.factor), .SDcols = c(fact_vars)]
   }
