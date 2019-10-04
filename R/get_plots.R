@@ -316,7 +316,6 @@ plotHeatmap <- function(data) {
     
   } else if (type == "timeseries") {
     dataseries <- data.table(data)
-    browser()
     graph <- .plotTimeSeries(dataseries, col.date = colnames(dataseries)[1], 
                              col.series = colnames(dataseries)[2], 
                              aggregation = aggregation, js = js)
@@ -407,7 +406,6 @@ plotHeatmap <- function(data) {
   if ("data.table" %in% class(data)) {
     data <- as.data.frame(data)
   }
-  browser()
   if (any(!col.date %in% colnames(data))) {
     stop("Can't find '", col.date, "' in data")
   }

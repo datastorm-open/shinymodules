@@ -20,10 +20,12 @@ test_that(".plotScatterplot", {
 
 test_that(".plotExploratory", {
 
-  p1 <- .plotExploratory(iris[, list(Petal.Width, Species)], type = "barplot")
-  p2 <- .plotExploratory(iris[, list(Sepal.Width)], type = "boxplot")
+  p1 <- .plotExploratory(iris[, list(Petal.Width, Species)], type = "barplot",
+                         palette_ggplot = "RdYlGn")
+  p2 <- .plotExploratory(iris[, list(Sepal.Width)], type = "boxplot",
+                         palette_ggplot = "RdYlGn")
   p3 <- .plotExploratory(flights[, list(time_hour, distance)], type = "timeseries",
-  aggregation = "Average", js = F)
+  aggregation = "Average", js = F, palette_ggplot = "RdYlGn")
   
   expect_true("ramcharts_base" %in% class(p1))
   expect_true("AmChart" %in% class(p2))
