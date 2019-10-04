@@ -28,20 +28,19 @@
 #' @examples 
 #' 
 #' \dontrun{
-#' # In UI :
-#' show_dataUI(id = "id")
-#' # In Server, with data in a reactiveValues 
-#' # for example
-#' data <- reactiveValues(data = iris)
-#' optional_stats = "all"
-#' callModule(module = show_data, id = "id", data = reactive(data$data),
-#' optional_stats = optional_stats)
 #' 
+#' ui = shiny::fluidPage(show_dataUI(id = "id"))
+#' server = function(input, output, session) {
+#'   data <- reactiveValues(data = iris)
+#'   shiny::callModule(module = show_data, id = "id", data = reactive(data$data),
+#'     optional_stats = "all")
+#' }
+#' 
+#' shiny::shinyApp(ui = ui, server = server)
+#'           
 #' ## Examples apps
-#' optional_stats <- "all"
-#' run_example_app_show_data(optional_stats)
-#' optional_stats <- "all"
-#' run_example_app_filter_and_show_data(optional_stats)
+#' run_example_app_show_data()
+#' run_example_app_filter_and_show_data()
 #' }
 #' 
 #' @rdname show_data_module
