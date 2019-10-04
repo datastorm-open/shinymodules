@@ -14,7 +14,7 @@
 #' 
 #'
 .plotScatterplot <- function(data, type = "line", js = TRUE, id = NULL,
-                            palette_ggplot = "RdYlGn"){
+                             palette_ggplot = "RdYlGn"){
   observation <- NULL # for checking R package
   tmpdata <- data.table::data.table(data)
   ctrl <- sapply(colnames(tmpdata), function(quanti.var){
@@ -36,7 +36,11 @@
         lineAlpha <- ifelse (type == "line", 1, 0)
         bullet <- NULL
         if (type != "line") {
+          bulletColor <- suppressWarnings(RColorBrewer::brewer.pal(
+            12, palette_ggplot)[1])
           bullet <- "circle"
+        } else {
+          bulletColor <- NULL
         }
         graph <- rAmCharts::amSerialChart(
           theme = "light", creditsPosition = "top-left", dataProvider = tmpdata) %>>% 
@@ -45,10 +49,12 @@
           rAmCharts::setChartCursor(categoryBalloonEnabled = FALSE) %>>%
           rAmCharts::addGraph(balloonText = paste0(
             "Observation num. <b>[[id]]</b><br>", 
-            colnames(data)[1], " : <b>[[value]]</b>"), 
-            bullet = bullet,
-            valueField = colnames(data)[1],lineAlpha = lineAlpha) %>>%
-          rAmCharts::addValueAxes(title = colnames(data)[1]) %>>% 
+            colnames(tmpdata)[1], " : <b>[[value]]</b>"), 
+            bullet = bullet, bulletColor = bulletColor,
+            lineColor = suppressWarnings(RColorBrewer::brewer.pal(
+              12, palette_ggplot)[1]),
+            valueField = colnames(tmpdata)[1],lineAlpha = lineAlpha) %>>%
+          rAmCharts::addValueAxes(title = colnames(tmpdata)[1]) %>>% 
           rAmCharts::setExport(position = "top-right") %>>% 
           rAmCharts::plot()
         
@@ -60,7 +66,9 @@
             #                                  y = get(colnames(tmpdata)[1]))) +
             geom_hex(ggplot2::aes(x =  observation, 
                                   y = get(colnames(tmpdata)[1]))) + 
-            scale_fill_gradientn(colours = brewer.pal(8, palette_ggplot)) +
+            scale_fill_gradientn(colours = suppressWarnings(
+              RColorBrewer::brewer.pal(
+                12, palette_ggplot)[1])) +
             ggplot2::ylab(colnames(tmpdata)[1]) + 
             ggplot2::ggtitle(colnames(tmpdata)[1]) + 
             ggplot2::theme_bw() + 
@@ -81,7 +89,9 @@
       if (js) {
         graph <- rAmCharts::amHist(x = tmpdata[, get(colnames(tmpdata)[1])], 
                                    main = colnames(tmpdata)[1], ylab ="", 
-                                   xlab = colnames(tmpdata)[1])
+                                   xlab = colnames(tmpdata)[1], 
+                                   col = suppressWarnings(RColorBrewer::brewer.pal(
+                                     12, palette_ggplot)[1]))
       } else {
         graph <- ggplot2::ggplot(tmpdata, environment = environment()) +
           ggplot2::geom_histogram(
@@ -121,7 +131,11 @@
         rAmCharts::addGraph(balloonText = balloonText,
                             xField = colnames(tmpdata)[1],
                             yField = colnames(tmpdata)[2],
-                            bullet = bullet, lineAlpha = lineAlpha, bulletSize = 6) %>>%
+                            bullet = bullet, lineAlpha = lineAlpha, bulletSize = 6,
+                            bulletColor = suppressWarnings(RColorBrewer::brewer.pal(
+                              12, palette_ggplot)[1]),
+                            lineColor = suppressWarnings(RColorBrewer::brewer.pal(
+                              12, palette_ggplot)[1])) %>>%
         rAmCharts::setChartCursor() %>>%
         rAmCharts::addValueAxes(title = colnames(tmpdata)[2]) %>>% 
         rAmCharts::setExport(position = "top-right") %>>%
@@ -167,7 +181,9 @@ plotBoxplot <- function(data, quanti.var, quali.var = NULL, main ="", js, palett
   if (is.null(quali.var)) {
     if (js) {
       amBoxplot(data[, get(quanti.var)], 
-                ylab = quanti.var, main = quanti.var)
+                ylab = quanti.var, main = quanti.var, 
+                col = suppressWarnings(RColorBrewer::brewer.pal(
+                  12, palette_ggplot)))
     } else {
       ggplot2::ggplot(data = data, aes(y = get(quanti.var))) +
         ggplot2::geom_boxplot(notch = TRUE, color = "purple", fill = "lightblue") +
@@ -180,9 +196,12 @@ plotBoxplot <- function(data, quanti.var, quali.var = NULL, main ="", js, palett
   } else {
     formule <- paste(quanti.var, "~", quali.var)
     if (js) {
+      print(palette_ggplot)
       amBoxplot(as.formula(formule), data = data, 
                 xlab = quali.var, ylab = quanti.var,
-                main = paste(quanti.var, quali.var, sep = " ~ "))
+                main = paste(quanti.var, quali.var, sep = " ~ "),
+                col = suppressWarnings(RColorBrewer::brewer.pal(
+                  12, palette_ggplot)))
     } else {
       ggplot2::ggplot(data = data, 
                       aes(x = get(quali.var), y = get(quanti.var), fill = get(quali.var))) +
@@ -205,15 +224,13 @@ plotBarplot <- function(data, js, palette_ggplot){
   var <- colnames(data)[1]
   data <- data[, list(count = .N), by = c(var)]
   if (js) {
-    amSerialChart(theme = "light", categoryField = colnames(data)[1], 
-                  creditsPosition = "top-left") %>>% 
-      addTitle(text = var) %>>%
-      setDataProvider(data) %>>% 
-      setCategoryAxis(title = var) %>>% 
-      addValueAxes(title = "count") %>>%
-      addGraph(balloonText = "[[category]]: <b>[[value]]</b>", type = "column",
-               valueField = "count", fillAlphas = .8, lineAlpha = .2) %>>% 
-      setExport(position = "top-right") %>>% setChartCursor() %>>% 
+    data[, color := suppressWarnings(RColorBrewer::brewer.pal(
+      nrow(data), palette_ggplot))]
+    amBarplot(data=  data, x = c(var), y = "count", 
+              xlab = c(var), ylab = "count") %>>%
+      setExport(position = "top-right") %>>%
+      setChartCursor() %>>% 
+      addTitle(text = c(var)) %>>%
       plot()
   } else {
     ggplot2::ggplot(data = data, aes(x = get(var), y = count, fill = get(var))) +
@@ -244,7 +261,7 @@ plotHeatmap <- function(data) {
   res <- res[, -1]
   rownames(res) <- rownames
   .amHeatmap(res, nbclasses = ifelse(unval <= 10, 10, 5), rownames = rownames,
-            main = paste0(colnames(data)[1], " ~ ", colnames(data)[2]))
+             main = paste0(colnames(data)[1], " ~ ", colnames(data)[2]))
 }
 
 #' @title plot boxplot, timeseries and barplot
@@ -274,8 +291,8 @@ plotHeatmap <- function(data) {
 #'
 #' }
 #'
-.plotExploratory <- function (data, type, aggregation = NULL, js = TRUE) {
-
+.plotExploratory <- function (data, type, aggregation = NULL, js = TRUE, palette_ggplot) {
+  
   classx <- class(data[, get(colnames(data)[1])])
   if (ncol(data) > 1) {
     classy <- class(data[, get(colnames(data)[2])])
@@ -288,28 +305,29 @@ plotHeatmap <- function(data) {
   
   if (type == "boxplot") {
     if (ncol(data) == 2) {
-      graph <- plotBoxplot(data, colnames(data)[2], colnames(data)[1], js = js)
+      graph <- plotBoxplot(data, colnames(data)[2], colnames(data)[1], js = js,
+                           palette_ggplot = palette_ggplot)
     } else {
       graph <- plotBoxplot(data, quanti.var = colnames(data)[1], 
-                           quali.var = NULL, js = js)
+                           quali.var = NULL, js = js, palette_ggplot = palette_ggplot)
     }
   } else if (type == "barplot") {
-    graph <- plotBarplot(data, js = js)
+    graph <- plotBarplot(data, js = js, palette_ggplot = palette_ggplot)
     
   } else if (type == "timeseries") {
     dataseries <- data.table(data)
     browser()
     graph <- .plotTimeSeries(dataseries, col.date = colnames(dataseries)[1], 
-                            col.series = colnames(dataseries)[2], 
-                            aggregation = aggregation, js = js)
+                             col.series = colnames(dataseries)[2], 
+                             aggregation = aggregation, js = js)
   } else {
-    graph <- .plotScatterplot(data, type = type)
+    graph <- .plotScatterplot(data, type = type, palette_ggplot = palette_ggplot)
   }
   graph
 }
 
 .plotStaticExploratory <- function(data, type, aggregation = NULL, js = FALSE,
-                                  palette_ggplot) {
+                                   palette_ggplot) {
   
   classx <- class(data[, get(colnames(data)[1])])
   if (ncol(data) > 1) {
@@ -323,10 +341,10 @@ plotHeatmap <- function(data) {
   
   if (type == "timeseries") {
     dataseries <- data.table(data)
-
+    
     graph <- .plotTimeSeries(dataseries, col.date = colnames(dataseries)[1], 
-                            col.series = colnames(dataseries)[2], 
-                            aggregation = aggregation, point.size = 0, js = js)
+                             col.series = colnames(dataseries)[2], 
+                             aggregation = aggregation, point.size = 0, js = js)
     
   } else if (type == "boxplot") {
     if (ncol(data) == 2) {
@@ -342,7 +360,7 @@ plotHeatmap <- function(data) {
     graph <- plotBarplot(data, js = js, palette_ggplot = palette_ggplot)
   } else {
     graph <- .plotScatterplot(data, type = type, js = js, 
-                             palette_ggplot = palette_ggplot)
+                              palette_ggplot = palette_ggplot)
   }
   graph
 }
@@ -382,10 +400,10 @@ plotHeatmap <- function(data) {
 #'  
 #' 
 .plotTimeSeries <- function(data, col.date, col.series, ylab = "values",
-                           main = NULL, aggregation = "Average", 
-                           col = c("red", "black"),
-                           point.size = 5,
-                           maxSeries = 300, js = TRUE) {
+                            main = NULL, aggregation = "Average", 
+                            col = c("red", "black"),
+                            point.size = 5,
+                            maxSeries = 300, js = TRUE) {
   if ("data.table" %in% class(data)) {
     data <- as.data.frame(data)
   }

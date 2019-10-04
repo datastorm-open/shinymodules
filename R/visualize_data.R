@@ -246,8 +246,6 @@ visualize_data <- function(input, output, session, data = NULL) {
     if(input$goscatter > 0) {
       shiny::isolate({
         data <- dataplot()
-        print(input$type_plot %in% c("line", "point", "timeseries") &
-                nrow(data) > javascript.limit)
         !((input$type_plot %in% c("line", "point", "timeseries") &
             nrow(data) > javascript.limit) || !input$dynamic)
         # (!(input$type_plot %in% c("line", "point", "timeseries") &&
@@ -269,9 +267,9 @@ visualize_data <- function(input, output, session, data = NULL) {
             data <- dataplot()
             if(!(input$type_plot %in% c("line", "point", "heatmap") & 
                  ncol(data) == 2)){
-              print("time_series_check dynamic")
               .plotExploratory(data, type = input$type_plot,
-                              aggregation = input$aggregation)
+                              aggregation = input$aggregation,
+                              palette_ggplot = palette_ggplot)
             }
           })
         }
@@ -286,7 +284,8 @@ visualize_data <- function(input, output, session, data = NULL) {
           shiny::withProgress(message = 'Graphic...', value = 0.5,{
             data <- dataplot()
             if(input$type_plot %in% c("line", "point") & ncol(data) == 2){
-              .plotExploratory(data, type = input$type_plot)
+              .plotExploratory(data, type = input$type_plot,
+                               palette_ggplot = palette_ggplot)
             }
           })
         }
