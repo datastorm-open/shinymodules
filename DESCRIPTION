@@ -13,7 +13,8 @@ Encoding: UTF-8
 Depends: R (>= 3.4)
 LazyData: true
 Suggests: 
-    testthat (>= 2.1.0)
+    testthat (>= 2.1.0),
+    nycflights13
 RoxygenNote: 6.1.1
 Imports: 
     shiny,
@@ -23,7 +24,6 @@ Imports:
     magrittr,
     PerformanceAnalytics,
     htmlwidgets,
-    nycflights13,
     rAmCharts,
     pipeR,
     ggplot2,
@@ -31,4 +31,3 @@ Imports:
     hexbin,
     stats,
     grDevices
-    

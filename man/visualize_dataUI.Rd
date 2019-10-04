@@ -15,3 +15,17 @@ UI page
 \description{
 This function has to be set in the UI part of a shiny application
 }
+\examples{
+\dontrun{
+# In UI :
+visualize_dataUI(id = "id")
+# In Server, with data in a reactiveValues 
+# for example
+data <- reactiveValues(data = iris)
+optional_stats = "all"
+callModule(module = visualize_data, id = "id", data = reactive(data$data))
+
+## For a complete example, you can run the function \\link{run_example_app_visualize_data}
+run_example_app_visualize_data(optional_stats)
+}
+}

@@ -1,72 +1,11 @@
 #' @title UI part of the module show_data
-#' @description This function has to be set in the UI part of a shiny application
+#' 
+#' @description Shiny module to show descripive statistics on data
+#' 
 #' @param id \code{character} An id that will be used to create a namespace
-#' 
-#' @return UI page
-#' @export
-#' @import shiny DT
-#' 
-#' @examples 
-#' \dontrun{
-#' # In UI :
-#' show_dataUI(id = "id")
-#' # In Server, with data in a reactiveValues 
-#' # for example
-#' data <- reactiveValues(data = iris)
-#' optional_stats = "all"
-#' callModule(module = show_data, id = "id", data = reactive(data$data),
-#' optional_stats = optional_stats)
-#' 
-#' ## For a complete example, you can run the function \link{run_example_app_show_data}
-#' optional_stats <- "all"
-#' run_example_app_show_data(optional_stats)
-#' 
-#' ## For another example which also uses the module \link{filter_data}, you can
-#' ## run \link{run_app_filter_and_show_data}
-#' optional_stats <- "all"
-#' run_app_filter_and_show_data(optional_stats)
-#' }
-#'
-show_dataUI <- function(id) {
-  ns <- shiny::NS(id)
-  shiny::fluidPage(
-    ## Stats descriptives on numerical variables in a first tab
-    ## then on factor variables in a second tab
-    shiny::fluidRow(
-      column(12,
-             shiny::div(h2("Descriptive statistics"))
-      )
-    ),
-    shiny::fluidRow(
-      column(12,
-             shiny::conditionalPanel(
-               condition = paste0("output['", ns("have_dt_num"), "'] === true"),
-               DT::DTOutput(ns("dt_num")))
-      )
-    ),
-    shiny::fluidRow(
-      column(12,
-             shiny::conditionalPanel(
-               condition = paste0("output['", ns("have_dt_dates"), "'] === true"),
-               shiny::hr(),
-               DT::DTOutput(ns("dt_dates")))
-      )
-    ),
-    shiny::fluidRow(
-      column(12,
-             shiny::conditionalPanel(
-               condition = paste0("output['", ns("have_dt_fact"), "'] === true"),
-               shiny::hr(),
-               DT::DTOutput(ns("dt_fact")))
-      )
-    )
-  )
-}
-
-#' @title server part of the module show_data
-#' @description This function has to be set in the Server part of a shiny application
 #' It returns two table, one with statistics on numeric data and one with 
 #' statistics on factor data
+#' @param titles \code{logical} Add titles on UI ? Default to TRUE
 #' @param input Not a real parameter, should not be set manually. 
 #' Done by callModule automatically.
 #' @param output Not a real parameter, should not be set manually. 
@@ -80,33 +19,87 @@ show_dataUI <- function(id) {
 #' "mode_max", "kurtosis", "skewness", "boxplot", "density".
 #' @param nb_modal2show \code{integer} number of modalities to show 
 #' for factor variables. 
-#' @return Server logic
+#' @return shiny module
+#' 
+#' @export
+#' 
+#' @import shiny DT
+#' 
+#' @seealso \code{\link{filter_data}}
+#' @examples 
+#' 
+#' \dontrun{
+#' 
+#' ui = shiny::fluidPage(show_dataUI(id = "id", titles = TRUE))
+#' server = function(input, output, session) {
+#'   data <- reactiveValues(data = iris)
+#'   shiny::callModule(module = show_data, id = "id", data = reactive(data$data),
+#'     optional_stats = "all")
+#' }
+#' 
+#' shiny::shinyApp(ui = ui, server = server)
+#'      
+#' ## filter on stats
+#' ui = shiny::fluidPage(show_dataUI(id = "id", titles = TRUE))
+#' server = function(input, output, session) {
+#'   data <- reactiveValues(data = iris)
+#'   shiny::callModule(module = show_data, id = "id", data = reactive(data$data),
+#'     optional_stats = c("kurtosis", "density"))
+#' }
+#' 
+#' shiny::shinyApp(ui = ui, server = server)   
+#'              
+#' ## Examples apps
+#' run_example_app_show_data()
+#' run_example_app_filter_and_show_data()
+#' }
+#' 
+#' @rdname show_data_module
+#' 
+show_dataUI <- function(id, titles = TRUE) {
+  ns <- shiny::NS(id)
+  shiny::fluidPage(
+    ## Stats descriptives on numerical variables in a first tab
+    ## then on factor variables in a second tab
+    shiny::fluidRow(
+      column(12,
+             if(titles) shiny::div(h2("Descriptive statistics"))
+      )
+    ),
+    shiny::fluidRow(
+      column(12,
+             shiny::conditionalPanel(
+               condition = paste0("output['", ns("have_dt_num"), "'] === true"),
+               if(titles) shiny::div(h4("Numeric variables")),
+               DT::DTOutput(ns("dt_num")))
+      )
+    ),
+    shiny::fluidRow(
+      column(12,
+             shiny::conditionalPanel(
+               condition = paste0("output['", ns("have_dt_dates"), "'] === true"),
+               shiny::hr(),
+               if(titles) shiny::div(h4("Date variables")),
+               DT::DTOutput(ns("dt_dates")))
+      )
+    ),
+    shiny::fluidRow(
+      column(12,
+             shiny::conditionalPanel(
+               condition = paste0("output['", ns("have_dt_fact"), "'] === true"),
+               shiny::hr(),
+               if(titles) shiny::div(h4("Factor variables")),
+               DT::DTOutput(ns("dt_fact")))
+      )
+    )
+  )
+}
+
+
 #' @export
 #' @import shiny DT data.table magrittr sparkline PerformanceAnalytics htmlwidgets
 #'
-#' @examples 
-#' \dontrun{
-#' # In UI :
-#' show_dataUI(id = "id")
-#' # In Server, with data in a reactiveValues 
-#' # for example
-#' data <- reactiveValues(data = iris)
-#' optional_stats <- "all"
-#' callModule(module = show_data, id = "id", data = reactive(data$data),
-#' optional_stats = optional_stats)
-#' 
-#' ## For a complete example, you can run the function \link{run_example_app_show_data}
-#'
-#' optional_stats <- "all"
-#' run_example_app_show_data(optional_stats)
-#' 
-#' ## For another example which also uses the module \link{filter_data}, you can
-#' ## run \link{run_app_filter_and_show_data}
-#' optional_stats <- "all"
-#' run_app_filter_and_show_data(optional_stats)
-#' 
-#' }
-#'
+#' @rdname show_data_module
 show_data <- function(input, output, session, data = NULL,
                       optional_stats = "all", nb_modal2show = 3) {
   ns <- session$ns
