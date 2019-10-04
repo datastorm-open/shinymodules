@@ -272,13 +272,14 @@ plotHeatmap <- function(data) {
 #' another one, character, factor or date
 #' @param type \code{character} type of the graph, default is line, possible 
 #' values are "boxplot", "barplot" and "timeseries"
+#' @param palette_ggplot \code{character} palette you want to use for your graphics
+#' (one of the palettes from the package RColorBrew)
 #' @param aggregation \code{character} how you want to do the aggregation 
 #' (if timeseries), possible values are "Average", "Sum", "Low" and "High"
 #' @param js \code{logical} TRUE if you want dynamic graph
-#' @param palette_ggplot \code{character} palette you want to use for your graphics
-#' (one of the palettes from the package RColorBrew)
 #'
 #' @import ggplot2 rAmCharts
+#' @export
 #' 
 #' @examples
 #' \dontrun{
@@ -293,7 +294,8 @@ plotHeatmap <- function(data) {
 #'
 #' }
 #'
-.plotExploratory <- function (data, type, aggregation = NULL, js = TRUE, palette_ggplot) {
+plotExploratory <- function (data, type, palette_ggplot = "RdYlGn", 
+                             aggregation = NULL, js = TRUE) {
   
   classx <- class(data[, get(colnames(data)[1])])
   if (ncol(data) > 1) {
@@ -311,60 +313,27 @@ plotHeatmap <- function(data) {
                            palette_ggplot = palette_ggplot)
     } else {
       graph <- plotBoxplot(data, quanti.var = colnames(data)[1], 
-                           quali.var = NULL, js = js, palette_ggplot = palette_ggplot)
+                           quali.var = NULL, js = js, 
+                           palette_ggplot = palette_ggplot)
     }
   } else if (type == "barplot") {
     graph <- plotBarplot(data, js = js, palette_ggplot = palette_ggplot)
     
   } else if (type == "timeseries") {
     dataseries <- data.table(data)
+    point.size <- ifelse(js, 5, 0)
     graph <- .plotTimeSeries(dataseries, col.date = colnames(dataseries)[1], 
                              col.series = colnames(dataseries)[2], 
-                             aggregation = aggregation, js = js)
+                             aggregation = aggregation, js = js,
+                             point.size = point.size)
   } else {
-    graph <- .plotScatterplot(data, type = type, palette_ggplot = palette_ggplot)
+    graph <- .plotScatterplot(data, type = type, palette_ggplot = palette_ggplot,
+                              js = js)
   }
   graph
 }
 
-.plotStaticExploratory <- function(data, type, aggregation = NULL, js = FALSE,
-                                   palette_ggplot) {
-  
-  classx <- class(data[, get(colnames(data)[1])])
-  if (ncol(data) > 1) {
-    classy <- class(data[, get(colnames(data)[2])])
-    
-    if (any(classy %in% c("character", "factor")) & 
-        !any(classx %in% c("character", "factor"))){
-      data <- data[ , colnames(data)[2:1], with = FALSE]
-    }
-  }
-  
-  if (type == "timeseries") {
-    dataseries <- data.table(data)
-    
-    graph <- .plotTimeSeries(dataseries, col.date = colnames(dataseries)[1], 
-                             col.series = colnames(dataseries)[2], 
-                             aggregation = aggregation, point.size = 0, js = js)
-    
-  } else if (type == "boxplot") {
-    if (ncol(data) == 2) {
-      graph <- plotBoxplot(data, colnames(data)[2], colnames(data)[1], js = js,
-                           palette_ggplot = palette_ggplot)
-    } else {
-      graph <- plotBoxplot(data, quanti.var = colnames(data)[1], 
-                           quali.var = NULL, js = js, 
-                           palette_ggplot = palette_ggplot)
-    }
-    
-  } else if (type == "barplot") {
-    graph <- plotBarplot(data, js = js, palette_ggplot = palette_ggplot)
-  } else {
-    graph <- .plotScatterplot(data, type = type, js = js, 
-                              palette_ggplot = palette_ggplot)
-  }
-  graph
-}
+
 
 #' @title Plot time series
 #' @title This function can plot timeseries in a dynamic or static way

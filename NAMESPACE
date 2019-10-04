@@ -3,6 +3,7 @@
 export(filter_data)
 export(filter_dataUI)
 export(get_dt_num_dt_fac)
+export(plotExploratory)
 export(run_example_app_filter_and_show_data)
 export(run_example_app_filter_data)
 export(run_example_app_show_data)
