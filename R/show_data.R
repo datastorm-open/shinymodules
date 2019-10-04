@@ -1,12 +1,32 @@
 #' @title UI part of the module show_data
-#' @description This function has to be set in the UI part of a shiny application
-#' @param id \code{character} An id that will be used to create a namespace
 #' 
-#' @return UI page
+#' @description Shiny module to show descripive statistics on data
+#' 
+#' @param id \code{character} An id that will be used to create a namespace
+#' It returns two table, one with statistics on numeric data and one with 
+#' statistics on factor data
+#' @param input Not a real parameter, should not be set manually. 
+#' Done by callModule automatically.
+#' @param output Not a real parameter, should not be set manually. 
+#' Done by callModule automatically.
+#' @param session Not a real parameter, should not be set manually. 
+#' Done by callModule automatically.
+#' @param data \code{reactivevalues} reactive data.table
+#' @param optional_stats \code{character} optional statistics computed on numeric
+#' data, default is "all". "pct_zero", "pct_NA", "mean", "median", "sd" are
+#' always computed, possible values are "min", "max", "var", "ecart_interquartile",
+#' "mode_max", "kurtosis", "skewness", "boxplot", "density".
+#' @param nb_modal2show \code{integer} number of modalities to show 
+#' for factor variables. 
+#' @return shiny module
+#' 
 #' @export
+#' 
 #' @import shiny DT
 #' 
+#' @seealso \code{\link{filter_data}}
 #' @examples 
+#' 
 #' \dontrun{
 #' # In UI :
 #' show_dataUI(id = "id")
@@ -17,16 +37,15 @@
 #' callModule(module = show_data, id = "id", data = reactive(data$data),
 #' optional_stats = optional_stats)
 #' 
-#' ## For a complete example, you can run the function \link{run_example_app_show_data}
+#' ## Examples apps
 #' optional_stats <- "all"
 #' run_example_app_show_data(optional_stats)
-#' 
-#' ## For another example which also uses the module \link{filter_data}, you can
-#' ## run \link{run_app_filter_and_show_data}
 #' optional_stats <- "all"
-#' run_app_filter_and_show_data(optional_stats)
+#' run_example_app_filter_and_show_data(optional_stats)
 #' }
-#'
+#' 
+#' @rdname show_data_module
+#' 
 show_dataUI <- function(id) {
   ns <- shiny::NS(id)
   shiny::fluidPage(
@@ -63,50 +82,11 @@ show_dataUI <- function(id) {
   )
 }
 
-#' @title server part of the module show_data
-#' @description This function has to be set in the Server part of a shiny application
-#' It returns two table, one with statistics on numeric data and one with 
-#' statistics on factor data
-#' @param input Not a real parameter, should not be set manually. 
-#' Done by callModule automatically.
-#' @param output Not a real parameter, should not be set manually. 
-#' Done by callModule automatically.
-#' @param session Not a real parameter, should not be set manually. 
-#' Done by callModule automatically.
-#' @param data \code{reactivevalues} reactive data.table
-#' @param optional_stats \code{character} optional statistics computed on numeric
-#' data, default is "all". "pct_zero", "pct_NA", "mean", "median", "sd" are
-#' always computed, possible values are "min", "max", "var", "ecart_interquartile",
-#' "mode_max", "kurtosis", "skewness", "boxplot", "density".
-#' @param nb_modal2show \code{integer} number of modalities to show 
-#' for factor variables. 
-#' @return Server logic
+
 #' @export
 #' @import shiny DT data.table magrittr sparkline PerformanceAnalytics htmlwidgets
 #'
-#' @examples 
-#' \dontrun{
-#' # In UI :
-#' show_dataUI(id = "id")
-#' # In Server, with data in a reactiveValues 
-#' # for example
-#' data <- reactiveValues(data = iris)
-#' optional_stats <- "all"
-#' callModule(module = show_data, id = "id", data = reactive(data$data),
-#' optional_stats = optional_stats)
-#' 
-#' ## For a complete example, you can run the function \link{run_example_app_show_data}
-#'
-#' optional_stats <- "all"
-#' run_example_app_show_data(optional_stats)
-#' 
-#' ## For another example which also uses the module \link{filter_data}, you can
-#' ## run \link{run_app_filter_and_show_data}
-#' optional_stats <- "all"
-#' run_app_filter_and_show_data(optional_stats)
-#' 
-#' }
-#'
+#' @rdname show_data_module
 show_data <- function(input, output, session, data = NULL,
                       optional_stats = "all", nb_modal2show = 3) {
   ns <- session$ns
