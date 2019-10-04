@@ -14,9 +14,11 @@
 #' 
 #'
 .plotScatterplot <- function(data, type = "line", js = TRUE, id = NULL,
-                             palette_ggplot = "RdYlGn"){
+                             palette_ggplot = "BuPu"){
   observation <- NULL # for checking R package
   tmpdata <- data.table::data.table(data)
+  len_palette <- suppressWarnings(length(RColorBrewer::brewer.pal(
+                       20, palette_ggplot)))
   ctrl <- sapply(colnames(tmpdata), function(quanti.var){
     tmpdata[, c(quanti.var) := round(get(quanti.var), 2)]
   })
@@ -37,7 +39,7 @@
         bullet <- NULL
         if (type != "line") {
           bulletColor <- suppressWarnings(RColorBrewer::brewer.pal(
-            12, palette_ggplot)[1])
+            12, palette_ggplot)[len_palette])
           bullet <- "circle"
         } else {
           bulletColor <- NULL
@@ -52,7 +54,7 @@
             colnames(tmpdata)[1], " : <b>[[value]]</b>"), 
             bullet = bullet, bulletColor = bulletColor,
             lineColor = suppressWarnings(RColorBrewer::brewer.pal(
-              12, palette_ggplot)[1]),
+              12, palette_ggplot)[len_palette]),
             valueField = colnames(tmpdata)[1],lineAlpha = lineAlpha) %>>%
           rAmCharts::addValueAxes(title = colnames(tmpdata)[1]) %>>% 
           rAmCharts::setExport(position = "top-right") %>>% 
@@ -64,23 +66,25 @@
           graph <- ggplot2::ggplot(tmpdata, environment = environment()) + 
             # ggplot2::geom_point(ggplot2::aes(x =  observation, 
             #                                  y = get(colnames(tmpdata)[1]))) +
-            geom_hex(ggplot2::aes(x =  observation, 
+            ggplot2::geom_hex(ggplot2::aes(x =  observation, 
                                   y = get(colnames(tmpdata)[1]))) + 
-            scale_fill_gradientn(colours = suppressWarnings(
+            ggplot2::scale_fill_gradientn(colours = suppressWarnings(
               RColorBrewer::brewer.pal(
-                12, palette_ggplot)[1])) +
+                12, palette_ggplot))) +
             ggplot2::ylab(colnames(tmpdata)[1]) + 
             ggplot2::ggtitle(colnames(tmpdata)[1]) + 
-            ggplot2::theme_bw() + 
+            # ggplot2::theme_bw() + 
             ggplot2::theme(plot.title = element_text(hjust = 0.5))
           
         } else {
           graph <- ggplot2::ggplot(tmpdata, environment = environment()) + 
             ggplot2::geom_line(ggplot2::aes( x =  observation, 
-                                             y = get(colnames(tmpdata)[1]))) +
+                                             y = get(colnames(tmpdata)[1])),
+                               color = suppressWarnings(RColorBrewer::brewer.pal(
+                                 12, palette_ggplot)[len_palette])) +
             ggplot2::ylab(colnames(tmpdata)[1]) + 
             ggplot2::ggtitle(colnames(tmpdata)[1]) + 
-            ggplot2::theme_bw() +
+            # ggplot2::theme_bw() +
             ggplot2::theme(plot.title = element_text(hjust = 0.5))
         }
       }
@@ -91,15 +95,16 @@
                                    main = colnames(tmpdata)[1], ylab ="", 
                                    xlab = colnames(tmpdata)[1], 
                                    col = suppressWarnings(RColorBrewer::brewer.pal(
-                                     12, palette_ggplot)[1]))
+                                     12, palette_ggplot)[len_palette]))
       } else {
         graph <- ggplot2::ggplot(tmpdata, environment = environment()) +
           ggplot2::geom_histogram(
             ggplot2::aes(x = get(colnames(tmpdata)[1])), 
-            color = "purple", fill = "lightblue") +
+            color = "black", fill = suppressWarnings(RColorBrewer::brewer.pal(
+              12, palette_ggplot)[len_palette])) +
           ggplot2::xlab(colnames(tmpdata)[1]) +
           ggplot2::ggtitle(colnames(tmpdata)[1]) +
-          ggplot2::theme_bw() +
+          # ggplot2::theme_bw() +
           ggplot2::theme(plot.title = element_text(hjust = 0.5))
       }
     }
@@ -133,9 +138,9 @@
                             yField = colnames(tmpdata)[2],
                             bullet = bullet, lineAlpha = lineAlpha, bulletSize = 6,
                             bulletColor = suppressWarnings(RColorBrewer::brewer.pal(
-                              12, palette_ggplot)[1]),
+                              12, palette_ggplot)[len_palette]),
                             lineColor = suppressWarnings(RColorBrewer::brewer.pal(
-                              12, palette_ggplot)[1])) %>>%
+                              12, palette_ggplot)[len_palette])) %>>%
         rAmCharts::setChartCursor() %>>%
         rAmCharts::addValueAxes(title = colnames(tmpdata)[2]) %>>% 
         rAmCharts::setExport(position = "top-right") %>>%
@@ -150,22 +155,25 @@
                                             y = get(colnames(tmpdata)[2]))) + 
           geom_hex(ggplot2::aes( x =  get(colnames(tmpdata)[1]), 
                                  y = get(colnames(tmpdata)[2]))) +
-          scale_fill_gradientn(colours = brewer.pal(8, palette_ggplot)) +
+          scale_fill_gradientn(colours = suppressWarnings(RColorBrewer::brewer.pal(
+            12, palette_ggplot))) +
           ggplot2::ylab(colnames(tmpdata)[2]) + 
           ggplot2::xlab(colnames(tmpdata)[1]) + 
           ggplot2::ggtitle(paste(colnames(tmpdata)[1], 
                                  colnames(tmpdata)[2], sep = " ~ ")) + 
-          ggplot2::theme_bw() +
+          # ggplot2::theme_bw() +
           ggplot2::theme(plot.title = element_text(hjust = 0.5))
         
       } else {
         graph <- ggplot2::ggplot(tmpdata, environment = environment()) + 
           ggplot2::geom_line(aes( x =  get(colnames(tmpdata)[1]), 
-                                  y = get(colnames(tmpdata)[2]))) + 
+                                  y = get(colnames(tmpdata)[2])),
+                             color = suppressWarnings(RColorBrewer::brewer.pal(
+                               12, palette_ggplot)[len_palette])) + 
           ggplot2::ylab(colnames(tmpdata)[2]) + xlab(colnames(tmpdata)[1]) + 
           ggplot2::ggtitle(paste(colnames(tmpdata)[1],
                                  colnames(tmpdata)[2], sep = " ~ ")) + 
-          ggplot2::theme_bw() +
+          # ggplot2::theme_bw() +
           ggplot2::theme(plot.title = element_text(hjust = 0.5))
       }
     }
@@ -174,7 +182,8 @@
   graph
 }
 
-plotBoxplot <- function(data, quanti.var, quali.var = NULL, main ="", js, palette_ggplot){
+plotBoxplot <- function(data, quanti.var, quali.var = NULL, 
+                        main ="", js, palette_ggplot){
   
   data[, c(quanti.var) := round(get(quanti.var), 2)]
   
@@ -185,11 +194,16 @@ plotBoxplot <- function(data, quanti.var, quali.var = NULL, main ="", js, palett
                 col = suppressWarnings(RColorBrewer::brewer.pal(
                   12, palette_ggplot)))
     } else {
+      len_palette <- suppressWarnings(length(RColorBrewer::brewer.pal(
+        20, palette_ggplot)))
       ggplot2::ggplot(data = data, aes(y = get(quanti.var))) +
-        ggplot2::geom_boxplot(notch = TRUE, color = "purple", fill = "lightblue") +
+        ggplot2::geom_boxplot(notch = TRUE, color = "black", 
+                              fill = suppressWarnings(RColorBrewer::brewer.pal(
+          12, palette_ggplot)[len_palette])) +
+        ggplot2::scale_fill_brewer(palette = palette_ggplot) +
         ggplot2::ylab(c(quanti.var)) + 
         ggplot2::ggtitle(c(quanti.var)) + 
-        ggplot2::theme_bw() +
+        # ggplot2::theme_bw() +
         ggplot2::theme(plot.title = element_text(hjust = 0.5))
       
     }
@@ -203,15 +217,17 @@ plotBoxplot <- function(data, quanti.var, quali.var = NULL, main ="", js, palett
                   12, palette_ggplot)))
     } else {
       ggplot2::ggplot(data = data, 
-                      aes(x = get(quali.var), y = get(quanti.var), fill = get(quali.var))) +
+                      aes(x = get(quali.var), y = get(quanti.var), 
+                          fill = get(quali.var))) +
         ggplot2::geom_boxplot(notch = TRUE) +
         ggplot2::scale_fill_brewer(palette = palette_ggplot) +
         ggplot2::stat_summary(fun.y = mean, geom = "point", shape = 23, size = 4) +
         ggplot2::xlab(c(quali.var)) + 
         ggplot2::ylab(c(quanti.var)) + 
         ggplot2::ggtitle(paste(quanti.var, quali.var, sep = " ~ ")) + 
-        ggplot2::theme_bw() +
-        ggplot2::theme(plot.title = element_text(hjust = 0.5))
+        # ggplot2::theme_bw() +
+        ggplot2::theme(plot.title = element_text(hjust = 0.5)) +
+        ggplot2::labs(fill = c(quali.var))
       
     }
   }
@@ -233,12 +249,12 @@ plotBarplot <- function(data, js, palette_ggplot){
       plot()
   } else {
     ggplot2::ggplot(data = data, aes(x = get(var), y = count, fill = get(var))) +
-      ggplot2::geom_bar(stat = "identity", color = "blue") +
+      ggplot2::geom_bar(stat = "identity", color = "black") +
       ggplot2::scale_fill_brewer(palette = palette_ggplot) +
       ggplot2::geom_text(aes(label = count), vjust = 1.6, color = "white", size = 3.5) +
       ggplot2::xlab(c(var)) +
       ggplot2::ggtitle(c(var)) + 
-      ggplot2::theme_bw() +
+      # ggplot2::theme_bw() +
       ggplot2::theme(plot.title = element_text(hjust = 0.5))
   }
 }
@@ -299,8 +315,8 @@ plotExploratory <- function (data, type, palette_ggplot = "RdYlGn",
   if (ncol(data) > 1) {
     classy <- class(data[, get(colnames(data)[2])])
     
-    if (any(classy%in%c("character", "factor")) & 
-        !any(classx%in%c("character", "factor"))){
+    if (any(classy %in% c("character", "factor")) & 
+        !any(classx %in% c("character", "factor"))){
       data <- data[ , c(colnames(data)[2:1]), with = FALSE]
     }
   }
@@ -485,8 +501,8 @@ plotExploratory <- function (data, type, palette_ggplot = "RdYlGn",
         geom_line(aes(x = get(col.date), y = get(colnames(data)[x])),
                   color=mycolor, linetype=mydashLength) + 
         geom_point(aes(x = get(col.date), y = get(colnames(data)[x])),
-                   color=mycolor, size=point.size) + 
-        theme_bw()
+                   color=mycolor, size=point.size) 
+        # theme_bw()
     }
     graph
   }

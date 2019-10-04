@@ -9,10 +9,12 @@
 #' @param session Not a real parameter, should not be set manually. 
 #' Done by callModule automatically.
 #' @param data \code{reactivevalues} reactive data.table
+#' @param palette_ggplot \code{character} Palette's name used for graphics,
+#' default is BuPu, all possible values are palettes from the package RColorBrewer
 #' 
 #' @return UI page
 #' @export
-#' @import shiny DT
+#' @import shiny DT 
 #' 
 #' @examples 
 #' \dontrun{
@@ -91,10 +93,10 @@ visualize_dataUI <- function(id, titles = TRUE) {
 #' 
 #' @rdname visualize_data_module
 #' 
-visualize_data <- function(input, output, session, data = NULL) {
+visualize_data <- function(input, output, session, data = NULL,
+                           palette_ggplot = "BuPu") {
   ns <- session$ns
   javascript.limit <- 10000
-  palette_ggplot <- "RdYlGn"
   ####### VISUALISATION
   
   # VARIABLE X POUR L'EXPLORATION

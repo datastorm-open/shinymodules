@@ -7,7 +7,8 @@
 \usage{
 visualize_dataUI(id, titles = TRUE)
 
-visualize_data(input, output, session, data = NULL)
+visualize_data(input, output, session, data = NULL,
+  palette_ggplot = "BuPu")
 }
 \arguments{
 \item{id}{\code{character} An id that will be used to create a namespace}
@@ -24,6 +25,9 @@ Done by callModule automatically.}
 Done by callModule automatically.}
 
 \item{data}{\code{reactivevalues} reactive data.table}
+
+\item{palette_ggplot}{\code{character} Palette's name used for graphics,
+default is BuPu, all possible values are palettes from the package RColorBrewer}
 }
 \value{
 UI page
