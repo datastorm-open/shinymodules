@@ -4,6 +4,14 @@
 #' chosen columns by the user. The server part returns a reactive value containing
 #' the filtered data.table
 #' @param id \code{character} An id that will be used to create a namespace
+#' @param titles \code{logical} Add titles on UI ? Default to TRUE
+#' @param input Not a real parameter, should not be set manually. 
+#' Done by callModule automatically.
+#' @param output Not a real parameter, should not be set manually. 
+#' Done by callModule automatically.
+#' @param session Not a real parameter, should not be set manually. 
+#' Done by callModule automatically.
+#' @param data \code{reactivevalues} reactive data.table*
 #' 
 #' @return UI page
 #' @export
@@ -11,22 +19,25 @@
 #'
 #' @examples 
 #' \dontrun{
-#' # In UI :
-#' filter_dataUI(id = "id")
-#' # In Server
-#' data <- reactiveValues(data = iris)
-#' callModule(module = filter_data, id = "id", data = reactive(data))
 #' 
-#' ## For a complete example, you can run the function \link{run_example_app_filter_data}
-#' run_example_app_filter_data()
+#' ui = shiny::fluidPage(filter_dataUI(id = "id", titles = TRUE))
+#' server = function(input, output, session) {
+#'   data <- reactiveValues(data = iris)
+#'   shiny::callModule(module = filter_data, id = "id", data = reactive(data$data))
+#' }
 #' 
-#' ## For another example which also uses the module \link{show_data}, you can
-#' ## run \link{run_example_app_filter_and_show_data}
-#' optional_stats <- "all"
-#' run_example_app_filter_and_show_data(optional_stats)
+#' shiny::shinyApp(ui = ui, server = server)
+#' 
+#' ## Example apps
+#' run_example_app_show_data()
+#' run_example_app_filter_and_show_data()
 #' } 
+#'
+#' @rdname filter_data_module
 
-filter_dataUI <- function(id) {
+
+
+filter_dataUI <- function(id, titles = TRUE) {
   ns <- shiny::NS(id)
   shiny::fluidPage(
     shiny::fluidRow(
@@ -59,38 +70,10 @@ filter_dataUI <- function(id) {
   )
 }
 
-#' @title Server part of the module filter_data
-#' @description This function has to be set in the UI part of a shiny 
-#' application. filter_data is a module used to filter a given data.table on 
-#' chosen columns by the user. The server part returns a reactive value containing
-#' the filtered data.table
-#' @param input Not a real parameter, should not be set manually. 
-#' Done by callModule automatically.
-#' @param output Not a real parameter, should not be set manually. 
-#' Done by callModule automatically.
-#' @param session Not a real parameter, should not be set manually. 
-#' Done by callModule automatically.
-#' @param data \code{reactivevalues} reactive data.table
-#' @return Server logic
 #' @export
 #' @import shiny DT data.table magrittr
 #'
-#' @examples 
-#' \dontrun{
-#' # In UI :
-#' filter_dataUI(id = "id")
-#' # In Server
-#' data <- reactiveValues(data = iris)
-#' callModule(module = filter_data, id = "id", data = reactive(data))
-#' 
-#' ## For a complete example, you can run the function \link{run_example_app_filter_data}
-#' run_example_app_filter_data()
-#' 
-#' ## For another example which also uses the module \link{show_data}, you can
-#' ## run \link{run_example_app_filter_and_show_data}
-#' optional_stats <- "all"
-#' run_example_app_filter_and_show_data(optional_stats)
-#' } 
+#' @rdname filter_data_module
 filter_data <- function(input, output, session, data = NULL) {
   ns <- session$ns
   

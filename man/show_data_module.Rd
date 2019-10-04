@@ -54,7 +54,17 @@ server = function(input, output, session) {
 }
 
 shiny::shinyApp(ui = ui, server = server)
-          
+     
+## filter on stats 
+ui = shiny::fluidPage(show_dataUI(id = "id", titles = TRUE))
+server = function(input, output, session) {
+  data <- reactiveValues(data = iris)
+  shiny::callModule(module = show_data, id = "id", data = reactive(data$data),
+    optional_stats = c("kurtosis", "density"))
+}
+
+shiny::shinyApp(ui = ui, server = server)   
+             
 ## Examples apps
 run_example_app_show_data()
 run_example_app_filter_and_show_data()

@@ -39,7 +39,7 @@
 #' 
 #' shiny::shinyApp(ui = ui, server = server)
 #'      
-#' ## filter on stats
+#' ## filter on stats 
 #' ui = shiny::fluidPage(show_dataUI(id = "id", titles = TRUE))
 #' server = function(input, output, session) {
 #'   data <- reactiveValues(data = iris)

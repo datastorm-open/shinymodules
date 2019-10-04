@@ -1,6 +1,14 @@
 #' @title UI part of the module visualize_data
 #' @description This function has to be set in the UI part of a shiny application
 #' @param id \code{character} An id that will be used to create a namespace
+#' @param titles \code{logical} Add titles on UI ? Default to TRUE
+#' @param input Not a real parameter, should not be set manually. 
+#' Done by callModule automatically.
+#' @param output Not a real parameter, should not be set manually. 
+#' Done by callModule automatically.
+#' @param session Not a real parameter, should not be set manually. 
+#' Done by callModule automatically.
+#' @param data \code{reactivevalues} reactive data.table
 #' 
 #' @return UI page
 #' @export
@@ -8,18 +16,23 @@
 #' 
 #' @examples 
 #' \dontrun{
-#' # In UI :
-#' visualize_dataUI(id = "id")
-#' # In Server, with data in a reactiveValues 
-#' # for example
-#' data <- reactiveValues(data = iris)
-#' optional_stats = "all"
-#' callModule(module = visualize_data, id = "id", data = reactive(data$data))
 #' 
-#' ## For a complete example, you can run the function \link{run_example_app_visualize_data}
-#' run_example_app_visualize_data(optional_stats)
+#' ui = shiny::fluidPage(visualize_dataUI(id = "id", titles = TRUE))
+#' server = function(input, output, session) {
+#'   data <- reactiveValues(data = iris)
+#'   shiny::callModule(module = visualize_data, id = "id", data = reactive(data$data))
 #' }
-visualize_dataUI <- function(id) {
+#'
+#' shiny::shinyApp(ui = ui, server = server)
+#' 
+#' ## Example apps
+#' run_example_app_visualize_data()
+#' }
+#' 
+#' 
+#' @rdname visualize_data_module
+#' 
+visualize_dataUI <- function(id, titles = TRUE) {
   ns <- shiny::NS(id)
   shiny::fluidPage(
     shiny::fluidRow(
@@ -71,39 +84,13 @@ visualize_dataUI <- function(id) {
 
 
 
-#' @title server part of the module visualize_data
-#' @description This function has to be set in the Server part of a shiny application
-#' It returns two table, one with statistics on numeric data and one with 
-#' statistics on factor data
-#' @param input Not a real parameter, should not be set manually. 
-#' Done by callModule automatically.
-#' @param output Not a real parameter, should not be set manually. 
-#' Done by callModule automatically.
-#' @param session Not a real parameter, should not be set manually. 
-#' Done by callModule automatically.
-#' @param data \code{reactivevalues} reactive data.table
-#' 
-#' @return Server logic
 #' @export
 #' @importFrom DT DTOutput renderDT
 #' @import shiny data.table magrittr sparkline PerformanceAnalytics htmlwidgets 
 #' RColorBrewer hexbin stats grDevices stats
-#'
-#' @examples 
-#' \dontrun{
-#' # In UI :
-#' show_dataUI(id = "id")
-#' # In Server, with data in a reactiveValues 
-#' # for example
-#' data <- reactiveValues(data = iris)
-#' callModule(module = visualize, id = "id", data = reactive(data$data))
 #' 
-#' ## For a complete example, you can run the function \link{run_example_app_visualize_data}
-#'
-#' run_example_app_visualize_data(run_example_app_visualize_data)
+#' @rdname visualize_data_module
 #' 
-#' }
-#'
 visualize_data <- function(input, output, session, data = NULL) {
   ns <- session$ns
   javascript.limit <- 10000
