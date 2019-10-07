@@ -7,7 +7,7 @@
 #' @param optional_stats \code{character} vector of the optional statistics you
 #' want to be computed on your numeric data, default is "all". "pct_zero", 
 #' "pct_NA", "mean", "median", "sd" are always computed, possible values are 
-#' "min", "max", "var", "interquartile range",
+#' "min", "max", "var", "interquartile_range",
 #' "mode_max", "kurtosis", "skewness", "boxplot", "density".
 #' 
 #' @param nb_modal2show \code{integer} number of modalities to show for factor variables.
@@ -73,7 +73,7 @@ run_example_app_filter_data <- function(){
 #' @param optional_stats \code{character} vector of the optional statistics you
 #' want to be computed on your numeric data, default is "all". "pct_zero", 
 #' "pct_NA", "mean", "median", "sd" are always computed, possible values are 
-#' "min", "max", "var", "interquartile range",
+#' "min", "max", "var", "interquartile_range",
 #' "mode_max", "kurtosis", "skewness", "boxplot", "density".
 #' @param nb_modal2show \code{integer} number of modalities to show 
 #' for factor variables.

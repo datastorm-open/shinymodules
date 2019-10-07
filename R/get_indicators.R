@@ -106,7 +106,7 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
   
   ref_ind <- data.frame(
     indicator= c( "pct_zero", "pct_NA", "min", "mean", "median", "max", "sd", "var",
-                  "interquartile range",
+                  "interquartile_range",
                   "mode_max",
                   "kurtosis",
                   "skewness",
