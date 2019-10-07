@@ -10,7 +10,7 @@ run_example_app_show_data(optional_stats = "all", nb_modal2show = 5)
 \item{optional_stats}{\code{character} vector of the optional statistics you
 want to be computed on your numeric data, default is "all". "pct_zero", 
 "pct_NA", "mean", "median", "sd" are always computed, possible values are 
-"min", "max", "var", "ecart_interquartile",
+"min", "max", "var", "interquartile range",
 "mode_max", "kurtosis", "skewness", "boxplot", "density".}
 
 \item{nb_modal2show}{\code{integer} number of modalities to show for factor variables.}

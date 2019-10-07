@@ -7,7 +7,8 @@
 \usage{
 filter_dataUI(id, titles = TRUE)
 
-filter_data(input, output, session, data = NULL)
+filter_data(input, output, session, data = NULL,
+  columns_to_filter = "all")
 }
 \arguments{
 \item{id}{\code{character} An id that will be used to create a namespace}
@@ -23,7 +24,10 @@ Done by callModule automatically.}
 \item{session}{Not a real parameter, should not be set manually. 
 Done by callModule automatically.}
 
-\item{data}{\code{reactivevalues} reactive data.table*}
+\item{data}{\code{reactivevalues} reactive data.table}
+
+\item{columns_to_filter}{\code{character} vector o column names you want to 
+allow the user to filter (default is all)}
 }
 \value{
 UI page

@@ -21,11 +21,11 @@
 get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
   # check if there is constant variables, if yes ignore them
   data.table::setDT(data)
-  cst_vars <- names(which(unlist(data[, lapply(
-    .SD, function(var) length(unique(var)))]) == 1))
-  if(length(cst_vars) > 0) {
-    data[, c(cst_vars) := lapply(.SD, as.character), .SDcols = c(cst_vars)]
-  }
+  # cst_vars <- names(which(unlist(data[, lapply(
+  #   .SD, function(var) length(unique(var)))]) == 1))
+  # if(length(cst_vars) > 0) {
+  #   data[, c(cst_vars) := lapply(.SD, as.character), .SDcols = c(cst_vars)]
+  # }
   
   # get variables with 2 to 10 levels then pass them to factors
   # fact_vars <- names(which(unlist(data[, lapply(
@@ -38,7 +38,6 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
   # get other numeric variables
   num_vars <- names(which(
     sapply(data, function(var) is.numeric(var) | is.integer(var))))
-  
   # add Dates on numeric variables ?
   dates_vars <- names(which(
     sapply(data, function(var) any(class(var) %in% c("Date", "POSIXct", "POSIXlt")))))
@@ -107,7 +106,7 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
   
   ref_ind <- data.frame(
     indicator= c( "pct_zero", "pct_NA", "min", "mean", "median", "max", "sd", "var",
-                  "ecart_interquartile",
+                  "interquartile range",
                   "mode_max",
                   "kurtosis",
                   "skewness",

@@ -41,7 +41,8 @@ server <- function(input, output, session) {
     
     
     data_filtered <- callModule(module = filter_data, id = "id",
-                                 data = shiny::reactive(reactive_data$data_filtered))
+                                 data = shiny::reactive(reactive_data$data_filtered),
+                                columns_to_filter = "all")
     
     observeEvent(data_filtered$data, {
       datafilt <- data_filtered$data
@@ -49,7 +50,8 @@ server <- function(input, output, session) {
     })
     
     callModule(module = show_data, id = "idshow",
-               data = shiny::reactive(reactive_data$data_shown), nb_modal2show = 6)
+               data = shiny::reactive(reactive_data$data_shown), nb_modal2show = 6,
+               columns_to_show = "all")
   }
   
 }
