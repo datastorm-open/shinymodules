@@ -118,7 +118,7 @@ filter_data <- function(input, output, session, data = NULL,
           
           ctrlclass <- class(data[, get(colname)])
           
-          if (any(ctrlclass %in% c("factor", "character"))) {
+          if (any(ctrlclass %in% c("factor", "character", "logical"))) {
             values <- unique(data[, get(colname)])
             if (length(values) <= 10) {
               selectedtype <- "multiple select"
@@ -192,7 +192,7 @@ filter_data <- function(input, output, session, data = NULL,
             colname <- colnames(data)[var]
             ctrlclass <- class(data[, get(colname)])
             
-            if (any(ctrlclass %in% c("factor", "character"))){
+            if (any(ctrlclass %in% c("factor", "character", "logical"))){
               if (selectedtype %in% c("single select", "multiple select")) {
                 values <- unique(as.character(data[, get(colname)]))
                 
