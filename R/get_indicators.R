@@ -21,11 +21,11 @@
 get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
   # check if there is constant variables, if yes ignore them
   data.table::setDT(data)
-  cst_vars <- names(which(unlist(data[, lapply(
-    .SD, function(var) length(unique(var)))]) == 1))
-  if(length(cst_vars) > 0) {
-    data[, c(cst_vars) := lapply(.SD, as.character), .SDcols = c(cst_vars)]
-  }
+  # cst_vars <- names(which(unlist(data[, lapply(
+  #   .SD, function(var) length(unique(var)))]) == 1))
+  # if(length(cst_vars) > 0) {
+  #   data[, c(cst_vars) := lapply(.SD, as.character), .SDcols = c(cst_vars)]
+  # }
   
   # get variables with 2 to 10 levels then pass them to factors
   # fact_vars <- names(which(unlist(data[, lapply(
@@ -38,7 +38,6 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
   # get other numeric variables
   num_vars <- names(which(
     sapply(data, function(var) is.numeric(var) | is.integer(var))))
-  
   # add Dates on numeric variables ?
   dates_vars <- names(which(
     sapply(data, function(var) any(class(var) %in% c("Date", "POSIXct", "POSIXlt")))))
@@ -107,7 +106,7 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
   
   ref_ind <- data.frame(
     indicator= c( "pct_zero", "pct_NA", "min", "mean", "median", "max", "sd", "var",
-                  "ecart_interquartile",
+                  "interquartile_range",
                   "mode_max",
                   "kurtosis",
                   "skewness",
@@ -188,29 +187,37 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
 #' @return DT with statistics on dates data
 #' 
 .get_dates_indicators <- function(data, dates_vars){
-  dt_fact <- DT::datatable(
+  dt_dates <- DT::datatable(
     data.table::rbindlist(lapply(
       dates_vars, 
       FUN = function(var){
-        # get pct na
+        density <- spk_chr(tryCatch(density(
+          data[, as.numeric(get(var))], n= 100, na.rm = T)$y, 
+          error = function(e) NULL))
         pct_na <- round(sum(is.na(data[[var]]))/nrow(data), 2)
-        
         data.table::data.table(variable = var,
                                pct_NA = pct_na,
                                min = min(data[[var]], na.rm = T),
                                mean = mean(data[[var]], na.rm = T),
                                median = stats::median(data[[var]], na.rm = T),
-                               max = max(data[[var]], na.rm = T)
+                               max = max(data[[var]], na.rm = T),
+                               density = density
         )})),
     rownames = FALSE, filter = "bottom", escape = FALSE, 
     selection = "none", width = "100%",
     options = list(columnDefs = list(
-      list(className = 'dt-center', targets = 0:5
+      list(className = 'dt-center', targets = 0:5,
+           drawCallback =  htmlwidgets::JS(
+             'function(){debugger;HTMLWidgets.staticRender();}')
       )))) %>%  DT::formatStyle(
         'pct_NA',
         color = DT::styleInterval(0, c("green", 'red'))
       ) %>% DT::formatPercentage(c(
         'pct_NA'), 2) 
+  dt_dates$dependencies <- append(dt_dates$dependencies, 
+                                  htmlwidgets::getDependency("sparkline"))
+
+  return(dt_dates)
 }
 
 #' @title  get stats indicator on factor data
@@ -232,6 +239,11 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
         data_det <- data[!is.na(get(var)), .N, var][order(-N)]
         modalities <- paste(data_det[, get(var)], ":", 
                             round(100*data_det[, N]/nrow(data), 2), "%")
+
+        # browser()
+        other <- paste(round(100*(
+          1-sum(data_det[1:min(c(nb_modal2show, nrow(data_det))), 
+                         N])/nrow(data)), 2), "%")
         # get pct na
         pct_na <- round(sum(is.na(data[[var]]))/nrow(data), 2)
         
@@ -240,8 +252,8 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
                                pct_NA = pct_na,",
                       paste(sapply(1:nb_modal2show, function(i){
                         paste0(" modality", i, " = modalities[", i, "]")
-                      }), collapse = ","), ")")
-        
+                      }), collapse = ","), ", other = other", ")")
+
         eval(parse(text = txt))
       })),
     rownames = FALSE, filter = "bottom", escape = FALSE, 

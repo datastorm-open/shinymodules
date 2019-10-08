@@ -8,12 +8,12 @@
 show_dataUI(id, titles = TRUE)
 
 show_data(input, output, session, data = NULL, optional_stats = "all",
-  nb_modal2show = 3)
+  nb_modal2show = 3, columns_to_show = "all")
 }
 \arguments{
 \item{id}{\code{character} An id that will be used to create a namespace
-It returns two table, one with statistics on numeric data and one with 
-statistics on factor data}
+It returns three tables, one with statistics on numeric data, one with 
+statistics on factor data and one with statistics on dates data}
 
 \item{titles}{\code{logical} Add titles on UI ? Default to TRUE}
 
@@ -30,11 +30,14 @@ Done by callModule automatically.}
 
 \item{optional_stats}{\code{character} optional statistics computed on numeric
 data, default is "all". "pct_zero", "pct_NA", "mean", "median", "sd" are
-always computed, possible values are "min", "max", "var", "ecart_interquartile",
+always computed, possible values are "min", "max", "var", "interquartile range",
 "mode_max", "kurtosis", "skewness", "boxplot", "density".}
 
 \item{nb_modal2show}{\code{integer} number of modalities to show 
 for factor variables.}
+
+\item{columns_to_show}{\code{character} vector of column names you want to be
+shown in the tables}
 }
 \value{
 shiny module
@@ -59,8 +62,10 @@ shiny::shinyApp(ui = ui, server = server)
 ui = shiny::fluidPage(show_dataUI(id = "id", titles = TRUE))
 server = function(input, output, session) {
   data <- reactiveValues(data = iris)
+  
   shiny::callModule(module = show_data, id = "id", data = reactive(data$data),
-    optional_stats = c("kurtosis", "density"))
+    optional_stats = c("kurtosis", "density"),
+    columns_to_show = c("Species", "Petal.Width", "Sepal.Width"))
 }
 
 shiny::shinyApp(ui = ui, server = server)   

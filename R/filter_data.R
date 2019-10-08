@@ -11,7 +11,9 @@
 #' Done by callModule automatically.
 #' @param session Not a real parameter, should not be set manually. 
 #' Done by callModule automatically.
-#' @param data \code{reactivevalues} reactive data.table*
+#' @param data \code{reactivevalues} reactive data.table
+#' @param columns_to_filter \code{character} vector o column names you want to 
+#' allow the user to filter (default is all)
 #' 
 #' @return UI page
 #' @export
@@ -74,62 +76,73 @@ filter_dataUI <- function(id, titles = TRUE) {
 #' @import shiny DT data.table magrittr
 #'
 #' @rdname filter_data_module
-filter_data <- function(input, output, session, data = NULL) {
-  ns <- session$ns
+filter_data <- function(input, output, session, data = NULL, 
+                        columns_to_filter = "all") {
   
+  ns <- session$ns
+  rv_filters <- reactiveValues(filter = NULL, oldfilter = NULL)
   
   output$choicefilter <- renderUI({
-    data <- data()
+    if (is.null(columns_to_filter) | columns_to_filter[1] == "all") {
+      data <- data()
+    } else {
+      data <- data()[, .SD, .SDcols = columns_to_filter]
+    }
     
     values <- colnames(data)
-    values <- values[!values %in% c("time", "shinyid")]
     
     selectInput(ns("chosenfilters"), "Filter on : ", 
                 choices = values, selected = NULL, multiple = TRUE)
     
   })
   
-  
   # choix des filres
   output$uifilter <- renderUI({
-    if(input$updateFilter > 0){
+    if(input$updateFilter > 0) {
       isolate({
         var <- input$chosenfilters
-        data <- data()
-        lapply(var, function(colname){
+        rv_filters$oldfilter <- rv_filters$filter
+        rv_filters$filter <- var
+        
+        if (is.null(columns_to_filter) | columns_to_filter[1] == "all") {
+          data <- data()
+        } else {
+          data <- data()[, .SD, .SDcols = columns_to_filter]
+        }
+        
+        lapply(var, function(colname) {
+
           
           x <- which(colnames(data) == colname)
-          if(!colname %in% c("time", "shinyid")){
-            
-            ctrlclass <- class(data[, get(colname)])
-            
-            if(any(ctrlclass%in%c("factor", "character"))){
-              values <- unique(data[, get(colname)])
-              if(length(values) <= 10){
-                selectedtype <- "multiple select"
-              }else{
-                selectedtype <- "single select"
-              }
-              choices <- c("single select", "multiple select")
-              
-            }else if(any(ctrlclass%in%c("numeric", "integer", "POSIXct", "POSIXlt"))){
-              
-              selectedtype <- "range slider"
-              choices <- c("single slider", "range slider")
-              
-            }else if(any(ctrlclass%in%c("IDate", "Date"))){
-              
-              selectedtype <- "range date"
-              choices <- c("single date", "range date")
-              
-            }else{
-              
-              choices <- c("single slider", "range slider", 
-                           "single select", "multiple select")
+          
+          ctrlclass <- class(data[, get(colname)])
+          
+          if (any(ctrlclass %in% c("factor", "character", "logical"))) {
+            values <- unique(data[, get(colname)])
+            if (length(values) <= 10) {
+              selectedtype <- "multiple select"
+            } else {
               selectedtype <- "single select"
-              
             }
+            choices <- c("single select", "multiple select")
             
+          } else if (any(ctrlclass %in% c("numeric", "integer", "POSIXct", "POSIXlt"))) {
+            
+            selectedtype <- "range slider"
+            choices <- c("single slider", "range slider")
+            
+          } else if (any(ctrlclass %in% c("IDate", "Date"))) {
+            
+            selectedtype <- "range date"
+            choices <- c("single date", "range date")
+            
+          } else {
+            
+            choices <- c("single slider", "range slider", 
+                         "single select", "multiple select")
+            selectedtype <- "single select"
+            
+          }
             fluidRow(
               column(1),
               column(2, 
@@ -144,147 +157,169 @@ filter_data <- function(input, output, session, data = NULL) {
                      uiOutput(ns(paste0("uifilter", x)))
               )
             )
-          }
-          
+           
         })
+        
       })
     }
     
   })
-  
+
+  filternames <- reactiveValues(filter = NULL)
   # creation des filtres
   # a optimiser
   observe({
-    data <-data()
-    ctrl <- lapply(1:ncol(data), function(var){
-      if(paste0("typefilter", var) %in% names(input)){
+    if (is.null(columns_to_filter) | columns_to_filter[1] == "all") {
+      data <- data()
+    } else {
+      data <- data()[, .SD, .SDcols = columns_to_filter]
+    }
+
+    ctrl <- lapply(1:ncol(data), function(var) {
+      
+      if (paste0("typefilter", var) %in% names(input)) {
+
+        if (colnames(data)[var] %in% rv_filters$filter) {
+
+        }
+
         output[[paste0("uifilter", var)]] <- renderUI({
           
           selectedtype <- input[[paste0("typefilter", var)]]
-          
+
           isolate({
-            data <- data()
             colname <- colnames(data)[var]
-            if(!colname %in% c("time", "shinyid")){
-              ctrlclass <- class(data[, get(colname)])
-              
-              if(any(ctrlclass %in% c("factor", "character"))){
-                if(selectedtype %in% c("single select", "multiple select")){
-                  values <- unique(as.character(data[, get(colname)]))
-                  
-                }else if(selectedtype %in% c("single slider", "range slider")){
-                  values <- range(as.numeric(as.character(data[, get(colname)])), 
-                                  na.rm = TRUE)
-                }
+            ctrlclass <- class(data[, get(colname)])
+            
+            if (any(ctrlclass %in% c("factor", "character", "logical"))){
+              if (selectedtype %in% c("single select", "multiple select")) {
+                values <- unique(as.character(data[, get(colname)]))
                 
-              }else if(any(ctrlclass %in% c("integer", "numeric", "POSIXct", "POSIXlt"))){
-                if(selectedtype %in% c("single select", "multiple select")){
-                  values <- unique(as.character(data[, get(colname)]))
-                  
-                }else if(selectedtype %in% c("single slider", "range slider")){
-                  values <- range(data[, get(colname)], na.rm = TRUE)
-                }
-              }else if(any(ctrlclass %in% c("IDate", "Date"))){
+              } else if (selectedtype %in% c("single slider", "range slider")) {
+                values <- range(as.numeric(as.character(data[, get(colname)])), 
+                                na.rm = TRUE)
+              }
+              
+            } else if (any(ctrlclass %in% c("integer", "numeric", "POSIXct", "POSIXlt"))) {
+              if(selectedtype %in% c("single select", "multiple select")){
+                values <- unique(as.character(data[, get(colname)]))
+                
+              } else if (selectedtype %in% c("single slider", "range slider")) {
                 values <- range(data[, get(colname)], na.rm = TRUE)
               }
-              
-              if(selectedtype == "multiple select"){
-                selectizeInput(ns(paste0("filter", var)), label = NULL, 
-                               choices = values, selected = values, 
-                               multiple = TRUE, width="100%")
-                
-              }else if(selectedtype == "single select"){
-                selectInput(ns(paste0("filter", var)), label = NULL, 
-                            choices = values, 
-                            multiple = FALSE, width="100%")
-                
-              }else if(selectedtype == "range slider"){
-                sliderInput(ns(paste0("filter", var)), label = NULL, 
-                            min = values[1], max = values[2],
-                            round = TRUE, value = values)
-                
-              }else if(selectedtype == "single slider"){
-                sliderInput(ns(paste0("filter", var)), label = NULL,
-                            min = values[1], max = values[2],
-                            round = TRUE, value = values[1])
-                
-              }else if(selectedtype == "single date"){
-                dateInput(ns(paste0("filter", var)), label = NULL, 
-                          value = values[1], min = values[1], 
-                          max = values[2],format = "yyyy-mm-dd")
-                
-              }else if(selectedtype == "range date"){
-                dateRangeInput(ns(paste0("filter", var)), label = NULL, 
-                               start = values[1], end = values[2],
-                               min = values[1], max = values[2], 
-                               format = "yyyy-mm-dd")
-              }
+            } else if (any(ctrlclass %in% c("IDate", "Date"))) {
+              values <- range(data[, get(colname)], na.rm = TRUE)
             }
+            
+            if (selectedtype == "multiple select") {
+              selectizeInput(ns(paste0("filter", var)), label = NULL, 
+                             choices = values, selected = values, 
+                             multiple = TRUE, width="100%")
+              
+            } else if (selectedtype == "single select") {
+              selectInput(ns(paste0("filter", var)), label = NULL, 
+                          choices = values, 
+                          multiple = FALSE, width="100%")
+              
+            } else if (selectedtype == "range slider") {
+              sliderInput(ns(paste0("filter", var)), label = NULL, 
+                          min = values[1], max = values[2],
+                          round = TRUE, value = values)
+              
+            } else if (selectedtype == "single slider") {
+              sliderInput(ns(paste0("filter", var)), label = NULL,
+                          min = values[1], max = values[2],
+                          round = TRUE, value = values[1])
+              
+            } else if (selectedtype == "single date") {
+              dateInput(ns(paste0("filter", var)), label = NULL, 
+                        value = values[1], min = values[1], 
+                        max = values[2],format = "yyyy-mm-dd")
+              
+            } else if (selectedtype == "range date") {
+              dateRangeInput(ns(paste0("filter", var)), label = NULL, 
+                             start = values[1], end = values[2],
+                             min = values[1], max = values[2], 
+                             format = "yyyy-mm-dd")
+            }
+            
           })
         })
       }
+
     })
   })
   
   
   listfilters <- shiny::reactive({
-    # data <- data()
-    if(input$validateFilter > 0){
+
+    if(input$validateFilter > 0) {
       shiny::isolate({
         data <- data()
         var <- 1:ncol(data)
         varname <- colnames(data)
+        if (is.null(columns_to_filter) | columns_to_filter[1] == "all") {
+          varname <- colnames(data)
+        } else {
+          varname <- columns_to_filter
+        }
+        
         colname <- c()
         fun <- c()
         values <- list()
         ctrl <- lapply(1:ncol(data), function(x){
-          if(paste0("typefilter", x) %in% names(input)){
+          if (paste0("typefilter", x) %in% names(input)) {
             
-            name <-varname[x]
+            name <- varname[x]
             selectedtype <- input[[paste0("typefilter", x)]]
             filter <-  input[[paste0("filter", x)]]
             
-            if(selectedtype %in% c("range slider", "range date")){
+            if (selectedtype %in% c("range slider", "range date")) {
               colname <<- c(colname, name, name)
               fun <<- c(fun, ">=", "<=")
+              
               values[[length(values)+1]] <<- filter[1]
               values[[length(values)+1]] <<- filter[2]
-              
-            }else if(selectedtype %in% c("single slider", "single date")){
+              # print(values)
+            } else if(selectedtype %in% c("single slider", "single date")) {
               colname <<- c(colname, name)
               fun <<- c(fun, "==")
               values[[length(values)+1]] <<- filter[1]
               
-            }else if(selectedtype %in% c("multiple select", "single select")){
+            } else if(selectedtype %in% c("multiple select", "single select")) {
               colname <<- c(colname, name)
               fun <<- c(fun, "%in%")
               values[[length(values)+1]] <<- filter
-      
+              
             }
             NULL
           }
         })
-        if(length(colname) > 0 && nrow(data()) > 0){
-          res <- lapply(1:length(colname), function(x){
+        if (length(colname) > 0 && nrow(data()) > 0) {
+          res <- lapply(1:length(colname), function(x) {
             list(column = colname[x], fun = fun[x], values = values[[x]])
           })
-        }else{
+        } else {
           res <- NULL
         }
+        
         res
       })
-    }else{
+    } else {
       NULL
     }
   })
   
   filterdata <- reactiveValues(data = NULL)
   observe({
-    if(is.null(listfilters())) {
+    
+    if (is.null(listfilters())) {
       filterdata$data <- data()
     } else {
       isolate({
+
         filterdata$data <- .filterDataTable(data(), listfilters())
+
       })
     }
     

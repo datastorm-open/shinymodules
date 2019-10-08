@@ -28,7 +28,6 @@ server <- function(input, output, session) {
       } else if (input$data_load == "iris") {
         reactive_data$data <- data.table::data.table(copy(iris))
       }
-      
       reactive_data$data_filtered <- reactive_data$data
 
     })
