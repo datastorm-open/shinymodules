@@ -111,7 +111,7 @@ show_data <- function(input, output, session, data = NULL, optional_stats = "all
     if (is.null(columns_to_show) | columns_to_show[1] == "all") {
       data <- data()
     } else {
-      print(colnames(data()))
+
       data <- data()[, .SD, .SDcols = columns_to_show]
     }
     get_dt_num_dt_fac(data, optional_stats = optional_stats, nb_modal2show)

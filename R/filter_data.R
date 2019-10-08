@@ -86,7 +86,6 @@ filter_data <- function(input, output, session, data = NULL,
     if (is.null(columns_to_filter) | columns_to_filter[1] == "all") {
       data <- data()
     } else {
-      print(colnames(data()))
       data <- data()[, .SD, .SDcols = columns_to_filter]
     }
     
@@ -264,7 +263,7 @@ filter_data <- function(input, output, session, data = NULL,
         } else {
           varname <- columns_to_filter
         }
-        print(colnames(data))
+        
         colname <- c()
         fun <- c()
         values <- list()
@@ -320,8 +319,7 @@ filter_data <- function(input, output, session, data = NULL,
       isolate({
 
         filterdata$data <- .filterDataTable(data(), listfilters())
-        print(filterdata$data)
-        print(colnames(filterdata$data))
+
       })
     }
     

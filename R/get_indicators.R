@@ -239,7 +239,7 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
         data_det <- data[!is.na(get(var)), .N, var][order(-N)]
         modalities <- paste(data_det[, get(var)], ":", 
                             round(100*data_det[, N]/nrow(data), 2), "%")
-        print(data_det)
+
         # browser()
         other <- paste(round(100*(
           1-sum(data_det[1:min(c(nb_modal2show, nrow(data_det))), 
