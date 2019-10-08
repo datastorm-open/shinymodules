@@ -34,8 +34,10 @@ library(data.table)
 obs <- round(runif(100, 1, 10))
 fit <- rnorm(100, 1, 5)
 
-.compute_idc(data = data.table(obs = obs, fit = fit), col_obs = "obs", col_fit = "fit", by = "none")
-.compute_idc(data = data.table(obs = obs, fit = fit, by_var = sample(rep(1:10, 10))), col_obs = "obs", col_fit = "fit", by = "by_var")
+.compute_idc(data = data.table(obs = obs, fit = fit), 
+col_obs = "obs", col_fit = "fit", by = "none")
+.compute_idc(data = data.table(obs = obs, fit = fit, by_var = sample(rep(1:10, 10))), 
+col_obs = "obs", col_fit = "fit", by = "by_var")
 
 }}
 }
