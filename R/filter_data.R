@@ -78,7 +78,7 @@ filter_dataUI <- function(id, titles = TRUE) {
 #' @import shiny DT data.table magrittr
 #'
 #' @rdname filter_data_module
-filter_data <- function(input, output, session, titles = TRUE, data = NULL,
+filter_data <- function(input, output, session, data = NULL,
                         columns_to_filter = "all") {
   
   ns <- session$ns
@@ -326,10 +326,7 @@ filter_data <- function(input, output, session, titles = TRUE, data = NULL,
     } else {
 
         filterdata$data <- .filterDataTable(data, listfilters())
-        
     }
-    
-    
   })
   return(filterdata)
   
