@@ -44,12 +44,12 @@ filter_dataUI <- function(id, titles = TRUE) {
   shiny::fluidPage(
     shiny::fluidRow(
       column(12,
-             shiny::div(h2("Filters"))
+             if(titles) shiny::div(h2("Filters"))
       )
     ),
     shiny::fluidRow(
       column(1),
-      column(7, shiny::uiOutput(ns("choicefilter"))),
+      column(8, shiny::uiOutput(ns("choicefilter"))),
       column(3, shiny::div(br(), shiny::actionButton(
         ns("updateFilter"), "Update filters"), align = "center"))
     ),
@@ -76,13 +76,13 @@ filter_dataUI <- function(id, titles = TRUE) {
 #' @import shiny DT data.table magrittr
 #'
 #' @rdname filter_data_module
-filter_data <- function(input, output, session, data = NULL, 
+filter_data <- function(input, output, session, titles = TRUE, data = NULL,
                         columns_to_filter = "all") {
   
   ns <- session$ns
-
   
-
+  
+  
   output$choicefilter <- renderUI({
     if (is.null(columns_to_filter) | columns_to_filter[1] == "all") {
       data <- data()
@@ -91,10 +91,15 @@ filter_data <- function(input, output, session, data = NULL,
     }
     setcolorder(data, colnames(data)[order(colnames(data))])
     values <- colnames(data)
-    
-    selectInput(ns("chosenfilters"), "Filter on : ", 
-                choices = values, selected = NULL, multiple = TRUE)
-    
+    fluidRow(
+    column(12,
+           if(titles) shiny::div(h2("Filters on:"))
+    ),
+    column(8,
+           selectInput(ns("chosenfilters"), "", 
+                       choices = values, selected = NULL, multiple = TRUE)
+    )
+    )
   })
   
   # choix des filres
@@ -110,7 +115,7 @@ filter_data <- function(input, output, session, data = NULL,
         }
         
         lapply(var, function(colname) {
-
+          
           
           x <- which(colnames(data) == colname)
           
@@ -142,28 +147,28 @@ filter_data <- function(input, output, session, data = NULL,
             selectedtype <- "single select"
             
           }
-            fluidRow(
-              column(1),
-              column(2, 
-                     h5(colname, style = "font-weight: bold;")
-              ),
-              column(2,
-                     selectInput(ns(paste0("typefilter", x)), NULL,
-                                 choices = choices,
-                                 selectedtype)
-              ),
-              column(6, 
-                     uiOutput(ns(paste0("uifilter", x)))
-              )
+          fluidRow(
+            column(1),
+            column(2, 
+                   h5(colname, style = "font-weight: bold;")
+            ),
+            column(2,
+                   selectInput(ns(paste0("typefilter", x)), NULL,
+                               choices = choices,
+                               selectedtype)
+            ),
+            column(6, 
+                   uiOutput(ns(paste0("uifilter", x)))
             )
-           
+          )
+          
         })
         
       })
     }
     
   })
-
+  
   filternames <- reactiveValues(filter = NULL)
   # creation des filtres
   # a optimiser
@@ -173,16 +178,16 @@ filter_data <- function(input, output, session, data = NULL,
     } else {
       data <- data()[, .SD, .SDcols = columns_to_filter]
     }
-
+    
     ctrl <- lapply(1:ncol(data), function(var) {
       
       if (paste0("typefilter", var) %in% names(input)) {
-
-
+        
+        
         output[[paste0("uifilter", var)]] <- renderUI({
           
           selectedtype <- input[[paste0("typefilter", var)]]
-
+          
           isolate({
             colname <- colnames(data)[var]
             ctrlclass <- class(data[, get(colname)])
@@ -242,13 +247,13 @@ filter_data <- function(input, output, session, data = NULL,
           })
         })
       }
-
+      
     })
   })
   
   
   listfilters <- shiny::reactive({
-
+    
     if(input$validateFilter > 0) {
       shiny::isolate({
         data <- data()
@@ -313,9 +318,9 @@ filter_data <- function(input, output, session, data = NULL,
       filterdata$data <- data()
     } else {
       isolate({
-
+        
         filterdata$data <- .filterDataTable(data(), listfilters())
-
+        
       })
     }
     
