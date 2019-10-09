@@ -145,8 +145,9 @@
 
 #' Format by column before plotting
 #'
-#' @param data \code{data.frame} / \code{data.table}. Table containing by or time column.
+#' @param data \code{data.frame} / \code{data.table}. Table containing by or date column.
 #' @param by_col \code{character}. Either the name of the column to use for aggregation or one of ("none", "day", "week", "month", "year").
+#' @param col_date \code{character} (NULL). Column name for date values.
 #' @param nb_quantiles \code{integer} (NULL). Number of intervals for discretization when by_col is numeric. 
 #'
 #' @return a data.table. If 'by_col' is one of: ("day", "week", "month", "year"), a new column 
@@ -167,14 +168,15 @@
 #' }}
 .add_by <- function(data, 
                     by_col, 
+                    col_date,
                     nb_quantiles = NULL) {
   
   
   if (! by_col %in% c(colnames(data), c("none", "day", "week", "month", "year"))) {
     stop("'by_col' must be a column of 'data' or one of: ('day', 'week', 'month', 'year')")
   }
-  if (by_col %in% c("day", "week", "month", "year") && ! "time" %in% colnames(data)) {
-    stop("'data' must contain a 'time' column to be converted to one of: ('day', 'week', 'month', 'year').")
+  if (by_col %in% c("day", "week", "month", "year") && (is.null(col_date) || ! col_date %in% colnames(data))) {
+    stop(paste0("'", col_date, "' is not in 'data'."))
   }
   if (! data[[by_col]] %in% c("none", "day", "week", "month", "year") && is.numeric(data[[by_col]]) && ! is.numeric(nb_quantiles)) {
     stop("'nb_quantiles' must be an integer.")
@@ -183,13 +185,13 @@
   data <- copy(data)
   
   if (by_col == "year") {
-    data[, "year" := year(time)]
+    data[, "year" := year(get(col_date))]
   } else if (by_col == "month") {
-    data[, "month" := paste(year(time), month(time), sep = "/")]
+    data[, "month" := paste(year(get(col_date)), month(get(col_date)), sep = "/")]
   } else if (by_col == "week") {
-    data[, "week" := paste(year(time), week(time), sep = " week ")]
+    data[, "week" := paste(year(get(col_date)), week(get(col_date)), sep = " week ")]
   } else if (by_col == "day") {
-    data[, "day" := substr(time, 1, 10)]
+    data[, "day" := substr(get(col_date), 1, 10)]
     
   } else if (is.numeric(data[[by_col]])) {
     nb_quantiles <- round(nb_quantiles)
@@ -375,6 +377,7 @@ plot.idc_table <- function(data_idc,
 #' @param data \code{data.frame} / \code{data.table}. Table on which indicators will be computed.
 #' @param col_obs \code{character}. Column name for observed values.
 #' @param col_fit \code{character}. Column name for fitted values.
+#' @param col_date \code{character} (NULL). Column name for date values.
 #' @param indicators \code{characters}. Indicators to be computed, amongst: ("rmse", "mae", "mape", "mape_star").
 #'
 #' @return shiny module.
@@ -388,7 +391,7 @@ plot.idc_table <- function(data_idc,
 #' 
 #' data <- data.table(obs = runif(100, 1, 10))
 #' data[, fit := obs + rnorm(100, 0, 10)]
-#' data[, time := seq(as.POSIXct("2019-10-07 00:00:00 UTC", tz = "UTC"), as.POSIXct("2019-10-11 03:00:00 UTC", tz = "UTC"), by = 60*60)]
+#' data[, date := seq(as.POSIXct("2019-10-07 00:00:00 UTC", tz = "UTC"), as.POSIXct("2019-10-11 03:00:00 UTC", tz = "UTC"), by = 60*60)]
 #' data[, by_quali := factor(sample(rep(1:10, 10)))]
 #' data[, by_quanti := runif(100, 1, 20)]
 #' 
@@ -405,7 +408,7 @@ plot.idc_table <- function(data_idc,
 #' }}
 vis_indicators <- function(input, output, session, 
                            data, 
-                           col_obs, col_fit, 
+                           col_obs, col_fit, col_date = NULL,
                            indicators) {
   ns <- session$ns # needed in renderUI
   
@@ -448,8 +451,9 @@ vis_indicators <- function(input, output, session,
         data_idc <- data.table(data)
         by <- input$by_idc
         
-        data_idc <- .add_by(data_idc, 
-                            by, 
+        data_idc <- .add_by(data = data_idc, 
+                            by_col = by, 
+                            col_date = col_date,
                             nb_quantiles = input$nb_quantiles_idc)
 
         .compute_idc(data = data_idc, 
@@ -518,7 +522,10 @@ vis_indicators <- function(input, output, session,
           plt <- amBoxplot(data[["error"]])
           plt
         } else {
-          data <- .add_by(data, input$by_boxplot, nb_quantiles = input$nb_quantiles_boxplot)
+          data <- .add_by(data = data, 
+                          by_col = input$by_boxplot, 
+                          col_date = col_date,
+                          nb_quantiles = input$nb_quantiles_boxplot)
 
           labelRotation <- ifelse(length(unique(data[[by]])) > 5, 45, 0)
           
@@ -539,6 +546,7 @@ vis_indicators <- function(input, output, session,
 #' @param data \code{data.frame} / \code{data.table}. Table on which indicators will be computed.
 #' @param col_obs \code{character}. Column name for observed values.
 #' @param col_fit \code{character}. Column name for fitted values.
+#' @param col_date \code{character} (NULL). Column name for date values.
 #'
 #' @return shiny module.
 #' @import shiny DT rAmCharts
@@ -551,7 +559,7 @@ vis_indicators <- function(input, output, session,
 #' 
 #' data <- data.table(obs = runif(100, 1, 10))
 #' data[, fit := obs + rnorm(100, 0, 10)]
-#' data[, time := seq(as.POSIXct("2019-10-07 00:00:00 UTC", tz = "UTC"), as.POSIXct("2019-10-11 03:00:00 UTC", tz = "UTC"), by = 60*60)]
+#' data[, date := seq(as.POSIXct("2019-10-07 00:00:00 UTC", tz = "UTC"), as.POSIXct("2019-10-11 03:00:00 UTC", tz = "UTC"), by = 60*60)]
 #' data[, by_quali := factor(sample(rep(1:10, 10)))]
 #' data[, by_quanti := runif(100, 1, 20)]
 #' 
@@ -569,13 +577,14 @@ vis_indicators <- function(input, output, session,
 vis_indicators_UI <- function(id, 
                               data,
                               col_obs,
-                              col_fit) {
+                              col_fit,
+                              col_date = NULL) {
   ns <- shiny::NS(id)
   
   fluidPage(
     fluidRow(
       column(3, 
-             selectInput(ns("by_idc"), "Aggregation column", c("none", setdiff(names(data), c(col_obs, col_fit, "time")), "year", "month", "week", "day"))
+             selectInput(ns("by_idc"), "Aggregation column", c("none", setdiff(names(data), c(col_obs, col_fit, col_date)), "year", "month", "week", "day"))
       ),
       uiOutput(ns("update_by_idc")),
       column(3, 
@@ -602,7 +611,7 @@ vis_indicators_UI <- function(id,
     ),
     div(fluidRow(
       column(3, 
-             selectInput(ns("by_boxplot"), "Aggregation column", c("none", setdiff(names(data), c(col_obs, col_fit, "time")), "year", "month", "week", "day"))
+             selectInput(ns("by_boxplot"), "Aggregation column", c("none", setdiff(names(data), c(col_obs, col_fit, col_date)), "year", "month", "week", "day"))
       ),
       uiOutput(ns("update_by_boxplot")),
       column(3, 

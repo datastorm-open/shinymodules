@@ -4,12 +4,14 @@
 \alias{.add_by}
 \title{Format by column before plotting}
 \usage{
-.add_by(data, by_col, nb_quantiles = NULL)
+.add_by(data, by_col, col_date, nb_quantiles = NULL)
 }
 \arguments{
-\item{data}{\code{data.frame} / \code{data.table}. Table containing by or time column.}
+\item{data}{\code{data.frame} / \code{data.table}. Table containing by or date column.}
 
 \item{by_col}{\code{character}. Either the name of the column to use for aggregation or one of ("none", "day", "week", "month", "year").}
+
+\item{col_date}{\code{character} (NULL). Column name for date values.}
 
 \item{nb_quantiles}{\code{integer} (NULL). Number of intervals for discretization when by_col is numeric.}
 }
