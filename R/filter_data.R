@@ -82,14 +82,20 @@ filter_data <- function(input, output, session, titles = TRUE, data = NULL,
                         columns_to_filter = "all") {
   
   ns <- session$ns
-  
-  
+  data_to_filter <- shiny::reactive({ 
+
+      data <- data()
+    
+    setcolorder(data, colnames(data)[order(colnames(data))])
+    data
+  })
+  filternames <- reactiveValues(filter = NULL)
   
   output$choicefilter <- renderUI({
     if (is.null(columns_to_filter) | columns_to_filter[1] == "all") {
-      data <- data()
+      data <- data_to_filter()
     } else {
-      data <- data()[, .SD, .SDcols = columns_to_filter]
+      data <- data_to_filter()[, .SD, .SDcols = columns_to_filter]
     }
     setcolorder(data, colnames(data)[order(colnames(data))])
     values <- colnames(data)
@@ -106,17 +112,17 @@ filter_data <- function(input, output, session, titles = TRUE, data = NULL,
     if(input$updateFilter > 0) {
       isolate({
         var <- input$chosenfilters
-        
+        filternames$filter <- var
+
         if (is.null(columns_to_filter) | columns_to_filter[1] == "all") {
-          data <- data()
+          data <- data_to_filter()
         } else {
-          data <- data()[, .SD, .SDcols = columns_to_filter]
+          data <- data_to_filter()[, .SD, .SDcols = columns_to_filter]
         }
         
         lapply(var, function(colname) {
-          
-          
-          x <- which(colnames(data) == colname)
+
+          x <- colnames(data)[which(colnames(data) == colname)]
           
           ctrlclass <- class(data[, get(colname)])
           
@@ -168,27 +174,27 @@ filter_data <- function(input, output, session, titles = TRUE, data = NULL,
     
   })
   
-  filternames <- reactiveValues(filter = NULL)
+  
   # creation des filtres
   # a optimiser
   observe({
     if (is.null(columns_to_filter) | columns_to_filter[1] == "all") {
-      data <- data()
+      data <- data_to_filter()
     } else {
-      data <- data()[, .SD, .SDcols = columns_to_filter]
+      data <- data_to_filter()[, .SD, .SDcols = columns_to_filter]
     }
     
-    ctrl <- lapply(1:ncol(data), function(var) {
+    filters <- filternames$filter
+    ctrl <- lapply(colnames(data), function(colname) {
       
-      if (paste0("typefilter", var) %in% names(input)) {
-        
-        
-        output[[paste0("uifilter", var)]] <- renderUI({
+      # if (paste0("typefilter", colname) %in% names(input)) {
+        if (colname %in% filters) {
+        output[[paste0("uifilter", colname)]] <- renderUI({
           
-          selectedtype <- input[[paste0("typefilter", var)]]
+          selectedtype <- input[[paste0("typefilter", colname)]]
           
           isolate({
-            colname <- colnames(data)[var]
+            # colname <- colnames(data)[colnames(data) == var]
             ctrlclass <- class(data[, get(colname)])
             
             if (any(ctrlclass %in% c("factor", "character", "logical"))){
@@ -212,32 +218,32 @@ filter_data <- function(input, output, session, titles = TRUE, data = NULL,
             }
             
             if (selectedtype == "multiple select") {
-              selectizeInput(ns(paste0("filter", var)), label = NULL, 
+              selectizeInput(ns(paste0("filter", colname)), label = NULL, 
                              choices = values, selected = values, 
                              multiple = TRUE, width="100%")
               
             } else if (selectedtype == "single select") {
-              selectInput(ns(paste0("filter", var)), label = NULL, 
+              selectInput(ns(paste0("filter", colname)), label = NULL, 
                           choices = values, 
                           multiple = FALSE, width="100%")
               
             } else if (selectedtype == "range slider") {
-              sliderInput(ns(paste0("filter", var)), label = NULL, 
+              sliderInput(ns(paste0("filter", colname)), label = NULL, 
                           min = values[1], max = values[2],
                           round = TRUE, value = values)
               
             } else if (selectedtype == "single slider") {
-              sliderInput(ns(paste0("filter", var)), label = NULL,
+              sliderInput(ns(paste0("filter", colname)), label = NULL,
                           min = values[1], max = values[2],
                           round = TRUE, value = values[1])
               
             } else if (selectedtype == "single date") {
-              dateInput(ns(paste0("filter", var)), label = NULL, 
+              dateInput(ns(paste0("filter", colname)), label = NULL, 
                         value = values[1], min = values[1], 
                         max = values[2],format = "yyyy-mm-dd")
               
             } else if (selectedtype == "range date") {
-              dateRangeInput(ns(paste0("filter", var)), label = NULL, 
+              dateRangeInput(ns(paste0("filter", colname)), label = NULL, 
                              start = values[1], end = values[2],
                              min = values[1], max = values[2], 
                              format = "yyyy-mm-dd")
@@ -254,8 +260,7 @@ filter_data <- function(input, output, session, titles = TRUE, data = NULL,
   listfilters <- shiny::reactive({
     
     if(input$validateFilter > 0) {
-      shiny::isolate({
-        data <- data()
+        data <- data_to_filter()
         var <- 1:ncol(data)
         varname <- colnames(data)
         if (is.null(columns_to_filter) | columns_to_filter[1] == "all") {
@@ -263,64 +268,65 @@ filter_data <- function(input, output, session, titles = TRUE, data = NULL,
         } else {
           varname <- columns_to_filter
         }
+
+        ctrl <- NULL
+        filters <- filternames$filter
         
-        colname <- c()
-        fun <- c()
-        values <- list()
-        ctrl <- lapply(1:ncol(data), function(x){
-          if (paste0("typefilter", x) %in% names(input)) {
+        ctrl <- rbindlist(lapply(varname, function(x){
+          if (x %in% filters) {
             
-            name <- varname[x]
+            name <- x
             selectedtype <- input[[paste0("typefilter", x)]]
             filter <-  input[[paste0("filter", x)]]
             
             if (selectedtype %in% c("range slider", "range date")) {
-              colname <<- c(colname, name, name)
-              fun <<- c(fun, ">=", "<=")
-              
-              values[[length(values)+1]] <<- filter[1]
-              values[[length(values)+1]] <<- filter[2]
-              # print(values)
+              colname <- c(name, name)
+              fun <- c(">=", "<=")
+              values <- c(filter[1], filter[2])
+
             } else if(selectedtype %in% c("single slider", "single date")) {
-              colname <<- c(colname, name)
-              fun <<- c(fun, "==")
-              values[[length(values)+1]] <<- filter[1]
+              colname <- c(name)
+              fun <- c("==")
+              values <- c(filter[1])
               
             } else if(selectedtype %in% c("multiple select", "single select")) {
-              colname <<- c(colname, name)
-              fun <<- c(fun, "%in%")
-              values[[length(values)+1]] <<- filter
+              colname <- c(name)
+              fun <- c("%in%")
+              values <- c(filter[1])
               
             }
-            NULL
+            dtres <- data.table(column = colname, fun = fun, values = values)
+
+            dtres
           }
-        })
-        if (length(colname) > 0 && nrow(data()) > 0) {
-          res <- lapply(1:length(colname), function(x) {
-            list(column = colname[x], fun = fun[x], values = values[[x]])
+        }))
+
+        if (nrow(ctrl) > 0 & nrow(data_to_filter()) > 0) {
+          
+          res <- lapply(1:nrow(ctrl), function(x) {
+            list(column = ctrl[x, column], fun = ctrl[x, fun], values = ctrl[x, values])
           })
+
         } else {
           res <- NULL
         }
-        
         res
-      })
+
     } else {
       NULL
     }
   })
   
   filterdata <- reactiveValues(data = NULL)
-  observe({
-    
+  observeEvent(c(data_to_filter(), input$validateFilter), {
+
+    data <- data_to_filter()
     if (is.null(listfilters())) {
-      filterdata$data <- data()
+      filterdata$data <- data
     } else {
-      isolate({
+
+        filterdata$data <- .filterDataTable(data, listfilters())
         
-        filterdata$data <- .filterDataTable(data(), listfilters())
-        
-      })
     }
     
     
