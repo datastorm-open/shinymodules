@@ -25,7 +25,7 @@
 #' 
 #' @export
 #' 
-#' @import shiny DT
+#' @import shiny DT shinycssloaders
 #' 
 #' @seealso \code{\link{filter_data}}
 #' @examples 
@@ -75,7 +75,7 @@ show_dataUI <- function(id, titles = TRUE) {
              shiny::conditionalPanel(
                condition = paste0("output['", ns("have_dt_num"), "'] === true"),
                if(titles) shiny::div(h4("Numeric variables")),
-               DT::DTOutput(ns("dt_num")))
+               withSpinner(DT::DTOutput(ns("dt_num"))))
       )
     ),
     shiny::fluidRow(
@@ -84,7 +84,7 @@ show_dataUI <- function(id, titles = TRUE) {
                condition = paste0("output['", ns("have_dt_dates"), "'] === true"),
                shiny::hr(),
                if(titles) shiny::div(h4("Date variables")),
-               DT::DTOutput(ns("dt_dates")))
+               withSpinner(DT::DTOutput(ns("dt_dates"))))
       )
     ),
     shiny::fluidRow(
@@ -93,7 +93,7 @@ show_dataUI <- function(id, titles = TRUE) {
                condition = paste0("output['", ns("have_dt_fact"), "'] === true"),
                shiny::hr(),
                if(titles) shiny::div(h4("Factor variables")),
-               DT::DTOutput(ns("dt_fact")))
+               withSpinner(DT::DTOutput(ns("dt_fact"))))
       )
     )
   )
@@ -107,6 +107,7 @@ show_dataUI <- function(id, titles = TRUE) {
 show_data <- function(input, output, session, data = NULL, optional_stats = "all", 
                       nb_modal2show = 3, columns_to_show = "all") {
   ns <- session$ns
+
   data_num_fact <- shiny::reactive({ 
     if (is.null(columns_to_show) | columns_to_show[1] == "all") {
       data <- data()
@@ -114,6 +115,7 @@ show_data <- function(input, output, session, data = NULL, optional_stats = "all
 
       data <- data()[, .SD, .SDcols = columns_to_show]
     }
+    setcolorder(data, colnames(data)[order(colnames(data))])
     get_dt_num_dt_fac(data, optional_stats = optional_stats, nb_modal2show)
   })
   

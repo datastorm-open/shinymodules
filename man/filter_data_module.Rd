@@ -7,7 +7,7 @@
 \usage{
 filter_dataUI(id, titles = TRUE)
 
-filter_data(input, output, session, data = NULL,
+filter_data(input, output, session, titles = TRUE, data = NULL,
   columns_to_filter = "all")
 }
 \arguments{

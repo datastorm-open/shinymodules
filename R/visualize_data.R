@@ -39,7 +39,7 @@ visualize_dataUI <- function(id, titles = TRUE) {
   shiny::fluidPage(
     shiny::fluidRow(
       column(12,
-             shiny::div(h2("Data visualization"))
+             if(titles) shiny::div(h2("Data visualization"))
       )
     ),
     shiny::fluidRow(
