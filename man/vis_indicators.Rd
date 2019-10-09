@@ -4,7 +4,8 @@
 \alias{vis_indicators}
 \title{Shiny module server-like fun to display indicators on a data.table.}
 \usage{
-vis_indicators(input, output, session, data, col_obs, col_fit, indicators)
+vis_indicators(input, output, session, data, col_obs, col_fit,
+  col_date = NULL, indicators)
 }
 \arguments{
 \item{input}{shiny input}
@@ -18,6 +19,8 @@ vis_indicators(input, output, session, data, col_obs, col_fit, indicators)
 \item{col_obs}{\code{character}. Column name for observed values.}
 
 \item{col_fit}{\code{character}. Column name for fitted values.}
+
+\item{col_date}{\code{character} (NULL). Column name for date values.}
 
 \item{indicators}{\code{characters}. Indicators to be computed, amongst: ("rmse", "mae", "mape", "mape_star").}
 }
@@ -34,7 +37,7 @@ library(data.table)
 
 data <- data.table(obs = runif(100, 1, 10))
 data[, fit := obs + rnorm(100, 0, 10)]
-data[, time := seq(as.POSIXct("2019-10-07 00:00:00 UTC", tz = "UTC"), as.POSIXct("2019-10-11 03:00:00 UTC", tz = "UTC"), by = 60*60)]
+data[, date := seq(as.POSIXct("2019-10-07 00:00:00 UTC", tz = "UTC"), as.POSIXct("2019-10-11 03:00:00 UTC", tz = "UTC"), by = 60*60)]
 data[, by_quali := factor(sample(rep(1:10, 10)))]
 data[, by_quanti := runif(100, 1, 20)]
 
