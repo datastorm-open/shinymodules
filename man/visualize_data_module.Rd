@@ -7,8 +7,7 @@
 \usage{
 visualize_dataUI(id, titles = TRUE)
 
-visualize_data(input, output, session, data = NULL,
-  palette_ggplot = "BuPu")
+visualize_data(input, output, session, data = NULL, palette_ggplot = "BuPu")
 }
 \arguments{
 \item{id}{\code{character} An id that will be used to create a namespace}

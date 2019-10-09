@@ -4,8 +4,8 @@
 \alias{colorData}
 \title{Associeted colors to data.frame}
 \usage{
-colorData(data, nbclasses = NULL, col = c("#FF0000", "#FFFFFF",
-  "#0000FF"), colorby = "all")
+colorData(data, nbclasses = NULL, col = c("#FF0000", "#FFFFFF", "#0000FF"),
+  colorby = "all")
 }
 \arguments{
 \item{data}{: data.frame}

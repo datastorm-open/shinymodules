@@ -30,4 +30,5 @@ Imports:
     RColorBrewer,
     hexbin,
     stats,
-    grDevices
+    grDevices,
+    shinycssloaders
