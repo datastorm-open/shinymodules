@@ -47,7 +47,9 @@ filter_dataUI <- function(id, titles = TRUE) {
              if(titles) shiny::div(h2("Filters"))
       )
     ),
+    
     shiny::fluidRow(
+      if(titles) shiny::div(h6("Filters on:")),
       column(1),
       column(8, shiny::uiOutput(ns("choicefilter"))),
       column(3, shiny::div(br(), shiny::actionButton(
@@ -92,9 +94,6 @@ filter_data <- function(input, output, session, titles = TRUE, data = NULL,
     setcolorder(data, colnames(data)[order(colnames(data))])
     values <- colnames(data)
     fluidRow(
-    column(12,
-           if(titles) shiny::div(h2("Filters on:"))
-    ),
     column(8,
            selectInput(ns("chosenfilters"), "", 
                        choices = values, selected = NULL, multiple = TRUE)

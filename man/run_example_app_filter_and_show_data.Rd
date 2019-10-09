@@ -29,7 +29,7 @@ one for numeric variables and one for factor variables.
 
 optional_stats <- c("min", "max", "var", "boxplot", "density")
 nb_modal2show <- 5
-run_example_app_filter_and_show_data(optional_stats)
+run_example_app_filter_and_show_data(optional_stats, nb_modal2show)
 }
 
 }
