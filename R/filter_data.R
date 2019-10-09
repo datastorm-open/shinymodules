@@ -80,13 +80,18 @@ filter_data <- function(input, output, session, data = NULL,
                         columns_to_filter = "all") {
   
   ns <- session$ns
-  rv_filters <- reactiveValues(filter = NULL, oldfilter = NULL)
+  datatofilter <- reactive({
+    datatofilter <- data()
+    setcolorder(datatofilter, colnames(datatofilter)[order(colnames(datatofilter))])
+    datatofilter
+  })
   
+
   output$choicefilter <- renderUI({
     if (is.null(columns_to_filter) | columns_to_filter[1] == "all") {
-      data <- data()
+      data <- datatofilter()
     } else {
-      data <- data()[, .SD, .SDcols = columns_to_filter]
+      data <- datatofilter()[, .SD, .SDcols = columns_to_filter]
     }
     
     values <- colnames(data)
@@ -101,13 +106,11 @@ filter_data <- function(input, output, session, data = NULL,
     if(input$updateFilter > 0) {
       isolate({
         var <- input$chosenfilters
-        rv_filters$oldfilter <- rv_filters$filter
-        rv_filters$filter <- var
         
         if (is.null(columns_to_filter) | columns_to_filter[1] == "all") {
-          data <- data()
+          data <- datatofilter()
         } else {
-          data <- data()[, .SD, .SDcols = columns_to_filter]
+          data <- datatofilter()[, .SD, .SDcols = columns_to_filter]
         }
         
         lapply(var, function(colname) {
@@ -170,18 +173,15 @@ filter_data <- function(input, output, session, data = NULL,
   # a optimiser
   observe({
     if (is.null(columns_to_filter) | columns_to_filter[1] == "all") {
-      data <- data()
+      data <- datatofilter()
     } else {
-      data <- data()[, .SD, .SDcols = columns_to_filter]
+      data <- datatofilter()[, .SD, .SDcols = columns_to_filter]
     }
 
     ctrl <- lapply(1:ncol(data), function(var) {
       
       if (paste0("typefilter", var) %in% names(input)) {
 
-        if (colnames(data)[var] %in% rv_filters$filter) {
-
-        }
 
         output[[paste0("uifilter", var)]] <- renderUI({
           
@@ -255,7 +255,7 @@ filter_data <- function(input, output, session, data = NULL,
 
     if(input$validateFilter > 0) {
       shiny::isolate({
-        data <- data()
+        data <- datatofilter()
         var <- 1:ncol(data)
         varname <- colnames(data)
         if (is.null(columns_to_filter) | columns_to_filter[1] == "all") {
@@ -295,7 +295,7 @@ filter_data <- function(input, output, session, data = NULL,
             NULL
           }
         })
-        if (length(colname) > 0 && nrow(data()) > 0) {
+        if (length(colname) > 0 && nrow(datatofilter()) > 0) {
           res <- lapply(1:length(colname), function(x) {
             list(column = colname[x], fun = fun[x], values = values[[x]])
           })
@@ -314,11 +314,11 @@ filter_data <- function(input, output, session, data = NULL,
   observe({
     
     if (is.null(listfilters())) {
-      filterdata$data <- data()
+      filterdata$data <- datatofilter()
     } else {
       isolate({
 
-        filterdata$data <- .filterDataTable(data(), listfilters())
+        filterdata$data <- .filterDataTable(datatofilter(), listfilters())
 
       })
     }

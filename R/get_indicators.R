@@ -236,9 +236,18 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
       fact_vars, 
       FUN = function(var){
         # get details of factor
+        browser()
         data_det <- data[!is.na(get(var)), .N, var][order(-N)]
         modalities <- paste(data_det[, get(var)], ":", 
                             round(100*data_det[, N]/nrow(data), 2), "%")
+        
+        # control modalities
+        if(length(modalities) < nb_modal2show) {
+          lendiff <- nb_modal2show - length(modalities)
+          modalities <- c(modalities, rep("", lendiff))
+        } else if(length(modalities) > nb_modal2show) {
+          modalities <- modalities[1:nb_modal2show]
+        }
 
         # browser()
         other <- paste(round(100*(
@@ -246,15 +255,15 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
                          N])/nrow(data)), 2), "%")
         # get pct na
         pct_na <- round(sum(is.na(data[[var]]))/nrow(data), 2)
-        
-        txt <- paste0("data.table::data.table(variable = var,
+        data_fac <- data.table::data.table(variable = var,
                                nb_modalities = nrow(data_det),
-                               pct_NA = pct_na,",
-                      paste(sapply(1:nb_modal2show, function(i){
-                        paste0(" modality", i, " = modalities[", i, "]")
-                      }), collapse = ","), ", other = other", ")")
+                               pct_NA = pct_na)
+        # give modalities
+        data_fac[, paste(sapply(1:nb_modal2show, function(i){
+          paste0(" modality", i)})) := as.list(modalities)]
+        data_fac[, other := other]
 
-        eval(parse(text = txt))
+        data_fac
       })),
     rownames = FALSE, filter = "bottom", escape = FALSE, 
     selection = "none", width = "100%",

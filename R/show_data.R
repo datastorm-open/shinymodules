@@ -107,6 +107,7 @@ show_dataUI <- function(id, titles = TRUE) {
 show_data <- function(input, output, session, data = NULL, optional_stats = "all", 
                       nb_modal2show = 3, columns_to_show = "all") {
   ns <- session$ns
+
   data_num_fact <- shiny::reactive({ 
     if (is.null(columns_to_show) | columns_to_show[1] == "all") {
       data <- data()
@@ -114,6 +115,7 @@ show_data <- function(input, output, session, data = NULL, optional_stats = "all
 
       data <- data()[, .SD, .SDcols = columns_to_show]
     }
+    setcolorder(data, colnames(data)[order(colnames(data))])
     get_dt_num_dt_fac(data, optional_stats = optional_stats, nb_modal2show)
   })
   
