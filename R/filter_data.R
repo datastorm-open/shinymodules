@@ -80,20 +80,16 @@ filter_data <- function(input, output, session, data = NULL,
                         columns_to_filter = "all") {
   
   ns <- session$ns
-  datatofilter <- reactive({
-    datatofilter <- data()
-    setcolorder(datatofilter, colnames(datatofilter)[order(colnames(datatofilter))])
-    datatofilter
-  })
+
   
 
   output$choicefilter <- renderUI({
     if (is.null(columns_to_filter) | columns_to_filter[1] == "all") {
-      data <- datatofilter()
+      data <- data()
     } else {
-      data <- datatofilter()[, .SD, .SDcols = columns_to_filter]
+      data <- data()[, .SD, .SDcols = columns_to_filter]
     }
-    
+    setcolorder(data, colnames(data)[order(colnames(data))])
     values <- colnames(data)
     
     selectInput(ns("chosenfilters"), "Filter on : ", 
@@ -108,9 +104,9 @@ filter_data <- function(input, output, session, data = NULL,
         var <- input$chosenfilters
         
         if (is.null(columns_to_filter) | columns_to_filter[1] == "all") {
-          data <- datatofilter()
+          data <- data()
         } else {
-          data <- datatofilter()[, .SD, .SDcols = columns_to_filter]
+          data <- data()[, .SD, .SDcols = columns_to_filter]
         }
         
         lapply(var, function(colname) {
@@ -173,9 +169,9 @@ filter_data <- function(input, output, session, data = NULL,
   # a optimiser
   observe({
     if (is.null(columns_to_filter) | columns_to_filter[1] == "all") {
-      data <- datatofilter()
+      data <- data()
     } else {
-      data <- datatofilter()[, .SD, .SDcols = columns_to_filter]
+      data <- data()[, .SD, .SDcols = columns_to_filter]
     }
 
     ctrl <- lapply(1:ncol(data), function(var) {
@@ -255,7 +251,7 @@ filter_data <- function(input, output, session, data = NULL,
 
     if(input$validateFilter > 0) {
       shiny::isolate({
-        data <- datatofilter()
+        data <- data()
         var <- 1:ncol(data)
         varname <- colnames(data)
         if (is.null(columns_to_filter) | columns_to_filter[1] == "all") {
@@ -295,7 +291,7 @@ filter_data <- function(input, output, session, data = NULL,
             NULL
           }
         })
-        if (length(colname) > 0 && nrow(datatofilter()) > 0) {
+        if (length(colname) > 0 && nrow(data()) > 0) {
           res <- lapply(1:length(colname), function(x) {
             list(column = colname[x], fun = fun[x], values = values[[x]])
           })
@@ -314,11 +310,11 @@ filter_data <- function(input, output, session, data = NULL,
   observe({
     
     if (is.null(listfilters())) {
-      filterdata$data <- datatofilter()
+      filterdata$data <- data()
     } else {
       isolate({
 
-        filterdata$data <- .filterDataTable(datatofilter(), listfilters())
+        filterdata$data <- .filterDataTable(data(), listfilters())
 
       })
     }
