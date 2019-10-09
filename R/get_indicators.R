@@ -236,7 +236,6 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
       fact_vars, 
       FUN = function(var){
         # get details of factor
-        browser()
         data_det <- data[!is.na(get(var)), .N, var][order(-N)]
         modalities <- paste(data_det[, get(var)], ":", 
                             round(100*data_det[, N]/nrow(data), 2), "%")
