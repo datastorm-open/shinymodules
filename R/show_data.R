@@ -6,6 +6,7 @@
 #' It returns three tables, one with statistics on numeric data, one with 
 #' statistics on factor data and one with statistics on dates data
 #' @param titles \code{logical} Add titles on UI ? Default to TRUE
+#' @param subtitles \code{logical} Add subtitles on UI ? Default to TRUE
 #' @param input Not a real parameter, should not be set manually. 
 #' Done by callModule automatically.
 #' @param output Not a real parameter, should not be set manually. 
@@ -15,7 +16,7 @@
 #' @param data \code{reactivevalues} reactive data.table
 #' @param optional_stats \code{character} optional statistics computed on numeric
 #' data, default is "all". "pct_zero", "pct_NA", "mean", "median", "sd" are
-#' always computed, possible values are "min", "max", "var", "interquartile range",
+#' always computed, possible values are "min", "max", "nb_valid", "var", "interquartile range",
 #' "mode_max", "kurtosis", "skewness", "boxplot", "density".
 #' @param nb_modal2show \code{integer} number of modalities to show 
 #' for factor variables. 
@@ -60,7 +61,7 @@
 #' 
 #' @rdname show_data_module
 #' 
-show_dataUI <- function(id, titles = TRUE) {
+show_dataUI <- function(id, titles = TRUE, subtitles = TRUE) {
   ns <- shiny::NS(id)
   shiny::fluidPage(
     ## Stats descriptives on numerical variables in a first tab
@@ -74,7 +75,7 @@ show_dataUI <- function(id, titles = TRUE) {
       column(12,
              shiny::conditionalPanel(
                condition = paste0("output['", ns("have_dt_num"), "'] === true"),
-               if(titles) shiny::div(h4("Numeric variables")),
+               if(subtitles) shiny::div(h4("Numeric variables")),
                withSpinner(DT::DTOutput(ns("dt_num"))))
       )
     ),
@@ -83,7 +84,7 @@ show_dataUI <- function(id, titles = TRUE) {
              shiny::conditionalPanel(
                condition = paste0("output['", ns("have_dt_dates"), "'] === true"),
                shiny::hr(),
-               if(titles) shiny::div(h4("Date variables")),
+               if(subtitles) shiny::div(h4("Date variables")),
                withSpinner(DT::DTOutput(ns("dt_dates"))))
       )
     ),
@@ -92,7 +93,7 @@ show_dataUI <- function(id, titles = TRUE) {
              shiny::conditionalPanel(
                condition = paste0("output['", ns("have_dt_fact"), "'] === true"),
                shiny::hr(),
-               if(titles) shiny::div(h4("Factor variables")),
+               if(subtitles) shiny::div(h4("Factor variables")),
                withSpinner(DT::DTOutput(ns("dt_fact"))))
       )
     )

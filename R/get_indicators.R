@@ -19,22 +19,18 @@
 #' }
 #' 
 get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
-  # check if there is constant variables, if yes ignore them
+  
   data.table::setDT(data)
-  # cst_vars <- names(which(unlist(data[, lapply(
-  #   .SD, function(var) length(unique(var)))]) == 1))
-  # if(length(cst_vars) > 0) {
-  #   data[, c(cst_vars) := lapply(.SD, as.character), .SDcols = c(cst_vars)]
-  # }
   
   # get variables with 2 to 10 levels then pass them to factors
   # fact_vars <- names(which(unlist(data[, lapply(
   #   .SD, function(var) length(unique(na.omit(var))) %in% 2:10)])))
   fact_vars <- names(which(
-    sapply(data, function(var) is.factor(var))))
-  if(length(fact_vars) > 0) {
-    data[, c(fact_vars) := lapply(.SD, as.factor), .SDcols = c(fact_vars)]
-  }
+    sapply(data, function(var) is.factor(var) | is.character(var))))
+  # if(length(fact_vars) > 0) {
+  #   data[, c(fact_vars) := lapply(.SD, as.factor), .SDcols = c(fact_vars)]
+  # }
+  
   # get other numeric variables
   num_vars <- names(which(
     sapply(data, function(var) is.numeric(var) | is.integer(var))))
@@ -51,7 +47,7 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
   
   # generate table with stats on dates
   if (length(dates_vars) > 0) {
-    dt_dates <- .get_dates_indicators(data, dates_vars)
+    dt_dates <- .get_dates_indicators(data, dates_vars, optional_stats = optional_stats)
   } else {
     dt_dates <- NULL
   }
@@ -59,7 +55,7 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
   
   # same for factors
   if (length(fact_vars) > 0) {
-    dt_fact <- .get_factor_indicators(data, fact_vars, nb_modal2show)
+    dt_fact <- .get_factor_indicators(data, fact_vars, nb_modal2show, optional_stats = optional_stats)
   } else {
     dt_fact <- NULL
   }
@@ -105,7 +101,8 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
   }
   
   ref_ind <- data.frame(
-    indicator= c( "pct_zero", "pct_NA", "min", "mean", "median", "max", "sd", "var",
+    indicator= c( "pct_zero", "pct_NA", "nb_valid", "min", "mean", 
+                  "median", "max", "sd", "var",
                   "interquartile_range",
                   "mode_max",
                   "kurtosis",
@@ -115,13 +112,14 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
     
     code = c("length(which(tmp_compute_ind == 0))/.N",
              "length(which(is.na(tmp_compute_ind)))/.N",
-             "round(min(tmp_compute_ind, na.rm = T), 2)",
-             "round(mean(tmp_compute_ind, na.rm = T), 2)",
-             "round(stats::median(tmp_compute_ind, na.rm = T), 2)",
-             "round(max(tmp_compute_ind, na.rm = T), 2)",
-             "round(stats::sd(tmp_compute_ind, na.rm = TRUE), 2)",
-             "round(stats::var(tmp_compute_ind, na.rm = TRUE), 2)",
-             "round(stats::IQR(tmp_compute_ind, na.rm = TRUE), 2)",
+             "length(which(!is.na(tmp_compute_ind)))",
+             "suppressWarnings(round(min(tmp_compute_ind, na.rm = T), 2))",
+             "suppressWarnings(round(mean(tmp_compute_ind, na.rm = T), 2))",
+             "suppressWarnings(round(stats::median(tmp_compute_ind, na.rm = T), 2))",
+             "suppressWarnings(round(max(tmp_compute_ind, na.rm = T), 2))",
+             "suppressWarnings(round(stats::sd(tmp_compute_ind, na.rm = TRUE), 2))",
+             "suppressWarnings(round(stats::var(tmp_compute_ind, na.rm = TRUE), 2))",
+             "suppressWarnings(round(stats::IQR(tmp_compute_ind, na.rm = TRUE), 2))",
              "round(getmode(tmp_compute_ind, na.rm = TRUE), 2)",
              "round(PerformanceAnalytics::kurtosis(tmp_compute_ind, na.rm = TRUE), 2)",
              "round(PerformanceAnalytics::skewness(tmp_compute_ind, na.rm = TRUE), 2)",
@@ -137,9 +135,14 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
   
   stats_desc_global <- data[, eval(parse(text = expr_calcul))]
   if (!("all" %in% optional_stats)) {
-    stats_desc_global <- stats_desc_global[, .SD, .SDcols = c(
-      "pct_zero", "pct_NA", "mean", "median", "sd", optional_stats
-    )]
+    expected_cols <- c(
+      "pct_NA", "pct_zero", "mean", "median", "sd", optional_stats
+    )
+    valid_cols <- expected_cols[expected_cols %in% colnames(stats_desc_global)]
+    stats_desc_global <- stats_desc_global[, .SD, .SDcols = valid_cols]
+  }
+  if ("nb_valid" %in% colnames(stats_desc_global)) {
+    setcolorder(stats_desc_global, c("pct_NA", "nb_valid", "pct_zero"))
   }
   return(stats_desc_global)
 }
@@ -158,9 +161,17 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
   data_copy <- data.table::copy(data)
   res <- sapply(vars, function(var) .get_indicators(
     data_copy, var, optional_stats = optional_stats), simplify = FALSE)
-  stats_table <- data.table::rbindlist(res, use.names=TRUE, idcol = "variable")
+  stats_table <- data.table::rbindlist(res, use.names = TRUE, idcol = "variable")
   
+  if (!all(optional_stats %in% c(colnames(stats_table), "all"))) {
+    fake_stats <- optional_stats[!(optional_stats %in% c(colnames(stats_table), "all"))]
+    warning(paste("One or more of optional statistics selected are not in the
+            available ones and will be ignored: ", paste(fake_stats, collapse = ", ")))
+  }
+  
+  # htmlstats <-  .get_stats_info(colnames(stats_table))
   dt <- DT::datatable(stats_table, rownames = FALSE, filter = "bottom", 
+                      # container = HTML(as.character(htmlstats)),
                       escape = FALSE, selection = "none", width = "100%",
                       options = list(
                         pageLength = 20, lengthMenu = c(5, 10, 20, 50), 
@@ -173,8 +184,20 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
                       )) %>%  DT::formatStyle(
                         'pct_NA',
                         color = DT::styleInterval(0, c("green", 'red'))
-                      ) %>% DT::formatPercentage(c('pct_NA', "pct_zero"), 2)
+                      ) %>% DT::formatPercentage(
+                        c('pct_NA', "pct_zero"), 2
+                      ) 
+  names_num <- attr(dt$x, "colnames")[which(
+    !(attr(dt$x, "colnames") %in% c(
+      "pct_NA", "pct_zero", "boxplot", "density")))]
   
+  dt <- dt %>% DT::formatCurrency(
+    names_num, currency = "", interval = 3, mark = " ")
+  
+  if ("nb_valid" %in% optional_stats | "all" %in% optional_stats) {
+    dt <- dt %>% DT::formatCurrency(
+      "nb_valid", currency = "", interval = 3, mark = " ", digits = 0)
+  }
   dt$dependencies <- append(dt$dependencies, htmlwidgets::getDependency("sparkline"))
   return(dt)
 }
@@ -186,37 +209,51 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
 #' @param dates_vars \code{character}
 #' @return DT with statistics on dates data
 #' 
-.get_dates_indicators <- function(data, dates_vars){
-  dt_dates <- DT::datatable(
-    data.table::rbindlist(lapply(
-      dates_vars, 
-      FUN = function(var){
-        density <- spk_chr(tryCatch(density(
-          data[, as.numeric(get(var))], n= 100, na.rm = T)$y, 
-          error = function(e) NULL))
-        pct_na <- round(sum(is.na(data[[var]]))/nrow(data), 2)
-        data.table::data.table(variable = var,
-                               pct_NA = pct_na,
-                               min = min(data[[var]], na.rm = T),
-                               mean = mean(data[[var]], na.rm = T),
-                               median = stats::median(data[[var]], na.rm = T),
-                               max = max(data[[var]], na.rm = T),
-                               density = density
-        )})),
-    rownames = FALSE, filter = "bottom", escape = FALSE, 
-    selection = "none", width = "100%",
-    options = list(columnDefs = list(
-      list(className = 'dt-center', targets = 0:5,
-           drawCallback =  htmlwidgets::JS(
-             'function(){debugger;HTMLWidgets.staticRender();}')
-      )))) %>%  DT::formatStyle(
-        'pct_NA',
-        color = DT::styleInterval(0, c("green", 'red'))
-      ) %>% DT::formatPercentage(c(
-        'pct_NA'), 2) 
+.get_dates_indicators <- function(data, dates_vars, optional_stats){
+  
+  dt_dates <-     data.table::rbindlist(lapply(
+    dates_vars, 
+    FUN = function(var){
+      density <- spk_chr(tryCatch(density(
+        data[, as.numeric(get(var))], n= 100, na.rm = T)$y, 
+        error = function(e) NULL))
+      pct_na <- sum(is.na(data[[var]]))/nrow(data)
+      nb_valid <- length(which(!is.na(data[[var]])))
+      
+      data.table::data.table(variable = var,
+                             pct_NA = pct_na,
+                             nb_valid = nb_valid,
+                             min = suppressWarnings(min(data[[var]], na.rm = T)),
+                             mean = suppressWarnings(mean(data[[var]], na.rm = T)),
+                             median = suppressWarnings(stats::median(data[[var]], na.rm = T)),
+                             max = suppressWarnings(max(data[[var]], na.rm = T)),
+                             density = density
+      )}))
+  if (!("nb_valid" %in% optional_stats | "all" %in% optional_stats)) {
+    dt_dates[, nb_valid := NULL]
+  }
+  dt_dates <- DT::datatable(dt_dates,
+                            rownames = FALSE, filter = "bottom", escape = FALSE, 
+                            selection = "none", width = "100%",
+                            options = list(scrollX = TRUE, columnDefs = list(
+                              list(className = 'dt-center', targets = 0:5,
+                                   drawCallback =  htmlwidgets::JS(
+                                     'function(){debugger;HTMLWidgets.staticRender();}')
+                              )))) %>%  DT::formatStyle(
+                                'pct_NA',
+                                color = DT::styleInterval(0, c("green", 'red'))
+                              ) %>% DT::formatPercentage(c(
+                                'pct_NA'), 2
+                              )
+  
+  if ("nb_valid" %in% optional_stats | "all" %in% optional_stats) {
+    dt_dates <- dt_dates %>% DT::formatCurrency(
+      "nb_valid", currency = "", interval = 3, mark = " ", 
+      digits = 0)
+  }
   dt_dates$dependencies <- append(dt_dates$dependencies, 
                                   htmlwidgets::getDependency("sparkline"))
-
+  
   return(dt_dates)
 }
 
@@ -229,48 +266,120 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
 #' @return DT with statistics on factor data
 #' @import sparkline PerformanceAnalytics
 #' 
-.get_factor_indicators <- function(data, fact_vars, nb_modal2show) {
+.get_factor_indicators <- function(data, fact_vars, nb_modal2show, optional_stats) {
   N <- NULL
-  dt_fact <- DT::datatable(
-    data.table::rbindlist(lapply(
-      fact_vars, 
-      FUN = function(var){
-        # get details of factor
-        data_det <- data[!is.na(get(var)), .N, var][order(-N)]
-        modalities <- paste(data_det[, get(var)], ":", 
-                            round(100*data_det[, N]/nrow(data), 2), "%")
-        
-        # control modalities
-        if(length(modalities) < nb_modal2show) {
-          lendiff <- nb_modal2show - length(modalities)
-          modalities <- c(modalities, rep("", lendiff))
-        } else if(length(modalities) > nb_modal2show) {
-          modalities <- modalities[1:nb_modal2show]
-        }
+  
+  dt_fact <- data.table::rbindlist(lapply(
+    fact_vars, 
+    FUN = function(var){
+      
+      # get details of factor
+      data_det <- data[!is.na(get(var)), .N, var][order(-N)]
+      modalities <- paste(data_det[, get(var)], ":", 
+                          round(100*data_det[, N]/nrow(data), 2), "%")
+      
+      # control modalities
+      if(length(modalities) < nb_modal2show) {
+        lendiff <- nb_modal2show - length(modalities)
+        modalities <- c(modalities, rep("", lendiff))
+      } else if(length(modalities) > nb_modal2show) {
+        modalities <- modalities[1:nb_modal2show]
+      }
+      
+      half1 <- gsub(" [0-9]{1,}\\.[0-9]{1,} %", "", modalities)
+      half2 <- gsub("^.*:", "", modalities)
+      modalities <- paste("<i>", half1, "</i> <b>", half2, "</b>")
+      
+      other <- paste(round(100*(
+        1-sum(data_det[1:min(c(nb_modal2show, nrow(data_det))), 
+                       N])/nrow(data)), 2), "%")
+      
+      # get pct na
+      pct_na <- sum(is.na(data[[var]]))/nrow(data)
+      nb_valid <- length(which(!is.na(data[[var]])))
+      data_fac <- data.table::data.table(variable = var,
+                                         nb_modalities = nrow(data_det),
+                                         pct_NA = pct_na,
+                                         nb_valid = nb_valid)
+      
+      # give modalities
+      data_fac[, paste(sapply(1:nb_modal2show, function(i){
+        paste0(" modality", i)})) := as.list(modalities)]
+      data_fac[, other := other]
+      
+      if (!("nb_valid" %in% optional_stats | "all" %in% optional_stats)) {
+        data_fac[, nb_valid := NULL]
+      }
+      data_fac
+    }))
+  
+  
+  dt_fact <- DT::datatable(dt_fact,
+                           rownames = FALSE, filter = "bottom", escape = FALSE, 
+                           selection = "none", width = "100%",
+                           options = list(scrollX = TRUE, columnDefs = list(
+                             list(className = 'dt-center', targets = 0:5
+                             )))) %>%  DT::formatStyle(
+                               'pct_NA',
+                               color = DT::styleInterval(0, c("green", 'red'))
+                             ) %>% DT::formatPercentage(c(
+                               'pct_NA'), 2
+                             )
+  
+  if ("nb_valid" %in% optional_stats | "all" %in% optional_stats) {
+    dt_fact <- dt_fact %>% DT::formatCurrency(
+      "nb_valid", currency = "", interval = 3, mark = " ", 
+      digits = 0)
+  }
+  return(dt_fact)
+}
 
-        # browser()
-        other <- paste(round(100*(
-          1-sum(data_det[1:min(c(nb_modal2show, nrow(data_det))), 
-                         N])/nrow(data)), 2), "%")
-        # get pct na
-        pct_na <- round(sum(is.na(data[[var]]))/nrow(data), 2)
-        data_fac <- data.table::data.table(variable = var,
-                               nb_modalities = nrow(data_det),
-                               pct_NA = pct_na)
-        # give modalities
-        data_fac[, paste(sapply(1:nb_modal2show, function(i){
-          paste0(" modality", i)})) := as.list(modalities)]
-        data_fac[, other := other]
 
-        data_fac
-      })),
-    rownames = FALSE, filter = "bottom", escape = FALSE, 
-    selection = "none", width = "100%",
-    options = list(columnDefs = list(
-      list(className = 'dt-center', targets = 0:5
-      )))) %>%  DT::formatStyle(
-        'pct_NA',
-        color = DT::styleInterval(0, c("green", 'red'))
-      ) %>% DT::formatPercentage(c(
-        'pct_NA'), 2) 
+
+.get_stats_info <- function(cols) {
+  
+  stats_info <- data.table(stats = c("variable",
+                                     "pct_NA",
+                                     "nb_valid",
+                                     "pct_zero",
+                                     "mean",
+                                     "median",
+                                     "sd",
+                                     "min",
+                                     "max",
+                                     "var",
+                                     "interquartile range",
+                                     "mode_max",
+                                     "kurtosis",
+                                     "skewness",
+                                     "boxplot",
+                                     "density"
+  ), 
+  info = c("variable name",
+           "percentage of unknown values",
+           "number of known values",
+           "percentage of zero",
+           "mean value",
+           "median value",
+           "amount of variation",
+           "minimum value",
+           "maximum value",
+           "variance: expected value of the squared deviation from the mean",
+           "first quartile subtracted from the third quartile",
+           "value which maximizes the density of the variable",
+           "descriptor of the shape of a probability distribution",
+           "measure of the asymmetry of the probability distribution",
+           "visualization of the distribution",
+           "detailed visualization of the distribution"
+  ))
+  
+  htmlbody <- paste(sapply(cols, function(col) {
+    paste0('<th title="', stats_info[stats == col, info], '">', 
+           stats_info[stats == col, stats], '</th>')
+  }), collapse = " ")
+  
+  htmlall <- paste('<table class ="display"> <thead> <tr>', htmlcorps,
+                   "</tr> </thead> </table>")
+  return(htmlall)
+  
 }

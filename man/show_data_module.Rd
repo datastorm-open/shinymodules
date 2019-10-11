@@ -5,7 +5,7 @@
 \alias{show_data}
 \title{UI part of the module show_data}
 \usage{
-show_dataUI(id, titles = TRUE)
+show_dataUI(id, titles = TRUE, subtitles = TRUE)
 
 show_data(input, output, session, data = NULL, optional_stats = "all",
   nb_modal2show = 3, columns_to_show = "all")
@@ -16,6 +16,8 @@ It returns three tables, one with statistics on numeric data, one with
 statistics on factor data and one with statistics on dates data}
 
 \item{titles}{\code{logical} Add titles on UI ? Default to TRUE}
+
+\item{subtitles}{\code{logical} Add subtitles on UI ? Default to TRUE}
 
 \item{input}{Not a real parameter, should not be set manually. 
 Done by callModule automatically.}
