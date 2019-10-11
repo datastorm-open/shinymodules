@@ -169,9 +169,9 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
             available ones and will be ignored: ", paste(fake_stats, collapse = ", ")))
   }
   
-  # htmlstats <-  .get_stats_info(colnames(stats_table))
+  container <-  .get_stats_info(colnames(stats_table))
   dt <- DT::datatable(stats_table, rownames = FALSE, filter = "bottom", 
-                      # container = HTML(as.character(htmlstats)),
+                      container = container,
                       escape = FALSE, selection = "none", width = "100%",
                       options = list(
                         pageLength = 20, lengthMenu = c(5, 10, 20, 50), 
@@ -232,7 +232,9 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
   if (!("nb_valid" %in% optional_stats | "all" %in% optional_stats)) {
     dt_dates[, nb_valid := NULL]
   }
-  dt_dates <- DT::datatable(dt_dates,
+  
+  container <-  .get_stats_info(colnames(dt_dates))
+  dt_dates <- DT::datatable(dt_dates, container = container,
                             rownames = FALSE, filter = "bottom", escape = FALSE, 
                             selection = "none", width = "100%",
                             options = list(scrollX = TRUE, columnDefs = list(
@@ -304,7 +306,7 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
       
       # give modalities
       data_fac[, paste(sapply(1:nb_modal2show, function(i){
-        paste0(" modality", i)})) := as.list(modalities)]
+        paste0("modality", i)})) := as.list(modalities)]
       data_fac[, other := other]
       
       if (!("nb_valid" %in% optional_stats | "all" %in% optional_stats)) {
@@ -313,8 +315,9 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
       data_fac
     }))
   
+  container <-  .get_stats_info(colnames(dt_fact), nb_modal2show = nb_modal2show)
   
-  dt_fact <- DT::datatable(dt_fact,
+  dt_fact <- DT::datatable(dt_fact, container = container,
                            rownames = FALSE, filter = "bottom", escape = FALSE, 
                            selection = "none", width = "100%",
                            options = list(scrollX = TRUE, columnDefs = list(
@@ -336,7 +339,7 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
 
 
 
-.get_stats_info <- function(cols) {
+.get_stats_info <- function(cols, nb_modal2show = NULL) {
   
   stats_info <- data.table(stats = c("variable",
                                      "pct_NA",
@@ -353,7 +356,8 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
                                      "kurtosis",
                                      "skewness",
                                      "boxplot",
-                                     "density"
+                                     "density",
+                                     "nb_modalities"
   ), 
   info = c("variable name",
            "percentage of unknown values",
@@ -370,16 +374,50 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
            "descriptor of the shape of a probability distribution",
            "measure of the asymmetry of the probability distribution",
            "visualization of the distribution",
-           "detailed visualization of the distribution"
+           "detailed visualization of the distribution",
+           "number of different values"
   ))
+  if (!is.null(nb_modal2show)) {
+    
+    nb_modal2show <- max(4, nb_modal2show)
+    dt_modal <- data.table(stats = c(paste0("modality", 1:nb_modal2show), "other"),
+               info = c("1st occuring modality", 
+                        "2nd occuring modality", 
+                        "3rd occuring modality",
+                        paste0(4:nb_modal2show, "th occuring modality"),
+                        "percentage of observations with other values than the displayed modalities"))
+    stats_info <- rbindlist(list(stats_info, dt_modal))
+  }
+
+  htmlbodyth <- c(unname(sapply(cols, function(col) {
+    stats_info[stats == col, stats]
+  })))
   
-  htmlbody <- paste(sapply(cols, function(col) {
-    paste0('<th title="', stats_info[stats == col, info], '">', 
-           stats_info[stats == col, stats], '</th>')
-  }), collapse = " ")
+  htmlbodytitle <- c(unname(sapply(cols, function(col) {
+    stats_info[stats == col, info]
+  })))
   
-  htmlall <- paste('<table class ="display"> <thead> <tr>', htmlcorps,
-                   "</tr> </thead> </table>")
-  return(htmlall)
+  
+  container = htmltools::withTags(table(
+    class = 'display',
+    thead(
+      tr(lapply(1:length(htmlbodyth), function(val) {
+        th(htmlbodyth[val], title = htmlbodytitle[val])
+      }))
+    )
+  )
+  )
+  
+  return(container)
   
 }
+modality <- c("wowowowo", "wiwiwiiw")
+nb_modal2show <- 2
+nb_modal2show <- max(4, nb_modal2show)
+data.table(stats = paste0("modality", 1:nb_modal2show),
+           info = c("1st occuring modality", "2nd occuring modality", "3rd occuring modality",
+                    paste0(4:nb_modal2show, "th occuring modality")))
+
+
+c("1st occuring modality", "2nd occuring modality", "3rd occuring modality",
+  paste0(4:nb_modal2show, "th occuring modality"))
