@@ -411,13 +411,3 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
   return(container)
   
 }
-modality <- c("wowowowo", "wiwiwiiw")
-nb_modal2show <- 2
-nb_modal2show <- max(4, nb_modal2show)
-data.table(stats = paste0("modality", 1:nb_modal2show),
-           info = c("1st occuring modality", "2nd occuring modality", "3rd occuring modality",
-                    paste0(4:nb_modal2show, "th occuring modality")))
-
-
-c("1st occuring modality", "2nd occuring modality", "3rd occuring modality",
-  paste0(4:nb_modal2show, "th occuring modality"))
