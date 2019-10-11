@@ -286,7 +286,7 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
         modalities <- modalities[1:nb_modal2show]
       }
       
-      half1 <- gsub(" [0-9]{1,}\\.[0-9]{1,} %", "", modalities)
+      half1 <- gsub(" [0-9]{1,}\\.[0-9]{1,} %| [0-9]{1,} %", "", modalities)
       half2 <- gsub("^.*:", "", modalities)
       modalities <- paste("<i>", half1, "</i> <b>", half2, "</b>")
       
