@@ -7,7 +7,8 @@
 \usage{
 filter_dataUI(id, titles = TRUE)
 
-filter_data(input, output, session, data = NULL, columns_to_filter = "all")
+filter_data(input, output, session, data = NULL,
+  columns_to_filter = "all")
 }
 \arguments{
 \item{id}{\code{character} An id that will be used to create a namespace}

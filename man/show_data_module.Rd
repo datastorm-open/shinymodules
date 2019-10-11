@@ -32,7 +32,7 @@ Done by callModule automatically.}
 
 \item{optional_stats}{\code{character} optional statistics computed on numeric
 data, default is "all". "pct_zero", "pct_NA", "mean", "median", "sd" are
-always computed, possible values are "min", "max", "var", "interquartile range",
+always computed, possible values are "min", "max", "nb_valid", "var", "interquartile range",
 "mode_max", "kurtosis", "skewness", "boxplot", "density".}
 
 \item{nb_modal2show}{\code{integer} number of modalities to show 
