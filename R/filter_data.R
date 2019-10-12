@@ -153,8 +153,7 @@ filter_data <- function(input, output, session, data = NULL,
             
           }
           fluidRow(
-            column(1),
-            column(2, 
+            column(width = 2, offset = 1,  
                    h5(colname, style = "font-weight: bold;")
             ),
             column(2,
@@ -230,23 +229,23 @@ filter_data <- function(input, output, session, data = NULL,
             } else if (selectedtype == "range slider") {
               sliderInput(ns(paste0("filter", colname)), label = NULL, 
                           min = values[1], max = values[2],
-                          round = TRUE, value = values)
+                          round = TRUE, value = values, width="100%")
               
             } else if (selectedtype == "single slider") {
               sliderInput(ns(paste0("filter", colname)), label = NULL,
                           min = values[1], max = values[2],
-                          round = TRUE, value = values[1])
+                          round = TRUE, value = values[1], width="100%")
               
             } else if (selectedtype == "single date") {
               dateInput(ns(paste0("filter", colname)), label = NULL, 
                         value = values[1], min = values[1], 
-                        max = values[2],format = "yyyy-mm-dd")
+                        max = values[2],format = "yyyy-mm-dd", width="100%")
               
             } else if (selectedtype == "range date") {
               dateRangeInput(ns(paste0("filter", colname)), label = NULL, 
                              start = values[1], end = values[2],
                              min = values[1], max = values[2], 
-                             format = "yyyy-mm-dd")
+                             format = "yyyy-mm-dd", width="100%")
             }
             
           })
@@ -282,18 +281,18 @@ filter_data <- function(input, output, session, data = NULL,
             if (selectedtype %in% c("range slider", "range date")) {
               colname <- c(name, name)
               fun <- c(">=", "<=")
-              values <- c(filter[1], filter[2])
+              values <- c(list(filter[1]), list(filter[2]))
 
             } else if(selectedtype %in% c("single slider", "single date")) {
               colname <- c(name)
               fun <- c("==")
-              values <- c(filter[1])
+              values <- c(list(filter[1]))
               
             } else if(selectedtype %in% c("multiple select", "single select")) {
               colname <- c(name)
               fun <- c("%in%")
-              values <- c(filter[1])
-              
+              values <- c(list(filter))
+          
             }
             dtres <- data.table(column = colname, fun = fun, values = values)
 
@@ -304,7 +303,7 @@ filter_data <- function(input, output, session, data = NULL,
         if (nrow(ctrl) > 0 & nrow(data_to_filter()) > 0) {
           
           res <- lapply(1:nrow(ctrl), function(x) {
-            list(column = ctrl[x, column], fun = ctrl[x, fun], values = ctrl[x, values])
+            list(column = ctrl[x, column], fun = ctrl[x, fun], values = ctrl[x, unlist(values)])
           })
 
         } else {
