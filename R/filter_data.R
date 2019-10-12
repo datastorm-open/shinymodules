@@ -259,7 +259,7 @@ filter_data <- function(input, output, session, data = NULL,
   
   listfilters <- shiny::reactive({
     
-    if(input$validateFilter > 0) {
+    if(!is.null(input$validateFilter) && input$validateFilter > 0) {
         data <- data_to_filter()
         var <- 1:ncol(data)
         varname <- colnames(data)
