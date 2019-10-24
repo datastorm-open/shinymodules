@@ -82,21 +82,31 @@ filter_data <- function(input, output, session, data = NULL,
                         columns_to_filter = "all") {
   
   ns <- session$ns
+  
+  
+  data100row <- reactive({
+    as.data.table(data() %>% head(100))
+  })
+  
+  
   data_to_filter <- shiny::reactive({ 
 
       data <- data()
-    
-    setcolorder(data, colnames(data)[order(colnames(data))])
+      
+    # setcolorder(data, colnames(data)[order(colnames(data))])
     data
   })
   filternames <- reactiveValues(filter = NULL)
   
   output$choicefilter <- renderUI({
     if (is.null(columns_to_filter) | columns_to_filter[1] == "all") {
-      data <- data_to_filter()
+      data <- data100row()
     } else {
-      data <- data_to_filter()[, .SD, .SDcols = columns_to_filter]
+      
+      data <- data100row()[, .SD, .SDcols = columns_to_filter]
+      
     }
+    
     setcolorder(data, colnames(data)[order(colnames(data))])
     values <- colnames(data)
     fluidRow(
@@ -115,17 +125,17 @@ filter_data <- function(input, output, session, data = NULL,
         filternames$filter <- var
 
         if (is.null(columns_to_filter) | columns_to_filter[1] == "all") {
-          data <- data_to_filter()
+          data <- data100row()
         } else {
-          data <- data_to_filter()[, .SD, .SDcols = columns_to_filter]
+          
+          data <- data100row()[, .SD, .SDcols = columns_to_filter]
+
         }
         
         lapply(var, function(colname) {
 
           x <- colnames(data)[which(colnames(data) == colname)]
-          
           ctrlclass <- class(data[, get(colname)])
-          
           if (any(ctrlclass %in% c("factor", "character", "logical"))) {
             values <- unique(data[, get(colname)])
             if (length(values) <= 10) {
@@ -178,9 +188,9 @@ filter_data <- function(input, output, session, data = NULL,
   # a optimiser
   observe({
     if (is.null(columns_to_filter) | columns_to_filter[1] == "all") {
-      data <- data_to_filter()
+      data <- data100row()
     } else {
-      data <- data_to_filter()[, .SD, .SDcols = columns_to_filter]
+      data <- data100row()[, .SD, .SDcols = columns_to_filter]
     }
     
     filters <- filternames$filter
@@ -196,7 +206,7 @@ filter_data <- function(input, output, session, data = NULL,
             # colname <- colnames(data)[colnames(data) == var]
             ctrlclass <- class(data[, get(colname)])
             
-            if (any(ctrlclass %in% c("factor", "character", "logical"))){
+              if (any(ctrlclass %in% c("factor", "character", "logical"))){
               if (selectedtype %in% c("single select", "multiple select")) {
                 values <- unique(as.character(data[, get(colname)]))
                 
@@ -259,7 +269,7 @@ filter_data <- function(input, output, session, data = NULL,
   listfilters <- shiny::reactive({
     
     if(!is.null(input$validateFilter) && input$validateFilter > 0) {
-        data <- data_to_filter()
+        data <- data100row()
         var <- 1:ncol(data)
         varname <- colnames(data)
         if (is.null(columns_to_filter) | columns_to_filter[1] == "all") {
@@ -300,7 +310,7 @@ filter_data <- function(input, output, session, data = NULL,
           }
         }))
 
-        if (nrow(ctrl) > 0 & nrow(data_to_filter()) > 0) {
+        if (nrow(ctrl) > 0 & nrow(data100row()) > 0) {
           
           res <- lapply(1:nrow(ctrl), function(x) {
             list(column = ctrl[x, column], fun = ctrl[x, fun], values = ctrl[x, unlist(values)])
@@ -320,11 +330,17 @@ filter_data <- function(input, output, session, data = NULL,
   observeEvent(c(data_to_filter(), input$validateFilter), {
 
     data <- data_to_filter()
+    
     if (is.null(listfilters())) {
-      filterdata$data <- data
+      # as.data.table(as_tibble(data))
+      
+      filterdata$data <-  as.data.table(as_tibble(data))
+      
     } else {
 
-        filterdata$data <- .filterDataTable(data, listfilters())
+        filterdata$data <- as.data.table(.filterDataTable(data, listfilters()))
+        setcolorder(filterdata$data , colnames(filterdata$data )[order(colnames(filterdata$data ))])
+        
     }
   })
   return(filterdata)

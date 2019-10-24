@@ -5,6 +5,7 @@ library(sparkline)
 library(magrittr)
 library(PerformanceAnalytics)
 library(htmlwidgets)
+library(shinycssloaders)
 
 ui <- fluidPage(
   shiny::fluidRow(

@@ -19,5 +19,6 @@
     }
     paste0(x$column, x$fun, values)
   })), collapse = " & ")
-   data[eval(parse(text = expr))]
+   # data[eval(parse(text = expr))]
+  filter_(data, expr)
 }
