@@ -136,7 +136,8 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
   stats_desc_global <- data[, eval(parse(text = expr_calcul))]
   if (!("all" %in% optional_stats)) {
     expected_cols <- c(
-      "pct_NA", "pct_zero", "mean", "median", "sd", optional_stats
+      #"pct_NA", "pct_zero", "mean", "median", "sd",
+       optional_stats
     )
     valid_cols <- expected_cols[expected_cols %in% colnames(stats_desc_global)]
     stats_desc_global <- stats_desc_global[, .SD, .SDcols = valid_cols]
