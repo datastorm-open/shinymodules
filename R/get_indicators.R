@@ -143,8 +143,13 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
     stats_desc_global <- stats_desc_global[, .SD, .SDcols = valid_cols]
   }
   if ("nb_valid" %in% colnames(stats_desc_global)) {
-    setcolorder(stats_desc_global, c("pct_NA", "nb_valid", "pct_zero"))
+    indicInTable <- c("pct_NA", "nb_valid", "pct_zero")[c("pct_NA", "nb_valid", "pct_zero")%in%names(stats_desc_global)]
+    
+    setcolorder(stats_desc_global, indicInTable)
   }
+  
+  
+  
   return(stats_desc_global)
 }
 
@@ -169,7 +174,7 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
     warning(paste("One or more of optional statistics selected are not in the
             available ones and will be ignored: ", paste(fake_stats, collapse = ", ")))
   }
-  
+  cols <- colnames(stats_table)
   container <-  .get_stats_info(colnames(stats_table))
   dt <- DT::datatable(stats_table, rownames = FALSE, filter = "bottom", 
                       container = container,
@@ -182,12 +187,21 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
                         columnDefs = list(
                           list(className = 'dt-center', 
                                targets = c(ncol(stats_table)-1:ncol(stats_table))))
-                      )) %>%  DT::formatStyle(
-                        'pct_NA',
-                        color = DT::styleInterval(0, c("green", 'red'))
-                      ) %>% DT::formatPercentage(
-                        c('pct_NA', "pct_zero"), 2
-                      ) 
+                      ))
+  # %>% DT::formatPercentage(
+  #                       c('pct_NA', "pct_zero"), 2
+  #                     )
+  if('pct_NA' %in% names(cols)){
+    dt <- dt %>%   DT::formatStyle(
+      'pct_NA',
+      color = DT::styleInterval(0, c("green", 'red'))%>% 
+    DT::formatPercentage(c('pct_NA'),2) )
+  }
+  
+  if('pct_zero' %in% names(cols)){
+    dt <- dt %>% DT::formatPercentage(c('pct_zero'),2)
+  }
+  
   names_num <- attr(dt$x, "colnames")[which(
     !(attr(dt$x, "colnames") %in% c(
       "pct_NA", "pct_zero", "boxplot", "density")))]
@@ -317,18 +331,22 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
     }))
   
   container <-  .get_stats_info(colnames(dt_fact), nb_modal2show = nb_modal2show)
-  
+  cols <- colnames(dt_fact)
   dt_fact <- DT::datatable(dt_fact, container = container,
                            rownames = FALSE, filter = "bottom", escape = FALSE, 
                            selection = "none", width = "100%",
                            options = list(scrollX = TRUE, columnDefs = list(
                              list(className = 'dt-center', targets = 0:5
-                             )))) %>%  DT::formatStyle(
-                               'pct_NA',
-                               color = DT::styleInterval(0, c("green", 'red'))
-                             ) %>% DT::formatPercentage(c(
-                               'pct_NA'), 2
-                             )
+                             ))))
+  if('pct_NA' %in% cols){
+    dt_fact <- dt_fact%>%  DT::formatStyle(
+      'pct_NA',
+      color = DT::styleInterval(0, c("green", 'red'))
+    ) %>% DT::formatPercentage(c(
+      'pct_NA'), 2
+    )
+  }
+  
   
   if ("nb_valid" %in% optional_stats | "all" %in% optional_stats) {
     dt_fact <- dt_fact %>% DT::formatCurrency(
