@@ -92,19 +92,27 @@ filter_data <- function(input, output, session, data = NULL,
   data_to_filter <- shiny::reactive({ 
 
       data <- data()
-      
-    # setcolorder(data, colnames(data)[order(colnames(data))])
+    
     data
   })
+  
+  min_max_info <- reactive({
+    if("tbl_SQLiteConnection"%in% class(data())){
+      give_info_data_sql(data())
+    }else{
+      NULL
+    }
+  })
+  
+  
+  
   filternames <- reactiveValues(filter = NULL)
   
   output$choicefilter <- renderUI({
     if (is.null(columns_to_filter) | columns_to_filter[1] == "all") {
       data <- data100row()
     } else {
-      
       data <- data100row()[, .SD, .SDcols = columns_to_filter]
-      
     }
     
     setcolorder(data, colnames(data)[order(colnames(data))])
@@ -117,6 +125,9 @@ filter_data <- function(input, output, session, data = NULL,
     )
   })
   
+  
+  
+  
   # choix des filres
   output$uifilter <- renderUI({
     if(input$updateFilter > 0) {
@@ -127,9 +138,7 @@ filter_data <- function(input, output, session, data = NULL,
         if (is.null(columns_to_filter) | columns_to_filter[1] == "all") {
           data <- data100row()
         } else {
-          
           data <- data100row()[, .SD, .SDcols = columns_to_filter]
-
         }
         
         lapply(var, function(colname) {
@@ -208,11 +217,22 @@ filter_data <- function(input, output, session, data = NULL,
             
               if (any(ctrlclass %in% c("factor", "character", "logical"))){
               if (selectedtype %in% c("single select", "multiple select")) {
-                values <- unique(as.character(data[, get(colname)]))
+                
+                if("tbl_SQLiteConnection"%in% class(data())){
+                  values <- min_max_info()[[colname]]
+                }else{
+                  values <- unique(as.character(data[, get(colname)]))
+                }
+                
                 
               } else if (selectedtype %in% c("single slider", "range slider")) {
+                
+                if("tbl_SQLiteConnection"%in% class(data())){
+                  values <- c(min_max_info()[[colname]]$min, min_max_info()[[colname]]$max)
+                }else{
                 values <- range(as.numeric(as.character(data[, get(colname)])), 
                                 na.rm = TRUE)
+                }
               }
               
             } else if (any(ctrlclass %in% c("integer", "numeric", "POSIXct", "POSIXlt"))) {
@@ -220,7 +240,11 @@ filter_data <- function(input, output, session, data = NULL,
                 values <- unique(as.character(data[, get(colname)]))
                 
               } else if (selectedtype %in% c("single slider", "range slider")) {
-                values <- range(data[, get(colname)], na.rm = TRUE)
+                if("tbl_SQLiteConnection"%in% class(data())){
+                  values <- c(min_max_info()[[colname]]$min, min_max_info()[[colname]]$max)
+                }else{
+                  values <- range(data[, get(colname)], na.rm = TRUE)
+                }
               }
             } else if (any(ctrlclass %in% c("IDate", "Date"))) {
               values <- range(data[, get(colname)], na.rm = TRUE)
