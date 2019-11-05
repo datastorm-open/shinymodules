@@ -23,7 +23,7 @@ give_info_data_sql <- function(con){
   chr_unique <- NULL
   chr_unique <- sapply(col_chr, function(X){
     unique <- con %>% summarise(unique = distinct( !!as.name(X))) %>% collect()
-    unlist(unique)
+    as.vector(unlist(unique))
   }, simplify = F)
   
   all_stats <- c(min_max, chr_unique)
