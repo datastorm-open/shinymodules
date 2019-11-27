@@ -92,9 +92,12 @@ filter_data <- function(input, output, session, data = NULL,
   filternames <- reactiveValues(filter = NULL)
   
   output$choicefilter <- renderUI({
-    columns_to_filter <- intersect(columns_to_filter, colnames(data_to_filter()))
-    if(length(columns_to_filter) == 0) columns_to_filter <- NULL
-    if (is.null(columns_to_filter) | columns_to_filter[1] == "all") {
+    if(!"all" %in% columns_to_filter){
+      columns_to_filter <- intersect(columns_to_filter, colnames(data_to_filter()))
+      if(length(columns_to_filter) == 0) columns_to_filter <- NULL
+    }
+
+    if (is.null(columns_to_filter) | "all" %in% columns_to_filter) {
       data <- data_to_filter()
     } else {
       data <- data_to_filter()[, .SD, .SDcols = columns_to_filter]
@@ -115,9 +118,12 @@ filter_data <- function(input, output, session, data = NULL,
       isolate({
         var <- input$chosenfilters
         filternames$filter <- var
-        columns_to_filter <- intersect(columns_to_filter, colnames(data_to_filter()))
-        if(length(columns_to_filter) == 0) columns_to_filter <- NULL
-        if (is.null(columns_to_filter) | columns_to_filter[1] == "all") {
+        if(!"all" %in% columns_to_filter){
+          columns_to_filter <- intersect(columns_to_filter, colnames(data_to_filter()))
+          if(length(columns_to_filter) == 0) columns_to_filter <- NULL
+        }
+        
+        if (is.null(columns_to_filter) | "all" %in% columns_to_filter) {
           data <- data_to_filter()
         } else {
           data <- data_to_filter()[, .SD, .SDcols = columns_to_filter]
@@ -180,9 +186,12 @@ filter_data <- function(input, output, session, data = NULL,
   # creation des filtres
   # a optimiser
   observe({
-    columns_to_filter <- intersect(columns_to_filter, colnames(data_to_filter()))
-    if(length(columns_to_filter) == 0) columns_to_filter <- NULL
-    if (is.null(columns_to_filter) | columns_to_filter[1] == "all") {
+    if(!"all" %in% columns_to_filter){
+      columns_to_filter <- intersect(columns_to_filter, colnames(data_to_filter()))
+      if(length(columns_to_filter) == 0) columns_to_filter <- NULL
+    }
+    
+    if (is.null(columns_to_filter) | "all" %in% columns_to_filter) {
       data <- data_to_filter()
     } else {
       data <- data_to_filter()[, .SD, .SDcols = columns_to_filter]
@@ -267,9 +276,12 @@ filter_data <- function(input, output, session, data = NULL,
         data <- data_to_filter()
         var <- 1:ncol(data)
         varname <- colnames(data)
-        columns_to_filter <- intersect(columns_to_filter, varname)
-        if(length(columns_to_filter) == 0) columns_to_filter <- NULL
-        if (is.null(columns_to_filter) | columns_to_filter[1] == "all") {
+        if(!"all" %in% columns_to_filter){
+          columns_to_filter <- intersect(columns_to_filter, varname)
+          if(length(columns_to_filter) == 0) columns_to_filter <- NULL
+        }
+        
+        if (is.null(columns_to_filter) | "all" %in% columns_to_filter) {
           varname <- colnames(data)
         } else {
           varname <- columns_to_filter

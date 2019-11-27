@@ -71,30 +71,38 @@ show_dataUI <- function(id, titles = TRUE, subtitles = TRUE) {
              if(titles) shiny::div(h2("Descriptive statistics"))
       )
     ),
-    shiny::fluidRow(
-      column(12,
-             shiny::conditionalPanel(
-               condition = paste0("output['", ns("have_dt_num"), "'] === true"),
-               if(subtitles) shiny::div(h4("Numeric variables")),
-               withSpinner(DT::DTOutput(ns("dt_num"))))
-      )
+    shiny::conditionalPanel(
+      condition = paste0("output['", ns("have_data"), "'] === false"),
+      shiny::div(h2("No data available"))
     ),
-    shiny::fluidRow(
-      column(12,
-             shiny::conditionalPanel(
-               condition = paste0("output['", ns("have_dt_dates"), "'] === true"),
-               shiny::hr(),
-               if(subtitles) shiny::div(h4("Date variables")),
-               withSpinner(DT::DTOutput(ns("dt_dates"))))
-      )
-    ),
-    shiny::fluidRow(
-      column(12,
-             shiny::conditionalPanel(
-               condition = paste0("output['", ns("have_dt_fact"), "'] === true"),
-               shiny::hr(),
-               if(subtitles) shiny::div(h4("Factor variables")),
-               withSpinner(DT::DTOutput(ns("dt_fact"))))
+    
+    shiny::conditionalPanel(
+      condition = paste0("output['", ns("have_data"), "'] === true"),
+      shiny::fluidRow(
+        column(12,
+               shiny::conditionalPanel(
+                 condition = paste0("output['", ns("have_dt_num"), "'] === true"),
+                 if(subtitles) shiny::div(h4("Numeric variables")),
+                 withSpinner(DT::DTOutput(ns("dt_num"))))
+        )
+      ),
+      shiny::fluidRow(
+        column(12,
+               shiny::conditionalPanel(
+                 condition = paste0("output['", ns("have_dt_dates"), "'] === true"),
+                 shiny::hr(),
+                 if(subtitles) shiny::div(h4("Date variables")),
+                 withSpinner(DT::DTOutput(ns("dt_dates"))))
+        )
+      ),
+      shiny::fluidRow(
+        column(12,
+               shiny::conditionalPanel(
+                 condition = paste0("output['", ns("have_dt_fact"), "'] === true"),
+                 shiny::hr(),
+                 if(subtitles) shiny::div(h4("Factor variables")),
+                 withSpinner(DT::DTOutput(ns("dt_fact"))))
+        )
       )
     )
   )
@@ -108,16 +116,29 @@ show_dataUI <- function(id, titles = TRUE, subtitles = TRUE) {
 show_data <- function(input, output, session, data = NULL, optional_stats = "all", 
                       nb_modal2show = 3, columns_to_show = "all") {
   ns <- session$ns
-
+  
+  output$have_data <- shiny::reactive({
+    !is.null(data()) && nrow(data()) > 0
+  })
+  shiny::outputOptions(output, "have_data", suspendWhenHidden = FALSE)
+  
   data_num_fact <- shiny::reactive({ 
-    if (is.null(columns_to_show) | columns_to_show[1] == "all") {
-      data <- data()
+    if(!is.null(data()) && nrow(data()) > 0){
+      if(!"all" %in% columns_to_show){
+        columns_to_show <- intersect(columns_to_show, colnames(data()))
+        if(length(columns_to_show) == 0) columns_to_show <- NULL
+      }
+      if (is.null(columns_to_show) | "all" %in% columns_to_show) {
+        data <- data()
+      } else {
+        
+        data <- data()[, .SD, .SDcols = columns_to_show]
+      }
+      setcolorder(data, colnames(data)[order(colnames(data))])
+      get_dt_num_dt_fac(data, optional_stats = optional_stats, nb_modal2show)
     } else {
-
-      data <- data()[, .SD, .SDcols = columns_to_show]
+      NULL
     }
-    setcolorder(data, colnames(data)[order(colnames(data))])
-    get_dt_num_dt_fac(data, optional_stats = optional_stats, nb_modal2show)
   })
   
   output$dt_num <- DT::renderDT({
@@ -132,7 +153,6 @@ show_data <- function(input, output, session, data = NULL, optional_stats = "all
     if(!is.null(dt)){
       dt 
     } else NULL
-    
   })
   
   output$dt_fact <- DT::renderDT({

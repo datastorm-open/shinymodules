@@ -40,7 +40,8 @@ server <- function(input, output, session) {
   })
   callModule(module = show_data, id = "id",
              data = shiny::reactive(reactive_data$data), 
-             optional_stats = optional_stats, nb_modal2show = nb_modal2show)
+             optional_stats = optional_stats, 
+             nb_modal2show = nb_modal2show, columns_to_show = c(colnames(reactive_data$data), "invalid"))
 }
 
 # Run the application

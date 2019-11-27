@@ -38,7 +38,7 @@ server <- function(input, output, session) {
     
     data_filtered <<- callModule(module = filter_data, id = "id",
                                  data = shiny::reactive(reactive_data$data), 
-                                 columns_to_filter = c(colnames(reactive_data$data), "tesdt"))
+                                 columns_to_filter = c(colnames(reactive_data$data), "invalid_name"))
     
     observeEvent(data_filtered$data, {
       datafilt <- data_filtered$data
