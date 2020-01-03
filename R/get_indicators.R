@@ -351,7 +351,7 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
                                      "min",
                                      "max",
                                      "var",
-                                     "interquartile range",
+                                     "interquartile_range",
                                      "mode_max",
                                      "kurtosis",
                                      "skewness",
