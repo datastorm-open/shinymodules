@@ -48,29 +48,37 @@ filter_dataUI <- function(id, titles = TRUE) {
       )
     ),
     
-    shiny::fluidRow(
-      if(titles) shiny::div(h6("Filters on:")),
-      column(1),
-      column(8, shiny::uiOutput(ns("choicefilter"))),
-      column(3, shiny::div(br(), shiny::actionButton(
-        ns("updateFilter"), "Update filters"), align = "center"))
-    ),
     shiny::conditionalPanel(
-      condition = paste0("input['", ns("updateFilter"), "'] > 0"),
-      shiny::fluidRow(
-        column(1),
-        column(10, hr())
-      ),
-      shiny::uiOutput(ns("uifilter")),
-      shiny::fluidRow(
-        column(1),
-        column(10, shiny::hr())
-      ),
-      shiny::div(shiny::actionButton(
-        ns("validateFilter"), "Apply filtering on data"), 
-        align = "center")
-    )
+      condition = paste0("output['", ns("have_data_filter"), "'] === false"),
+      shiny::div(h2("No data available"))
+    ),
     
+    shiny::conditionalPanel(
+      condition = paste0("output['", ns("have_data_filter"), "'] === true"),
+      
+      shiny::fluidRow(
+        if(titles) shiny::div(h6("Filters on:")),
+        column(1),
+        column(8, shiny::uiOutput(ns("choicefilter"))),
+        column(3, shiny::div(br(), shiny::actionButton(
+          ns("updateFilter"), "Update filters"), align = "center"))
+      ),
+      shiny::conditionalPanel(
+        condition = paste0("input['", ns("updateFilter"), "'] > 0"),
+        shiny::fluidRow(
+          column(1),
+          column(10, hr())
+        ),
+        shiny::uiOutput(ns("uifilter")),
+        shiny::fluidRow(
+          column(1),
+          column(10, shiny::hr())
+        ),
+        shiny::div(shiny::actionButton(
+          ns("validateFilter"), "Apply filtering on data"), 
+          align = "center")
+      )
+    )
   )
 }
 
@@ -82,34 +90,49 @@ filter_data <- function(input, output, session, data = NULL,
                         columns_to_filter = "all") {
   
   ns <- session$ns
+  
   data_to_filter <- shiny::reactive({ 
-
-      data <- data()
-    
-    setcolorder(data, colnames(data)[order(colnames(data))])
+    data <- data()
+    if(!"data.frame" %in% class(data)){
+      data <- NULL
+    } else {
+      if(!"data.table" %in% class(data)){
+        data <- data.table::as.data.table(data)
+      }
+      setcolorder(data, colnames(data)[order(colnames(data))])
+    }
     data
   })
+  
+  output$have_data_filter <- shiny::reactive({
+    !is.null(data_to_filter()) && "data.frame" %in% class(data_to_filter()) && nrow(data_to_filter()) > 0
+  })
+  shiny::outputOptions(output, "have_data_filter", suspendWhenHidden = FALSE)
+  
   filternames <- reactiveValues(filter = NULL)
   
   output$choicefilter <- renderUI({
-    if(!"all" %in% columns_to_filter){
-      columns_to_filter <- intersect(columns_to_filter, colnames(data_to_filter()))
-      if(length(columns_to_filter) == 0) columns_to_filter <- NULL
+    
+    if( !is.null(data_to_filter()) && "data.frame" %in% class(data_to_filter()) && nrow(data_to_filter()) > 0){
+      if(!"all" %in% columns_to_filter){
+        columns_to_filter <- intersect(columns_to_filter, colnames(data_to_filter()))
+        if(length(columns_to_filter) == 0) columns_to_filter <- NULL
+      }
+      
+      if (is.null(columns_to_filter) | "all" %in% columns_to_filter) {
+        data <- data_to_filter()
+      } else {
+        data <- data_to_filter()[, .SD, .SDcols = columns_to_filter]
+      }
+      setcolorder(data, colnames(data)[order(colnames(data))])
+      values <- colnames(data)
+      fluidRow(
+        column(8,
+               selectInput(ns("chosenfilters"), "", 
+                           choices = values, selected = NULL, multiple = TRUE)
+        )
+      )
     }
-
-    if (is.null(columns_to_filter) | "all" %in% columns_to_filter) {
-      data <- data_to_filter()
-    } else {
-      data <- data_to_filter()[, .SD, .SDcols = columns_to_filter]
-    }
-    setcolorder(data, colnames(data)[order(colnames(data))])
-    values <- colnames(data)
-    fluidRow(
-    column(8,
-           selectInput(ns("chosenfilters"), "", 
-                       choices = values, selected = NULL, multiple = TRUE)
-    )
-    )
   })
   
   # choix des filres
@@ -130,7 +153,7 @@ filter_data <- function(input, output, session, data = NULL,
         }
         
         lapply(var, function(colname) {
-
+          
           x <- colnames(data)[which(colnames(data) == colname)]
           
           ctrlclass <- class(data[, get(colname)])
@@ -201,7 +224,7 @@ filter_data <- function(input, output, session, data = NULL,
     ctrl <- lapply(colnames(data), function(colname) {
       
       # if (paste0("typefilter", colname) %in% names(input)) {
-        if (colname %in% filters) {
+      if (colname %in% filters) {
         output[[paste0("uifilter", colname)]] <- renderUI({
           
           selectedtype <- input[[paste0("typefilter", colname)]]
@@ -273,63 +296,63 @@ filter_data <- function(input, output, session, data = NULL,
   listfilters <- shiny::reactive({
     
     if(!is.null(input$validateFilter) && input$validateFilter > 0) {
-        data <- data_to_filter()
-        var <- 1:ncol(data)
+      data <- data_to_filter()
+      var <- 1:ncol(data)
+      varname <- colnames(data)
+      if(!"all" %in% columns_to_filter){
+        columns_to_filter <- intersect(columns_to_filter, varname)
+        if(length(columns_to_filter) == 0) columns_to_filter <- NULL
+      }
+      
+      if (is.null(columns_to_filter) | "all" %in% columns_to_filter) {
         varname <- colnames(data)
-        if(!"all" %in% columns_to_filter){
-          columns_to_filter <- intersect(columns_to_filter, varname)
-          if(length(columns_to_filter) == 0) columns_to_filter <- NULL
-        }
-        
-        if (is.null(columns_to_filter) | "all" %in% columns_to_filter) {
-          varname <- colnames(data)
-        } else {
-          varname <- columns_to_filter
-        }
-
-        ctrl <- NULL
-        filters <- filternames$filter
-        
-        ctrl <- rbindlist(lapply(varname, function(x){
-          if (x %in% filters) {
-            
-            name <- x
-            selectedtype <- input[[paste0("typefilter", x)]]
-            filter <-  input[[paste0("filter", x)]]
-            
-            if (selectedtype %in% c("range slider", "range date")) {
-              colname <- c(name, name)
-              fun <- c(">=", "<=")
-              values <- c(list(filter[1]), list(filter[2]))
-
-            } else if(selectedtype %in% c("single slider", "single date")) {
-              colname <- c(name)
-              fun <- c("==")
-              values <- c(list(filter[1]))
-              
-            } else if(selectedtype %in% c("multiple select", "single select")) {
-              colname <- c(name)
-              fun <- c("%in%")
-              values <- c(list(filter))
+      } else {
+        varname <- columns_to_filter
+      }
+      
+      ctrl <- NULL
+      filters <- filternames$filter
+      
+      ctrl <- rbindlist(lapply(varname, function(x){
+        if (x %in% filters) {
           
-            }
-            dtres <- data.table(column = colname, fun = fun, values = values)
-
-            dtres
+          name <- x
+          selectedtype <- input[[paste0("typefilter", x)]]
+          filter <-  input[[paste0("filter", x)]]
+          
+          if (selectedtype %in% c("range slider", "range date")) {
+            colname <- c(name, name)
+            fun <- c(">=", "<=")
+            values <- c(list(filter[1]), list(filter[2]))
+            
+          } else if(selectedtype %in% c("single slider", "single date")) {
+            colname <- c(name)
+            fun <- c("==")
+            values <- c(list(filter[1]))
+            
+          } else if(selectedtype %in% c("multiple select", "single select")) {
+            colname <- c(name)
+            fun <- c("%in%")
+            values <- c(list(filter))
+            
           }
-        }))
-
-        if (nrow(ctrl) > 0 & nrow(data_to_filter()) > 0) {
+          dtres <- data.table(column = colname, fun = fun, values = values)
           
-          res <- lapply(1:nrow(ctrl), function(x) {
-            list(column = ctrl[x, column], fun = ctrl[x, fun], values = ctrl[x, unlist(values)])
-          })
-
-        } else {
-          res <- NULL
+          dtres
         }
-        res
-
+      }))
+      
+      if (nrow(ctrl) > 0 & nrow(data_to_filter()) > 0) {
+        
+        res <- lapply(1:nrow(ctrl), function(x) {
+          list(column = ctrl[x, column], fun = ctrl[x, fun], values = ctrl[x, unlist(values)])
+        })
+        
+      } else {
+        res <- NULL
+      }
+      res
+      
     } else {
       NULL
     }
@@ -337,13 +360,13 @@ filter_data <- function(input, output, session, data = NULL,
   
   filterdata <- reactiveValues(data = NULL)
   observeEvent(c(data_to_filter(), input$validateFilter), {
-
+    
     data <- data_to_filter()
     if (is.null(listfilters())) {
       filterdata$data <- data
     } else {
-
-        filterdata$data <- .filterDataTable(data, listfilters())
+      
+      filterdata$data <- .filterDataTable(data, listfilters())
     }
   })
   return(filterdata)
