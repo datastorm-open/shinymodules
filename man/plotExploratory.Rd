@@ -4,8 +4,13 @@
 \alias{plotExploratory}
 \title{plot boxplot, timeseries and barplot}
 \usage{
-plotExploratory(data, type, palette_ggplot = "RdYlGn",
-  aggregation = NULL, js = TRUE)
+plotExploratory(
+  data,
+  type,
+  palette_ggplot = "RdYlGn",
+  aggregation = NULL,
+  js = TRUE
+)
 }
 \arguments{
 \item{data}{\code{data.table} data.table with one or two columns, one numeric and 

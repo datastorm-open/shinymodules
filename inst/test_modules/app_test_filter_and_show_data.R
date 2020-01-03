@@ -50,6 +50,7 @@ server <- function(input, output, session) {
     })
     
     callModule(module = show_data, id = "idshow",
+               # optional_stats = "interquartile_range",
                data = shiny::reactive(reactive_data$data_shown), nb_modal2show = 6,
                columns_to_show = "all")
   }

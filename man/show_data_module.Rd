@@ -7,8 +7,15 @@
 \usage{
 show_dataUI(id, titles = TRUE, subtitles = TRUE)
 
-show_data(input, output, session, data = NULL, optional_stats = "all",
-  nb_modal2show = 3, columns_to_show = "all")
+show_data(
+  input,
+  output,
+  session,
+  data = NULL,
+  optional_stats = "all",
+  nb_modal2show = 3,
+  columns_to_show = "all"
+)
 }
 \arguments{
 \item{id}{\code{character} An id that will be used to create a namespace
@@ -32,7 +39,7 @@ Done by callModule automatically.}
 
 \item{optional_stats}{\code{character} optional statistics computed on numeric
 data, default is "all". "pct_zero", "pct_NA", "mean", "median", "sd" are
-always computed, possible values are "min", "max", "nb_valid", "var", "interquartile range",
+always computed, possible values are "min", "max", "nb_valid", "var", "interquartile_range",
 "mode_max", "kurtosis", "skewness", "boxplot", "density".}
 
 \item{nb_modal2show}{\code{integer} number of modalities to show 
