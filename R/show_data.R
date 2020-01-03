@@ -118,21 +118,30 @@ show_data <- function(input, output, session, data = NULL, optional_stats = "all
   ns <- session$ns
   
   output$have_data <- shiny::reactive({
-    !is.null(data()) && nrow(data()) > 0
+    !is.null(data()) && "data.frame" %in% class(data()) && nrow(data()) > 0
   })
   shiny::outputOptions(output, "have_data", suspendWhenHidden = FALSE)
   
-  data_num_fact <- shiny::reactive({ 
-    if(!is.null(data()) && nrow(data()) > 0){
+  data_num_fact <- shiny::reactive({
+    data <- data()
+    if(!"data.frame" %in% class(data)){
+      data <- NULL
+    } else {
+      if(!"data.table" %in% class(data)){
+        data <- data.table::as.data.table(data)
+      }
+    }
+    
+    if(!is.null(data) && nrow(data) > 0){
       if(!"all" %in% columns_to_show){
         columns_to_show <- intersect(columns_to_show, colnames(data()))
         if(length(columns_to_show) == 0) columns_to_show <- NULL
       }
       if (is.null(columns_to_show) | "all" %in% columns_to_show) {
-        data <- data()
+        data <- data
       } else {
         
-        data <- data()[, .SD, .SDcols = columns_to_show]
+        data <- data[, .SD, .SDcols = columns_to_show]
       }
       setcolorder(data, colnames(data)[order(colnames(data))])
       get_dt_num_dt_fac(data, optional_stats = optional_stats, nb_modal2show)

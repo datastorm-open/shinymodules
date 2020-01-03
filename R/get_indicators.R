@@ -20,7 +20,9 @@
 #' 
 get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
   
-  data.table::setDT(data)
+  if(!"data.table" %in% class(data)){
+    data <- data.table::as.data.table(data)
+  }
   
   # get variables with 2 to 10 levels then pass them to factors
   # fact_vars <- names(which(unlist(data[, lapply(
@@ -75,7 +77,10 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
 .get_indicators <- function(data, var, absolute = FALSE, optional_stats){
   
   tmp_compute_ind <- NULL
-  data.table::setDT(data)
+  if(!"data.table" %in% class(data)){
+    data <- data.table::as.data.table(data)
+  }
+
   if(absolute){
     data[, tmp_compute_ind := abs(get(var))]
   } else {
