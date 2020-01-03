@@ -93,6 +93,7 @@
       if (js) {
         graph <- rAmCharts::amHist(x = tmpdata[, get(colnames(tmpdata)[1])], 
                                    main = colnames(tmpdata)[1], ylab ="", 
+                                   export = TRUE,
                                    xlab = colnames(tmpdata)[1], 
                                    col = suppressWarnings(RColorBrewer::brewer.pal(
                                      12, palette_ggplot)[len_palette]))
@@ -190,7 +191,7 @@ plotBoxplot <- function(data, quanti.var, quali.var = NULL,
   if (is.null(quali.var)) {
     if (js) {
       amBoxplot(data[, get(quanti.var)], 
-                ylab = quanti.var, main = quanti.var, 
+                ylab = quanti.var, main = quanti.var, export = TRUE,
                 col = suppressWarnings(RColorBrewer::brewer.pal(
                   12, palette_ggplot)))
     } else {
@@ -211,7 +212,7 @@ plotBoxplot <- function(data, quanti.var, quali.var = NULL,
     formule <- paste(quanti.var, "~", quali.var)
     if (js) {
       amBoxplot(as.formula(formule), data = data, 
-                xlab = quali.var, ylab = quanti.var,
+                xlab = quali.var, ylab = quanti.var, export = TRUE,
                 main = paste(quanti.var, quali.var, sep = " ~ "),
                 col = suppressWarnings(RColorBrewer::brewer.pal(
                   12, palette_ggplot)))
@@ -242,8 +243,7 @@ plotBarplot <- function(data, js, palette_ggplot){
     data[, color := suppressWarnings(RColorBrewer::brewer.pal(
       nrow(data), palette_ggplot))]
     amBarplot(data=  data, x = c(var), y = "count", 
-              xlab = c(var), ylab = "count") %>>%
-      setExport(position = "top-right") %>>%
+              xlab = c(var), ylab = "count", export = TRUE) %>>%
       setChartCursor() %>>% 
       addTitle(text = c(var)) %>>%
       plot()
