@@ -42,44 +42,53 @@ visualize_dataUI <- function(id, titles = TRUE) {
              if(titles) shiny::div(h2("Data visualization"))
       )
     ),
-    shiny::fluidRow(
-      shiny::column(3, 
-                    shiny::uiOutput(ns("x_input_ui"))),
-      shiny::column(3, 
-                    shiny::uiOutput(ns("y_input_ui"))),
-      shiny::column(2, 
-                    shiny::uiOutput(ns("graph"))),
-      shiny::column(1, 
-                    shiny::checkboxInput(ns("dynamic"), " dynamic", value = TRUE)
-                    
-      ),
-      shiny::column(2, 
-                    shiny::uiOutput(ns("explore_aggregation"))
-      ),
-
-      shiny::column(1,tags$br(), shiny::div(
-        shiny::actionButton(ns("goscatter"), "Go!"), align = "center"))
+    
+    shiny::conditionalPanel(
+      condition = paste0("output['", ns("have_data_viz"), "'] === false"),
+      shiny::div(h2("No data available"))
     ),
     
     shiny::conditionalPanel(
-      condition = paste0("output['", ns("javascriptexplore"), "']"),
-      shiny::conditionalPanel(condition = paste0(
-        "output['", ns("ctrlplot"), "'] === 'xy'"),
-        rAmCharts::amChartsOutput(ns("xyPlot"), "xy", height = "550px")
+      condition = paste0("output['", ns("have_data_viz"), "'] === true"),
+      shiny::fluidRow(
+        shiny::column(3, 
+                      shiny::uiOutput(ns("x_input_ui"))),
+        shiny::column(3, 
+                      shiny::uiOutput(ns("y_input_ui"))),
+        shiny::column(2, 
+                      shiny::uiOutput(ns("graph"))),
+        shiny::column(1, shiny::br(),
+                      shiny::checkboxInput(ns("dynamic"), " dynamic", value = TRUE)
+                      
+        ),
+        shiny::column(2, 
+                      shiny::uiOutput(ns("explore_aggregation"))
+        ),
+        
+        shiny::column(1,tags$br(), shiny::div(
+          shiny::actionButton(ns("goscatter"), "Go!"), align = "center"))
       ),
       
-      shiny::conditionalPanel(condition = paste0(
-        "output['", ns("ctrlplot"), "'] === 'stock'"),
-        rAmCharts::amChartsOutput(ns("stockPlot"), "stock", height = "550px")
+      shiny::conditionalPanel(
+        condition = paste0("output['", ns("javascriptexplore"), "']"),
+        shiny::conditionalPanel(condition = paste0(
+          "output['", ns("ctrlplot"), "'] === 'xy'"),
+          rAmCharts::amChartsOutput(ns("xyPlot"), "xy", height = "550px")
+        ),
+        
+        shiny::conditionalPanel(condition = paste0(
+          "output['", ns("ctrlplot"), "'] === 'stock'"),
+          rAmCharts::amChartsOutput(ns("stockPlot"), "stock", height = "550px")
+        ),
+        shiny::conditionalPanel(condition = paste0(
+          "output['", ns("ctrlplot"), "'] === 'heatmap'"),
+          DT::DTOutput(ns("heatmap"))
+        )
       ),
       shiny::conditionalPanel(condition = paste0(
-        "output['", ns("ctrlplot"), "'] === 'heatmap'"),
-        DT::DTOutput(ns("heatmap"))
+        "output['", ns("javascriptexplore"), "'] === false"),
+        shiny::plotOutput(ns("ggPlot"), height = "550px")
       )
-    ),
-    shiny::conditionalPanel(condition = paste0(
-      "output['", ns("javascriptexplore"), "'] === false"),
-      shiny::plotOutput(ns("ggPlot"), height = "550px")
     )
   )
 }
@@ -105,14 +114,32 @@ visualize_data <- function(input, output, session, data = NULL,
     input$x_input
   })
   
-
-  output$x_input_ui <- shiny::renderUI({
+  data_viz <- shiny::reactive({
     data <- data()
+    if(!"data.frame" %in% class(data)){
+      data <- NULL
+    } else {
+      if(!"data.table" %in% class(data)){
+        data <- data.table::as.data.table(data)
+      }
+    }
+  })
+  
+  output$have_data_viz <- shiny::reactive({
+    !is.null(data_viz()) && "data.frame" %in% class(data_viz()) && nrow(data_viz()) > 0
+  })
+  shiny::outputOptions(output, "have_data_viz", suspendWhenHidden = FALSE)
+  
+  
+  
+  
+  output$x_input_ui <- shiny::renderUI({
+    data <- data_viz()
     values <- colnames(data)
     shiny::isolate({
-      if(nrow(data) > 0 ){
+      if(!is.null(data) && nrow(data) > 0 ){
         shiny::selectInput(inputId = ns("x_input"), " X : ", choices = values,
-                    selected = values[1], multiple = FALSE)
+                           selected = values[1], multiple = FALSE)
       }
     })
   })
@@ -122,15 +149,15 @@ visualize_data <- function(input, output, session, data = NULL,
   currenty <- shiny::reactive({
     input$y_input
   })
-
+  
   output$y_input_ui <- shiny::renderUI({
-    data <- data()
+    data <- data_viz()
     values <- colnames(data)
     shiny::isolate({
-      if(nrow(data) > 0){
+      if(!is.null(data) && nrow(data) > 0){
         shiny::selectInput(inputId = ns("y_input"), " Y : ",
-                    choices = c("NULL", rev(values)),
-                    selected = currenty(), multiple = FALSE)
+                           choices = c("NULL", rev(values)),
+                           selected = currenty(), multiple = FALSE)
       }
     })
   })
@@ -139,7 +166,7 @@ visualize_data <- function(input, output, session, data = NULL,
     varx <- input$x_input
     vary <- input$y_input
     shiny::isolate({
-      data <-  data()
+      data <-  data_viz()
       if(!is.null(varx) | !is.null(vary)){
         classx <- class(data[, get(varx)])
         
@@ -187,14 +214,14 @@ visualize_data <- function(input, output, session, data = NULL,
     })
     
   })
-
+  
   output$explore_aggregation <- shiny::renderUI({
     plot_type <- input$type_plot
     if(!is.null(plot_type)) {
       if(plot_type == "timeseries" 
          # & !(input$type_plot %in% c("line", "point", "timeseries") 
          # & nrow(dataplot()) > javascript.limit
-         ) {
+      ) {
         shiny::selectInput(ns("aggregation"), "Aggregation :",
                            c("Average", "Sum", "Low", "High"))
       }
@@ -203,10 +230,10 @@ visualize_data <- function(input, output, session, data = NULL,
   
   dataplot <- shiny::reactive({
     
-    data <- data()
+    data <- data_viz()
     varx <- input$x_input
     vary <- input$y_input
-    if (length(varx) > 0 & varx %in% colnames(data)) {
+    if (!is.null(data) && nrow(data) > 0 && length(varx) > 0 & varx %in% colnames(data)) {
       if (vary == "NULL") {
         data <- data[ , c(varx), with = FALSE]
       } 
@@ -230,7 +257,7 @@ visualize_data <- function(input, output, session, data = NULL,
       shiny::isolate({
         data <- dataplot()
         !((input$type_plot %in% c("line", "point", "timeseries") &
-            nrow(data) > javascript.limit) || !input$dynamic)
+             nrow(data) > javascript.limit) || !input$dynamic)
         # (!(input$type_plot %in% c("line", "point", "timeseries") &&
         #      nrow(data) > javascript.limit) && input$dynamic)
       })
@@ -248,8 +275,7 @@ visualize_data <- function(input, output, session, data = NULL,
         if(javascriptplot()){
           shiny::withProgress(message = 'Graphic...', value = 0.5,{
             data <- dataplot()
-            if(!(input$type_plot %in% c("line", "point", "heatmap") & 
-                 ncol(data) == 2)){
+            if(!(input$type_plot %in% c("line", "point", "heatmap") & ncol(data) == 2)){
               plotExploratory(data, type = input$type_plot,
                               aggregation = input$aggregation,
                               palette_ggplot = palette_ggplot)
@@ -268,7 +294,7 @@ visualize_data <- function(input, output, session, data = NULL,
             data <- dataplot()
             if(input$type_plot %in% c("line", "point") & ncol(data) == 2){
               plotExploratory(data, type = input$type_plot,
-                               palette_ggplot = palette_ggplot)
+                              palette_ggplot = palette_ggplot)
             }
           })
         }
@@ -297,9 +323,9 @@ visualize_data <- function(input, output, session, data = NULL,
         if(!javascriptplot()){
           shiny::withProgress(message = 'Graphic...', value = 0.5,{
             data <- dataplot()
-              p <- plotExploratory(data, type = input$type_plot,
-                                         aggregation = input$aggregation,
-                                         palette_ggplot = palette_ggplot, js = F)
+            p <- plotExploratory(data, type = input$type_plot,
+                                 aggregation = input$aggregation,
+                                 palette_ggplot = palette_ggplot, js = F)
             print(p)
           })
         }

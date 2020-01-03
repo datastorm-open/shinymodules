@@ -519,7 +519,7 @@ vis_indicators <- function(input, output, session,
 
         by <- input$by_boxplot
         if (by == "none") {
-          plt <- amBoxplot(data[["error"]])
+          plt <- amBoxplot(data[["error"]], export = TRUE)
           plt
         } else {
           data <- .add_by(data = data, 
