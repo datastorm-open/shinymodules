@@ -123,6 +123,7 @@ visualize_data <- function(input, output, session, data = NULL,
         data <- data.table::as.data.table(data)
       }
     }
+    data
   })
   
   output$have_data_viz <- shiny::reactive({
