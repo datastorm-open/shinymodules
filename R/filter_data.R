@@ -14,6 +14,7 @@
 #' @param data \code{reactivevalues} reactive data.table
 #' @param columns_to_filter \code{character} vector o column names you want to 
 #' allow the user to filter (default is all)
+#' @default_multisel_n \code{integer} How many choices are selected by default in case of multiple selection.
 #' 
 #' @return UI page
 #' @export
@@ -87,7 +88,7 @@ filter_dataUI <- function(id, titles = TRUE) {
 #'
 #' @rdname filter_data_module
 filter_data <- function(input, output, session, data = NULL,
-                        columns_to_filter = "all") {
+                        columns_to_filter = "all", default_multisel_n = 10) {
   
   ns <- session$ns
   
@@ -255,7 +256,7 @@ filter_data <- function(input, output, session, data = NULL,
             
             if (selectedtype == "multiple select") {
               selectizeInput(ns(paste0("filter", colname)), label = NULL, 
-                             choices = values, selected = values, 
+                             choices = values, selected = values[1:min(length(values), default_multisel_n)], 
                              multiple = TRUE, width="100%")
               
             } else if (selectedtype == "single select") {
