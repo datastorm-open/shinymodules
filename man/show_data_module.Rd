@@ -14,7 +14,8 @@ show_data(
   data = NULL,
   optional_stats = "all",
   nb_modal2show = 3,
-  columns_to_show = "all"
+  columns_to_show = "all",
+  show_warnings = FALSE
 )
 }
 \arguments{
@@ -47,6 +48,8 @@ for factor variables.}
 
 \item{columns_to_show}{\code{character} vector of column names you want to be
 shown in the tables}
+
+\item{show_warnings}{\code{logical} Show warnings ? (example compute Min. on all NAs)}
 }
 \value{
 shiny module

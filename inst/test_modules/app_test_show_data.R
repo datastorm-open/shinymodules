@@ -5,6 +5,7 @@ library(sparkline)
 library(magrittr)
 library(PerformanceAnalytics)
 library(htmlwidgets)
+library(nycflights13)
 
 ui <- fluidPage(
   shiny::fluidRow(
@@ -35,12 +36,14 @@ server <- function(input, output, session) {
     } else if (input$data_load == "flights") {
       reactive_data$data <- data.table::data.table(copy(nycflights13::flights))
     } else if (input$data_load == "iris") {
-      reactive_data$data <- data.table::data.table(copy(iris))
+      data <- copy(iris)
+      data[[2]] <- NA_integer_
+      reactive_data$data <- data.table::data.table(data)
     }
   })
   callModule(module = show_data, id = "id",
              data = shiny::reactive(reactive_data$data), 
-             optional_stats = optional_stats, 
+             optional_stats = optional_stats, show_warnings = TRUE,
              nb_modal2show = nb_modal2show, columns_to_show = c(colnames(reactive_data$data), "invalid"))
 }
 

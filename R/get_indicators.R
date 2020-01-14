@@ -6,6 +6,8 @@
 #' @param optional_stats \code{character} optional statistics computed on data,
 #' you can look at \link{show_data} for more information.
 #' @param nb_modal2show \code{integer} number of modalities to show for factor variables.
+#' @param show_warnings \code{logical} Show warnings ? (example compute Min. on all NAs)
+#' 
 #' @return list with two DT, one with statistics on numeric data and one with
 #' statistics on factor data
 #' @import data.table
@@ -18,7 +20,12 @@
 #' 
 #' }
 #' 
-get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
+get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show, show_warnings = FALSE) {
+  
+  if(!show_warnings){
+    user_opt_warn <- getOption("warn")
+    options(warn = -1)
+  }
   
   if(!"data.table" %in% class(data)){
     data <- data.table::as.data.table(data)
@@ -27,18 +34,27 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
   # get variables with 2 to 10 levels then pass them to factors
   # fact_vars <- names(which(unlist(data[, lapply(
   #   .SD, function(var) length(unique(na.omit(var))) %in% 2:10)])))
-  fact_vars <- names(which(
-    sapply(data, function(var) is.factor(var) | is.character(var))))
+  fact_vars <- names(
+    which(
+      sapply(data, function(var) is.factor(var) | is.character(var) | is.logical(var))
+    )
+  )
   # if(length(fact_vars) > 0) {
   #   data[, c(fact_vars) := lapply(.SD, as.factor), .SDcols = c(fact_vars)]
   # }
   
   # get other numeric variables
-  num_vars <- names(which(
-    sapply(data, function(var) is.numeric(var) | is.integer(var))))
+  num_vars <- names(
+    which(
+      sapply(data, function(var) is.numeric(var) | is.integer(var))
+    )
+  )
   # add Dates on numeric variables ?
-  dates_vars <- names(which(
-    sapply(data, function(var) any(class(var) %in% c("Date", "POSIXct", "POSIXlt")))))
+  dates_vars <- names(
+    which(
+      sapply(data, function(var) any(class(var) %in% c("Date", "POSIXct", "POSIXlt")))
+    )
+  )
   
   # generate table with stats on numeric
   if (length(num_vars) > 0) {
@@ -61,6 +77,11 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
   } else {
     dt_fact <- NULL
   }
+  
+  if(!show_warnings){
+    options(warn = user_opt_warn)
+  }
+  
   list(dt_num = dt_num, dt_dates = dt_dates, dt_fact = dt_fact)
 }
 
@@ -80,7 +101,7 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
   if(!"data.table" %in% class(data)){
     data <- data.table::as.data.table(data)
   }
-
+  
   if(absolute){
     data[, tmp_compute_ind := abs(get(var))]
   } else {
@@ -118,13 +139,13 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
     code = c("length(which(tmp_compute_ind == 0))/.N",
              "length(which(is.na(tmp_compute_ind)))/.N",
              "length(which(!is.na(tmp_compute_ind)))",
-             "suppressWarnings(round(min(tmp_compute_ind, na.rm = T), 2))",
-             "suppressWarnings(round(mean(tmp_compute_ind, na.rm = T), 2))",
-             "suppressWarnings(round(stats::median(tmp_compute_ind, na.rm = T), 2))",
-             "suppressWarnings(round(max(tmp_compute_ind, na.rm = T), 2))",
-             "suppressWarnings(round(stats::sd(tmp_compute_ind, na.rm = TRUE), 2))",
-             "suppressWarnings(round(stats::var(tmp_compute_ind, na.rm = TRUE), 2))",
-             "suppressWarnings(round(stats::IQR(tmp_compute_ind, na.rm = TRUE), 2))",
+             "round(min(tmp_compute_ind, na.rm = T), 2)",
+             "round(mean(tmp_compute_ind, na.rm = T), 2)",
+             "round(stats::median(tmp_compute_ind, na.rm = T), 2)",
+             "round(max(tmp_compute_ind, na.rm = T), 2)",
+             "round(stats::sd(tmp_compute_ind, na.rm = TRUE), 2)",
+             "round(stats::var(tmp_compute_ind, na.rm = TRUE), 2)",
+             "round(stats::IQR(tmp_compute_ind, na.rm = TRUE), 2)",
              "round(getmode(tmp_compute_ind, na.rm = TRUE), 2)",
              "round(PerformanceAnalytics::kurtosis(tmp_compute_ind, na.rm = TRUE), 2)",
              "round(PerformanceAnalytics::skewness(tmp_compute_ind, na.rm = TRUE), 2)",
@@ -228,10 +249,10 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
       data.table::data.table(variable = var,
                              pct_NA = pct_na,
                              nb_valid = nb_valid,
-                             min = suppressWarnings(min(data[[var]], na.rm = T)),
-                             mean = suppressWarnings(mean(data[[var]], na.rm = T)),
-                             median = suppressWarnings(stats::median(data[[var]], na.rm = T)),
-                             max = suppressWarnings(max(data[[var]], na.rm = T)),
+                             min = min(data[[var]], na.rm = T),
+                             mean = mean(data[[var]], na.rm = T),
+                             median = stats::median(data[[var]], na.rm = T),
+                             max = max(data[[var]], na.rm = T),
                              density = density
       )}))
   if (!("nb_valid" %in% optional_stats | "all" %in% optional_stats)) {
@@ -386,14 +407,14 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
     
     nb_modal2show <- max(4, nb_modal2show)
     dt_modal <- data.table(stats = c(paste0("modality", 1:nb_modal2show), "other"),
-               info = c("1st occuring modality", 
-                        "2nd occuring modality", 
-                        "3rd occuring modality",
-                        paste0(4:nb_modal2show, "th occuring modality"),
-                        "percentage of observations with other values than the displayed modalities"))
+                           info = c("1st occuring modality", 
+                                    "2nd occuring modality", 
+                                    "3rd occuring modality",
+                                    paste0(4:nb_modal2show, "th occuring modality"),
+                                    "percentage of observations with other values than the displayed modalities"))
     stats_info <- rbindlist(list(stats_info, dt_modal))
   }
-
+  
   htmlbodyth <- c(unname(sapply(cols, function(col) {
     stats_info[stats == col, stats]
   })))
@@ -403,14 +424,15 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show) {
   })))
   
   
-  container = htmltools::withTags(table(
-    class = 'display',
-    thead(
-      tr(lapply(1:length(htmlbodyth), function(val) {
-        th(htmlbodyth[val], title = htmlbodytitle[val])
-      }))
+  container = htmltools::withTags(
+    table(
+      class = 'display',
+      thead(
+        tr(lapply(1:length(htmlbodyth), function(val) {
+          th(htmlbodyth[val], title = htmlbodytitle[val])
+        }))
+      )
     )
-  )
   )
   
   return(container)

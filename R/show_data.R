@@ -22,6 +22,8 @@
 #' for factor variables. 
 #' @param columns_to_show  \code{character} vector of column names you want to be
 #' shown in the tables
+#' @param show_warnings \code{logical} Show warnings ? (example compute Min. on all NAs)
+#' 
 #' @return shiny module
 #' 
 #' @export
@@ -114,7 +116,7 @@ show_dataUI <- function(id, titles = TRUE, subtitles = TRUE) {
 #'
 #' @rdname show_data_module
 show_data <- function(input, output, session, data = NULL, optional_stats = "all", 
-                      nb_modal2show = 3, columns_to_show = "all") {
+                      nb_modal2show = 3, columns_to_show = "all", show_warnings = FALSE) {
   ns <- session$ns
   
   output$have_data <- shiny::reactive({
@@ -144,7 +146,7 @@ show_data <- function(input, output, session, data = NULL, optional_stats = "all
         data <- data[, .SD, .SDcols = columns_to_show]
       }
       setcolorder(data, colnames(data)[order(colnames(data))])
-      get_dt_num_dt_fac(data, optional_stats = optional_stats, nb_modal2show)
+      get_dt_num_dt_fac(data, optional_stats = optional_stats, nb_modal2show, show_warnings = show_warnings)
     } else {
       NULL
     }

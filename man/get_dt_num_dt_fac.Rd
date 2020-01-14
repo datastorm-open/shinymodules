@@ -4,7 +4,7 @@
 \alias{get_dt_num_dt_fac}
 \title{preprocessing on data}
 \usage{
-get_dt_num_dt_fac(data, optional_stats, nb_modal2show)
+get_dt_num_dt_fac(data, optional_stats, nb_modal2show, show_warnings = FALSE)
 }
 \arguments{
 \item{data}{\code{data.table} input data which will be preprocessed}
@@ -13,6 +13,8 @@ get_dt_num_dt_fac(data, optional_stats, nb_modal2show)
 you can look at \link{show_data} for more information.}
 
 \item{nb_modal2show}{\code{integer} number of modalities to show for factor variables.}
+
+\item{show_warnings}{\code{logical} Show warnings ? (example compute Min. on all NAs)}
 }
 \value{
 list with two DT, one with statistics on numeric data and one with
