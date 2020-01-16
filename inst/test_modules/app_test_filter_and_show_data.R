@@ -1,3 +1,4 @@
+library(shinymodules)
 library(shiny)
 library(DT)
 library(data.table)

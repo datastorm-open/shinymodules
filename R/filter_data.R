@@ -58,10 +58,9 @@ filter_dataUI <- function(id, titles = TRUE) {
       condition = paste0("output['", ns("have_data_filter"), "'] === true"),
       
       shiny::fluidRow(
-        if(titles) shiny::div(h6("Filters on:")),
-        column(1),
+        column(2, div(br(), h4("Filters on :"), align = "center")),
         column(8, shiny::uiOutput(ns("choicefilter"))),
-        column(3, shiny::div(br(), shiny::actionButton(
+        column(2, shiny::div(br(), shiny::actionButton(
           ns("updateFilter"), "Update filters"), align = "center"))
       ),
       shiny::conditionalPanel(
@@ -127,12 +126,9 @@ filter_data <- function(input, output, session, data = NULL,
       }
       setcolorder(data, colnames(data)[order(colnames(data))])
       values <- colnames(data)
-      fluidRow(
-        column(8,
-               selectInput(ns("chosenfilters"), "", 
-                           choices = values, selected = NULL, multiple = TRUE)
-        )
-      )
+      
+      selectInput(ns("chosenfilters"), "", 
+                  choices = values, selected = NULL, multiple = TRUE, width = "100%")
     }
   })
   
@@ -153,57 +149,60 @@ filter_data <- function(input, output, session, data = NULL,
           data <- data_to_filter()[, .SD, .SDcols = columns_to_filter]
         }
         
-        lapply(var, function(colname) {
-          
-          x <- colnames(data)[which(colnames(data) == colname)]
-          
-          ctrlclass <- class(data[, get(colname)])
-          
-          if (any(ctrlclass %in% c("factor", "character", "logical"))) {
-            values <- unique(data[, get(colname)])
-            if (length(values) <= 10) {
-              selectedtype <- "multiple select"
+        if(length(var) > 0){
+          lapply(var, function(colname) {
+            
+            x <- colnames(data)[which(colnames(data) == colname)]
+            
+            ctrlclass <- class(data[, get(colname)])
+            
+            if (any(ctrlclass %in% c("factor", "character", "logical"))) {
+              values <- unique(data[, get(colname)])
+              if (length(values) <= 10) {
+                selectedtype <- "multiple select"
+              } else {
+                selectedtype <- "single select"
+              }
+              choices <- c("single select", "multiple select")
+              
+            } else if (any(ctrlclass %in% c("numeric", "integer", "POSIXct", "POSIXlt"))) {
+              
+              selectedtype <- "range slider"
+              choices <- c("single slider", "range slider")
+              
+            } else if (any(ctrlclass %in% c("IDate", "Date"))) {
+              
+              selectedtype <- "range date"
+              choices <- c("single date", "range date")
+              
             } else {
+              
+              choices <- c("single slider", "range slider", 
+                           "single select", "multiple select")
               selectedtype <- "single select"
+              
             }
-            choices <- c("single select", "multiple select")
-            
-          } else if (any(ctrlclass %in% c("numeric", "integer", "POSIXct", "POSIXlt"))) {
-            
-            selectedtype <- "range slider"
-            choices <- c("single slider", "range slider")
-            
-          } else if (any(ctrlclass %in% c("IDate", "Date"))) {
-            
-            selectedtype <- "range date"
-            choices <- c("single date", "range date")
-            
-          } else {
-            
-            choices <- c("single slider", "range slider", 
-                         "single select", "multiple select")
-            selectedtype <- "single select"
-            
-          }
+            fluidRow(
+              column(width = 2, offset = 1,  
+                     h5(colname, style = "font-weight: bold;")
+              ),
+              column(2,
+                     selectInput(ns(paste0("typefilter", x)), NULL,
+                                 choices = choices,
+                                 selectedtype)
+              ),
+              column(6, 
+                     uiOutput(ns(paste0("uifilter", x)))
+              )
+            )  
+          })
+        } else {
           fluidRow(
-            column(width = 2, offset = 1,  
-                   h5(colname, style = "font-weight: bold;")
-            ),
-            column(2,
-                   selectInput(ns(paste0("typefilter", x)), NULL,
-                               choices = choices,
-                               selectedtype)
-            ),
-            column(6, 
-                   uiOutput(ns(paste0("uifilter", x)))
-            )
+            column(width = 10, offset = 1, h4("No filter selected"))
           )
-          
-        })
-        
+        }
       })
     }
-    
   })
   
   
