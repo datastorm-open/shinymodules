@@ -134,9 +134,10 @@ filter_data <- function(input, output, session, data = NULL,
   
   # choix des filres
   output$uifilter <- renderUI({
+    data <- data_to_filter()
     if(input$updateFilter > 0) {
       isolate({
-        var <- input$chosenfilters
+        var <- intersect(input$chosenfilters, colnames(data))
         filternames$filter <- var
         if(!"all" %in% columns_to_filter){
           columns_to_filter <- intersect(columns_to_filter, colnames(data_to_filter()))
