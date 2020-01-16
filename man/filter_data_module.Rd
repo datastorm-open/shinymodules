@@ -34,6 +34,8 @@ Done by callModule automatically.}
 
 \item{columns_to_filter}{\code{character} vector o column names you want to 
 allow the user to filter (default is all)}
+
+\item{default_multisel_n}{\code{integer} How many choices are selected by default in case of multiple selection.}
 }
 \value{
 UI page

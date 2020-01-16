@@ -85,7 +85,8 @@ show_dataUI <- function(id, titles = TRUE, subtitles = TRUE) {
                shiny::conditionalPanel(
                  condition = paste0("output['", ns("have_dt_num"), "'] === true"),
                  if(subtitles) shiny::div(h4("Numeric variables")),
-                 withSpinner(DT::DTOutput(ns("dt_num"))))
+                   show_DT_UI(ns("dt_num_ui"))
+                 )
         )
       ),
       shiny::fluidRow(
@@ -94,7 +95,8 @@ show_dataUI <- function(id, titles = TRUE, subtitles = TRUE) {
                  condition = paste0("output['", ns("have_dt_dates"), "'] === true"),
                  shiny::hr(),
                  if(subtitles) shiny::div(h4("Date variables")),
-                 withSpinner(DT::DTOutput(ns("dt_dates"))))
+                 show_DT_UI(ns("dt_dates_ui"))
+               )
         )
       ),
       shiny::fluidRow(
@@ -103,7 +105,8 @@ show_dataUI <- function(id, titles = TRUE, subtitles = TRUE) {
                  condition = paste0("output['", ns("have_dt_fact"), "'] === true"),
                  shiny::hr(),
                  if(subtitles) shiny::div(h4("Factor variables")),
-                 withSpinner(DT::DTOutput(ns("dt_fact"))))
+                 show_DT_UI(ns("dt_fact_ui"))
+              )
         )
       )
     )
@@ -152,25 +155,28 @@ show_data <- function(input, output, session, data = NULL, optional_stats = "all
     }
   })
   
-  output$dt_num <- DT::renderDT({
-    dt <- data_num_fact()$dt_num
-    if(!is.null(dt)){
-      dt 
-    } else NULL
+  observe({
+    res_num <- data_num_fact()$dt_num
+    if(!is.null(res_num)){
+      callModule(show_DT, "dt_num_ui", reactive(res_num$df), reactive(res_num$dt), 
+                 paste0("Stats_num_", format(Sys.time(), format = "%d%m%Y_%H%M%S")))
+    }
   })
   
-  output$dt_dates <- DT::renderDT({
-    dt <- data_num_fact()$dt_dates
-    if(!is.null(dt)){
-      dt 
-    } else NULL
+  observe({
+    res_dates <- data_num_fact()$dt_dates
+    if(!is.null(res_dates)){
+      callModule(show_DT, "dt_dates_ui", reactive(res_dates$df), reactive(res_dates$dt), 
+                 paste0("Stats_dates_", format(Sys.time(), format = "%d%m%Y_%H%M%S")))
+    }
   })
   
-  output$dt_fact <- DT::renderDT({
-    dt <- data_num_fact()$dt_fact
-    if(!is.null(dt)){
-      dt 
-    } else NULL
+  observe({
+    res_fact <- data_num_fact()$dt_fact
+    if(!is.null(res_fact)){
+      callModule(show_DT, "dt_fact_ui", reactive(res_fact$df), reactive(res_fact$dt), 
+                 paste0("Stats_factor_", format(Sys.time(), format = "%d%m%Y_%H%M%S")))
+    }
   })
   
   output$have_dt_num <- shiny::reactive({

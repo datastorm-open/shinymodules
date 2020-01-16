@@ -4,7 +4,14 @@
 \alias{.get_factor_indicators}
 \title{get stats indicator on factor data}
 \usage{
-.get_factor_indicators(data, fact_vars, nb_modal2show, optional_stats)
+.get_factor_indicators(
+  data,
+  fact_vars,
+  nb_modal2show,
+  optional_stats,
+  keep_dataframe = TRUE,
+  keep_datatable = TRUE
+)
 }
 \arguments{
 \item{data}{\code{data.table}}
@@ -12,11 +19,16 @@
 \item{fact_vars}{\code{character}}
 
 \item{nb_modal2show}{\code{integer}}
+
+\item{keep_dataframe}{\code{logical} data.frame in output ?}
+
+\item{keep_datatable}{\code{logical} datatable (DT) in output ?}
 }
 \value{
 DT with statistics on factor data
 }
 \description{
 return statistics from factor data, is called by 
+
 \link{get_dt_num_dt_fac}
 }

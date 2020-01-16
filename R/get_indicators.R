@@ -7,6 +7,8 @@
 #' you can look at \link{show_data} for more information.
 #' @param nb_modal2show \code{integer} number of modalities to show for factor variables.
 #' @param show_warnings \code{logical} Show warnings ? (example compute Min. on all NAs)
+#' @param keep_dataframe \code{logical} data.frame in output ?
+#' @param keep_datatable \code{logical} datatable (DT) in output ?
 #' 
 #' @return list with two DT, one with statistics on numeric data and one with
 #' statistics on factor data
@@ -20,7 +22,8 @@
 #' 
 #' }
 #' 
-get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show, show_warnings = FALSE) {
+get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show, 
+                              show_warnings = FALSE, keep_dataframe = TRUE, keep_datatable = TRUE) {
   
   if(!show_warnings){
     user_opt_warn <- getOption("warn")
@@ -58,14 +61,16 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show, show_warnings
   
   # generate table with stats on numeric
   if (length(num_vars) > 0) {
-    dt_num <- .get_stat_indicators(data, num_vars, optional_stats = optional_stats)
+    dt_num <- .get_stat_indicators(data, num_vars, optional_stats = optional_stats, 
+                                   keep_dataframe = keep_dataframe, keep_datatable = keep_datatable)
   } else {
     dt_num <- NULL
   }
   
   # generate table with stats on dates
   if (length(dates_vars) > 0) {
-    dt_dates <- .get_dates_indicators(data, dates_vars, optional_stats = optional_stats)
+    dt_dates <- .get_dates_indicators(data, dates_vars, optional_stats = optional_stats, 
+                                      keep_dataframe = keep_dataframe, keep_datatable = keep_datatable)
   } else {
     dt_dates <- NULL
   }
@@ -73,7 +78,8 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show, show_warnings
   
   # same for factors
   if (length(fact_vars) > 0) {
-    dt_fact <- .get_factor_indicators(data, fact_vars, nb_modal2show, optional_stats = optional_stats)
+    dt_fact <- .get_factor_indicators(data, fact_vars, nb_modal2show, optional_stats = optional_stats, 
+                                      keep_dataframe = keep_dataframe, keep_datatable = keep_datatable)
   } else {
     dt_fact <- NULL
   }
@@ -179,10 +185,13 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show, show_warnings
 #' @param data \code{data.table}
 #' @param vars \code{character}
 #' @param optional_stats \code{character}
+#' @param keep_dataframe \code{logical} data.frame in output ?
+#' @param keep_datatable \code{logical} datatable (DT) in output ?
+#' 
 #' @return DT with statistics on numeric data
 #' @import sparkline PerformanceAnalytics
 #' 
-.get_stat_indicators <- function(data, vars, optional_stats){
+.get_stat_indicators <- function(data, vars, optional_stats, keep_dataframe = TRUE, keep_datatable = TRUE){
   
   data_copy <- data.table::copy(data)
   res <- sapply(vars, function(var) .get_indicators(
@@ -195,37 +204,50 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show, show_warnings
             available ones and will be ignored: ", paste(fake_stats, collapse = ", ")))
   }
   
-  container <-  .get_stats_info(colnames(stats_table))
-  dt <- DT::datatable(stats_table, rownames = FALSE, filter = "bottom", 
-                      container = container,
-                      escape = FALSE, selection = "none", width = "100%",
-                      options = list(
-                        pageLength = 20, lengthMenu = c(5, 10, 20, 50), 
-                        dom = 'Blfrtip', scrollX = TRUE,
-                        drawCallback =  htmlwidgets::JS(
-                          'function(){debugger;HTMLWidgets.staticRender();}'),
-                        columnDefs = list(
-                          list(className = 'dt-center', 
-                               targets = c(ncol(stats_table)-1:ncol(stats_table))))
-                      )) %>%  DT::formatStyle(
-                        'pct_NA',
-                        color = DT::styleInterval(0, c("green", 'red'))
-                      ) %>% DT::formatPercentage(
-                        c('pct_NA', "pct_zero"), 2
-                      ) 
-  names_num <- attr(dt$x, "colnames")[which(
-    !(attr(dt$x, "colnames") %in% c(
-      "pct_NA", "pct_zero", "boxplot", "density")))]
-  
-  dt <- dt %>% DT::formatCurrency(
-    names_num, currency = "", interval = 3, mark = " ")
-  
-  if ("nb_valid" %in% optional_stats | "all" %in% optional_stats) {
+  if(keep_datatable){
+    container <-  .get_stats_info(colnames(stats_table))
+    dt <- DT::datatable(stats_table, rownames = FALSE, filter = "bottom", 
+                        container = container,
+                        escape = FALSE, selection = "none", width = "100%",
+                        options = list(
+                          pageLength = 20, lengthMenu = c(5, 10, 20, 50), 
+                          dom = 'Blfrtip', scrollX = TRUE,
+                          drawCallback =  htmlwidgets::JS(
+                            'function(){debugger;HTMLWidgets.staticRender();}'),
+                          columnDefs = list(
+                            list(className = 'dt-center', 
+                                 targets = c(ncol(stats_table)-1:ncol(stats_table))))
+                        )) %>%  DT::formatStyle(
+                          'pct_NA',
+                          color = DT::styleInterval(0, c("green", 'red'))
+                        ) %>% DT::formatPercentage(
+                          c('pct_NA', "pct_zero"), 2
+                        ) 
+    names_num <- attr(dt$x, "colnames")[which(
+      !(attr(dt$x, "colnames") %in% c(
+        "pct_NA", "pct_zero", "boxplot", "density")))]
+    
     dt <- dt %>% DT::formatCurrency(
-      "nb_valid", currency = "", interval = 3, mark = " ", digits = 0)
+      names_num, currency = "", interval = 3, mark = " ")
+    
+    if ("nb_valid" %in% optional_stats | "all" %in% optional_stats) {
+      dt <- dt %>% DT::formatCurrency(
+        "nb_valid", currency = "", interval = 3, mark = " ", digits = 0)
+    }
+    dt$dependencies <- append(dt$dependencies, htmlwidgets::getDependency("sparkline"))   
   }
-  dt$dependencies <- append(dt$dependencies, htmlwidgets::getDependency("sparkline"))
-  return(dt)
+ 
+  stats_table$density <- NULL
+  stats_table$boxplot <- NULL
+  
+  if(keep_datatable & !keep_dataframe){
+    return(dt)
+  } else if(!keep_datatable & keep_dataframe){
+    return(stats_table)
+  } else {
+    return(list(df = stats_table, dt = dt))
+  }
+  
 }
 
 #' @title  get stats indicator on dates data
@@ -233,11 +255,15 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show, show_warnings
 #' \link{get_dt_num_dt_fac}
 #' @param data \code{data.table}
 #' @param dates_vars \code{character}
+#' @param keep_dataframe \code{logical} data.frame in output ?
+#' @param keep_datatable \code{logical} datatable (DT) in output ?
+#' 
 #' @return DT with statistics on dates data
 #' 
-.get_dates_indicators <- function(data, dates_vars, optional_stats){
+.get_dates_indicators <- function(data, dates_vars, optional_stats, 
+                                  keep_dataframe = TRUE, keep_datatable = TRUE){
   
-  dt_dates <-     data.table::rbindlist(lapply(
+  stats_dates <- data.table::rbindlist(lapply(
     dates_vars, 
     FUN = function(var){
       density <- spk_chr(tryCatch(density(
@@ -256,11 +282,12 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show, show_warnings
                              density = density
       )}))
   if (!("nb_valid" %in% optional_stats | "all" %in% optional_stats)) {
-    dt_dates[, nb_valid := NULL]
+    stats_dates[, nb_valid := NULL]
   }
   
-  container <-  .get_stats_info(colnames(dt_dates))
-  dt_dates <- DT::datatable(dt_dates, container = container,
+  if(keep_datatable){
+  container <-  .get_stats_info(colnames(stats_dates))
+  dt_dates <- DT::datatable(stats_dates, container = container,
                             rownames = FALSE, filter = "bottom", escape = FALSE, 
                             selection = "none", width = "100%",
                             options = list(scrollX = TRUE, columnDefs = list(
@@ -281,23 +308,40 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show, show_warnings
   }
   dt_dates$dependencies <- append(dt_dates$dependencies, 
                                   htmlwidgets::getDependency("sparkline"))
+  } 
   
-  return(dt_dates)
+  stats_dates$density <- NULL
+  
+  if(keep_datatable & !keep_dataframe){
+    return(dt_dates)
+  } else if(!keep_datatable & keep_dataframe){
+    return(stats_dates)
+  } else {
+    return(list(df = stats_dates, dt = dt_dates))
+  }
+  
 }
 
 #' @title  get stats indicator on factor data
+#' 
 #' @description return statistics from factor data, is called by 
+#' 
 #' \link{get_dt_num_dt_fac}
+#' 
 #' @param data \code{data.table}
 #' @param fact_vars \code{character}
 #' @param nb_modal2show \code{integer}
+#' @param keep_dataframe \code{logical} data.frame in output ?
+#' @param keep_datatable \code{logical} datatable (DT) in output ?
+#' 
 #' @return DT with statistics on factor data
 #' @import sparkline PerformanceAnalytics
 #' 
-.get_factor_indicators <- function(data, fact_vars, nb_modal2show, optional_stats) {
+.get_factor_indicators <- function(data, fact_vars, nb_modal2show, optional_stats, 
+                                   keep_dataframe = TRUE, keep_datatable = TRUE) {
   N <- NULL
   
-  dt_fact <- data.table::rbindlist(lapply(
+  stats_fact <- data.table::rbindlist(lapply(
     fact_vars, 
     FUN = function(var){
       
@@ -341,26 +385,43 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show, show_warnings
       data_fac
     }))
   
-  container <-  .get_stats_info(colnames(dt_fact), nb_modal2show = nb_modal2show)
-  
-  dt_fact <- DT::datatable(dt_fact, container = container,
-                           rownames = FALSE, filter = "bottom", escape = FALSE, 
-                           selection = "none", width = "100%",
-                           options = list(scrollX = TRUE, columnDefs = list(
-                             list(className = 'dt-center', targets = 0:5
-                             )))) %>%  DT::formatStyle(
-                               'pct_NA',
-                               color = DT::styleInterval(0, c("green", 'red'))
-                             ) %>% DT::formatPercentage(c(
-                               'pct_NA'), 2
-                             )
-  
-  if ("nb_valid" %in% optional_stats | "all" %in% optional_stats) {
-    dt_fact <- dt_fact %>% DT::formatCurrency(
-      "nb_valid", currency = "", interval = 3, mark = " ", 
-      digits = 0)
+  if(keep_datatable){
+    container <-  .get_stats_info(colnames(stats_fact), nb_modal2show = nb_modal2show)
+    
+    dt_fact <- DT::datatable(stats_fact, container = container,
+                             rownames = FALSE, filter = "bottom", escape = FALSE, 
+                             selection = "none", width = "100%",
+                             options = list(scrollX = TRUE, columnDefs = list(
+                               list(className = 'dt-center', targets = 0:5
+                               )))) %>%  DT::formatStyle(
+                                 'pct_NA',
+                                 color = DT::styleInterval(0, c("green", 'red'))
+                               ) %>% DT::formatPercentage(c(
+                                 'pct_NA'), 2
+                               )
+    
+    if ("nb_valid" %in% optional_stats | "all" %in% optional_stats) {
+      dt_fact <- dt_fact %>% DT::formatCurrency(
+        "nb_valid", currency = "", interval = 3, mark = " ", 
+        digits = 0)
+    }    
   }
-  return(dt_fact)
+  
+  mod_colum <- colnames(stats_fact)[grep("^modality", colnames(stats_fact))]
+  if(length(mod_colum) > 0){
+    stats_fact[, c(mod_colum) := lapply(.SD, function(x){
+      gsub("(<i>)|(</i>)|([[:space:]]{1}<b>[[:space:]]{1})|(</b>)","", x)
+    }), .SDcols = mod_colum]
+  }
+  
+  if(keep_datatable & !keep_dataframe){
+    return(dt_fact)
+  } else if(!keep_datatable & keep_dataframe){
+    return(stats_fact)
+  } else {
+    return(list(df = stats_fact, dt = dt_fact))
+  }
+
 }
 
 

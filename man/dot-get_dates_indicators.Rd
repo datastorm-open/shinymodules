@@ -4,12 +4,22 @@
 \alias{.get_dates_indicators}
 \title{get stats indicator on dates data}
 \usage{
-.get_dates_indicators(data, dates_vars, optional_stats)
+.get_dates_indicators(
+  data,
+  dates_vars,
+  optional_stats,
+  keep_dataframe = TRUE,
+  keep_datatable = TRUE
+)
 }
 \arguments{
 \item{data}{\code{data.table}}
 
 \item{dates_vars}{\code{character}}
+
+\item{keep_dataframe}{\code{logical} data.frame in output ?}
+
+\item{keep_datatable}{\code{logical} datatable (DT) in output ?}
 }
 \value{
 DT with statistics on dates data

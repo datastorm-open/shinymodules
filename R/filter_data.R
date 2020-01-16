@@ -14,7 +14,7 @@
 #' @param data \code{reactivevalues} reactive data.table
 #' @param columns_to_filter \code{character} vector o column names you want to 
 #' allow the user to filter (default is all)
-#' @default_multisel_n \code{integer} How many choices are selected by default in case of multiple selection.
+#' @param default_multisel_n \code{integer} How many choices are selected by default in case of multiple selection.
 #' 
 #' @return UI page
 #' @export

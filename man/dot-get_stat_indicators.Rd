@@ -4,7 +4,13 @@
 \alias{.get_stat_indicators}
 \title{get stats indicator on numeric data}
 \usage{
-.get_stat_indicators(data, vars, optional_stats)
+.get_stat_indicators(
+  data,
+  vars,
+  optional_stats,
+  keep_dataframe = TRUE,
+  keep_datatable = TRUE
+)
 }
 \arguments{
 \item{data}{\code{data.table}}
@@ -12,6 +18,10 @@
 \item{vars}{\code{character}}
 
 \item{optional_stats}{\code{character}}
+
+\item{keep_dataframe}{\code{logical} data.frame in output ?}
+
+\item{keep_datatable}{\code{logical} datatable (DT) in output ?}
 }
 \value{
 DT with statistics on numeric data
