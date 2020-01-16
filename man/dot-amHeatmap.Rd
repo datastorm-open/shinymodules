@@ -4,18 +4,9 @@
 \alias{.amHeatmap}
 \title{Amchart Heat-Map}
 \usage{
-.amHeatmap(
-  data,
-  nbclasses = 5,
-  col = c("#FF0000", "#FFFFFF", "#0000FF"),
-  labels = TRUE,
-  cex = 10,
-  main = "",
-  rownames,
-  xLabelsRotation = 45,
-  colorby = "all",
-  legend = TRUE
-)
+.amHeatmap(data, nbclasses = 5, col = c("#FF0000", "#FFFFFF",
+  "#0000FF"), labels = TRUE, cex = 10, main = "", rownames,
+  xLabelsRotation = 45, colorby = "all", legend = TRUE)
 }
 \arguments{
 \item{data}{: data.frame, should be a contingency table}

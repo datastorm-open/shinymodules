@@ -4,16 +4,8 @@
 \alias{show_DT}
 \title{Module d'affichage DT avec export. Partie SERVER}
 \usage{
-show_DT(
-  input,
-  output,
-  session,
-  data,
-  dt,
-  file_name,
-  row.names = FALSE,
-  server = TRUE
-)
+show_DT(input, output, session, data, dt, file_name, row.names = FALSE,
+  server = TRUE)
 }
 \arguments{
 \item{input, }{output, session : conventions shiny pour le modules}

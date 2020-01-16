@@ -426,46 +426,63 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
 
 
 
-.get_stats_info <- function(cols, nb_modal2show = NULL) {
+#' Add information on variables in DT table 
+#'
+#' @param cols \code{character}. Columns names the table to be displayed.
+#' @param vars_infos \code{character}. Table with cols 'name' and 'info'.
+#' @param nb_modal2show \code{integer}. todo.
+#'
+#' @return DT container arg.
+#' @export
+#' 
+#' @import data.table htmltools
+#'
+#' @examples
+#' \dontrun{\donttest{
+#' 
+#' library(shiny)
+#' 
+#' # create table of variables informations
+#' vars_infos <- data.table(
+#'   # names of all possible variables 
+#'   name = c("Sepal.Length", "Species", "Petal.Length", "Sepal.Width", "Petal.Width"), 
+#'   # corresponding infos
+#'   info = c("Infos about Sepal.Length", "Infos about Species", "Infos about Petal.Length", 
+#'            "Infos about Sepal.Width", "Infos about Petal.Width"))
+#' 
+#' # shiny app
+#' ui <- fluidPage(
+#'   fluidRow(
+#'     column(12,
+#'            DT::dataTableOutput("my_DT_table")        
+#'     )
+#'   )
+#' )
+#' 
+#' server <- function(input, output, session) {
+#'   output$my_DT_table <- DT::renderDataTable({
+#'     DT::datatable(
+#'       data.table(iris), 
+#'       
+#'       rownames = F, filter = 'bottom', 
+#'       
+#'       container = .get_stats_info(
+#'         cols = names(iris),
+#'         vars_infos = vars_infos
+#'       )
+#'     )
+#'   })
+#' }
+#' 
+#' shinyApp(ui, server)
+#' 
+#' }}
+.get_stats_info <- function(cols, 
+                            vars_infos, 
+                            nb_modal2show = NULL) {
   
-  stats_info <- data.table(stats = c("variable",
-                                     "pct_NA",
-                                     "nb_valid",
-                                     "pct_zero",
-                                     "mean",
-                                     "median",
-                                     "sd",
-                                     "min",
-                                     "max",
-                                     "var",
-                                     "interquartile_range",
-                                     "mode_max",
-                                     "kurtosis",
-                                     "skewness",
-                                     "boxplot",
-                                     "density",
-                                     "nb_modalities"
-  ), 
-  info = c("variable name",
-           "percentage of unknown values",
-           "number of known values",
-           "percentage of zero",
-           "mean value",
-           "median value",
-           "amount of variation",
-           "minimum value",
-           "maximum value",
-           "variance: expected value of the squared deviation from the mean",
-           "first quartile subtracted from the third quartile",
-           "value which maximizes the density of the variable",
-           "descriptor of the shape of a probability distribution",
-           "measure of the asymmetry of the probability distribution",
-           "visualization of the distribution",
-           "detailed visualization of the distribution",
-           "number of different values"
-  ))
-  if (!is.null(nb_modal2show)) {
-    
+  # ?
+  if (! is.null(nb_modal2show)) {
     nb_modal2show <- max(4, nb_modal2show)
     dt_modal <- data.table(stats = c(paste0("modality", 1:nb_modal2show), "other"),
                            info = c("1st occuring modality", 
@@ -473,18 +490,21 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
                                     "3rd occuring modality",
                                     paste0(4:nb_modal2show, "th occuring modality"),
                                     "percentage of observations with other values than the displayed modalities"))
-    stats_info <- rbindlist(list(stats_info, dt_modal))
+    vars_infos <- rbindlist(list(vars_infos, dt_modal))
   }
   
-  htmlbodyth <- c(unname(sapply(cols, function(col) {
-    stats_info[stats == col, stats]
-  })))
+  # retrieve infos
+  htmlbodyth <- as.list(cols)
   
   htmlbodytitle <- c(unname(sapply(cols, function(col) {
-    stats_info[stats == col, info]
+    if (col %in% vars_infos$name) {
+      vars_infos[name == col, info] 
+    } else {
+      col
+    }
   })))
   
-  
+  # compute DT container
   container = htmltools::withTags(
     table(
       class = 'display',
@@ -497,5 +517,4 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
   )
   
   return(container)
-  
 }
