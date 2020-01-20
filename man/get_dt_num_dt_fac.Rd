@@ -4,12 +4,17 @@
 \alias{get_dt_num_dt_fac}
 \title{preprocessing on data}
 \usage{
-get_dt_num_dt_fac(data, optional_stats, nb_modal2show,
-  show_warnings = FALSE, keep_dataframe = TRUE,
-  keep_datatable = TRUE)
+get_dt_num_dt_fac(
+  data,
+  optional_stats,
+  nb_modal2show,
+  show_warnings = FALSE,
+  keep_dataframe = TRUE,
+  keep_datatable = TRUE
+)
 }
 \arguments{
-\item{data}{\code{data.table} input data which will be preprocessed}
+\item{data}{\code{data.frame}, \code{data.table} input data which will be preprocessed}
 
 \item{optional_stats}{\code{character} optional statistics computed on data,
 you can look at \link{show_data} for more information.}

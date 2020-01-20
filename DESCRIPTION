@@ -31,4 +31,6 @@ Imports:
     hexbin,
     stats,
     grDevices,
-    shinycssloaders
+    shinycssloaders,
+    openxlsx,
+    htmltools

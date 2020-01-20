@@ -381,7 +381,11 @@ plot.idc_table <- function(data_idc,
 #' @param indicators \code{characters}. Indicators to be computed, amongst: ("rmse", "mae", "mape", "mape_star").
 #'
 #' @return shiny module.
-#' @import shiny DT data.table rAmCharts
+#' 
+#' @import shiny data.table rAmCharts
+#' 
+#' @importFrom DT datatable renderDT DTOutput
+#' 
 #' @export
 #'
 #' @examples
@@ -391,7 +395,8 @@ plot.idc_table <- function(data_idc,
 #' 
 #' data <- data.table(obs = runif(100, 1, 10))
 #' data[, fit := obs + rnorm(100, 0, 10)]
-#' data[, date := seq(as.POSIXct("2019-10-07 00:00:00 UTC", tz = "UTC"), as.POSIXct("2019-10-11 03:00:00 UTC", tz = "UTC"), by = 60*60)]
+#' data[, date := seq(as.POSIXct("2019-10-07 00:00:00 UTC", tz = "UTC"), 
+#'     as.POSIXct("2019-10-11 03:00:00 UTC", tz = "UTC"), by = 60*60)]
 #' data[, by_quali := factor(sample(rep(1:10, 10)))]
 #' data[, by_quanti := runif(100, 1, 20)]
 #' 
@@ -482,7 +487,7 @@ vis_indicators <- function(input, output, session,
     })
   })
   # display indicators table
-  output$table_idc <- DT::renderDataTable({
+  output$table_idc <- DT::renderDT({
     data_idc <- get_data_idc()
     if(! is.null(data_idc)){
       data_idc$mape <- round(data_idc$mape, 2)
@@ -490,7 +495,7 @@ vis_indicators <- function(input, output, session,
       data_idc$mae <- round(data_idc$mae, 2)
       data_idc$mape_e <- round(data_idc$mape_e, 2)
       
-      datatable(data_idc, caption = "data_idc", rownames = NULL)
+      DT::datatable(data_idc, caption = "data_idc", rownames = NULL)
     }
   })
   
@@ -549,7 +554,8 @@ vis_indicators <- function(input, output, session,
 #' @param col_date \code{character} (NULL). Column name for date values.
 #'
 #' @return shiny module.
-#' @import shiny DT rAmCharts
+#' @import shiny rAmCharts
+#' @importFrom DT DTOutput renderDT
 #' @export
 #'
 #' @examples
@@ -559,7 +565,8 @@ vis_indicators <- function(input, output, session,
 #' 
 #' data <- data.table(obs = runif(100, 1, 10))
 #' data[, fit := obs + rnorm(100, 0, 10)]
-#' data[, date := seq(as.POSIXct("2019-10-07 00:00:00 UTC", tz = "UTC"), as.POSIXct("2019-10-11 03:00:00 UTC", tz = "UTC"), by = 60*60)]
+#' data[, date := seq(as.POSIXct("2019-10-07 00:00:00 UTC", tz = "UTC"), 
+#'     as.POSIXct("2019-10-11 03:00:00 UTC", tz = "UTC"), by = 60*60)]
 #' data[, by_quali := factor(sample(rep(1:10, 10)))]
 #' data[, by_quanti := runif(100, 1, 20)]
 #' 
@@ -600,7 +607,7 @@ vis_indicators_UI <- function(id,
                                 fluidRow(
                                   column(12,
                                          br(),
-                                         DT::dataTableOutput(ns("table_idc"))
+                                         DT::DTOutput(ns("table_idc"))
                                   )
                                 )
                        )

@@ -4,8 +4,13 @@
 \alias{.plotScatterplot}
 \title{plot histogram and scatterplot}
 \usage{
-.plotScatterplot(data, type = "line", js = TRUE, id = NULL,
-  palette_ggplot = "BuPu")
+.plotScatterplot(
+  data,
+  type = "line",
+  js = TRUE,
+  id = NULL,
+  palette_ggplot = "BuPu"
+)
 }
 \arguments{
 \item{data}{\code{data.table} data.table with one or two numeric columns}

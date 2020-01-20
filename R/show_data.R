@@ -28,7 +28,7 @@
 #' 
 #' @export
 #' 
-#' @import shiny DT shinycssloaders
+#' @import shiny shinycssloaders
 #' 
 #' @seealso \code{\link{filter_data}}
 #' @examples 
@@ -115,7 +115,7 @@ show_dataUI <- function(id, titles = TRUE, subtitles = TRUE) {
 
 
 #' @export
-#' @import shiny DT data.table magrittr sparkline PerformanceAnalytics htmlwidgets
+#' @import shiny data.table magrittr sparkline PerformanceAnalytics htmlwidgets
 #'
 #' @rdname show_data_module
 show_data <- function(input, output, session, data = NULL, optional_stats = "all", 

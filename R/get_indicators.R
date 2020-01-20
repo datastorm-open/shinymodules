@@ -2,7 +2,7 @@
 #' @description preprocessing of input data, return two DT, one with
 #' statistics on numeric variables and another one with statistics on factor variables
 #' 
-#' @param data \code{data.table} input data which will be preprocessed
+#' @param data \code{data.frame}, \code{data.table} input data which will be preprocessed
 #' @param optional_stats \code{character} optional statistics computed on data,
 #' you can look at \link{show_data} for more information.
 #' @param nb_modal2show \code{integer} number of modalities to show for factor variables.
@@ -94,14 +94,15 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
 #' @title  get stats indicator on numeric column
 #' @description return statistics from numeric data, is called by 
 #' \link{.get_stat_indicators}
-#' @param data \code{data.table}
+#' @param data \code{data.frame}, \code{data.table}
 #' @param var \code{character}
 #' @param absolute \code{logical}
-#' @param optional_stats \code{character}
+#' @param optional_stats \code{character} optional statistics computed on data,
+#' you can look at \link{show_data} for more information.
 #' @return data.table with statistics on numeric data
 #' @import sparkline PerformanceAnalytics
 #' 
-.get_indicators <- function(data, var, absolute = FALSE, optional_stats){
+.get_indicators <- function(data, var, absolute = FALSE, optional_stats = "all"){
   
   tmp_compute_ind <- NULL
   if(!"data.table" %in% class(data)){
@@ -182,18 +183,28 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
 #' @title  get stats indicator on numeric data
 #' @description return statistics from numeric data, is called by 
 #' \link{get_dt_num_dt_fac}
-#' @param data \code{data.table}
+#' @param data \code{data.frame}, \code{data.table}
 #' @param vars \code{character}
-#' @param optional_stats \code{character}
+#' @param optional_stats \code{character} optional statistics computed on data,
+#' you can look at \link{show_data} for more information.
 #' @param keep_dataframe \code{logical} data.frame in output ?
 #' @param keep_datatable \code{logical} datatable (DT) in output ?
 #' 
 #' @return DT with statistics on numeric data
 #' @import sparkline PerformanceAnalytics
-#' 
+#' @importFrom DT renderDT datatable formatStyle styleInterval formatPercentage formatCurrency
 .get_stat_indicators <- function(data, vars, optional_stats, keep_dataframe = TRUE, keep_datatable = TRUE){
   
-  data_copy <- data.table::copy(data)
+  if(!"data.frame" %in% class(data)){
+    stop("'data' must be a data.frame / data.table.")
+  }
+  
+  if(!"data.table" %in% class(data)){
+    data_copy <- data.table::as.data.table(data)
+  } else {
+    data_copy <- data.table::copy(data)
+  }
+  
   res <- sapply(vars, function(var) .get_indicators(
     data_copy, var, optional_stats = optional_stats), simplify = FALSE)
   stats_table <- data.table::rbindlist(res, use.names = TRUE, idcol = "variable")
@@ -205,7 +216,7 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
   }
   
   if(keep_datatable){
-    container <-  .get_stats_info(colnames(stats_table))
+    container <-  set_datatable_var_info(colnames(stats_table), vars_infos = .stats_info)
     dt <- DT::datatable(stats_table, rownames = FALSE, filter = "bottom", 
                         container = container,
                         escape = FALSE, selection = "none", width = "100%",
@@ -253,15 +264,25 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
 #' @title  get stats indicator on dates data
 #' @description return statistics from dates data, is called by 
 #' \link{get_dt_num_dt_fac}
-#' @param data \code{data.table}
+#' @param data \code{data.frame}, \code{data.table}
 #' @param dates_vars \code{character}
+#' @param optional_stats \code{character} optional statistics computed on data,
+#' you can look at \link{show_data} for more information.
 #' @param keep_dataframe \code{logical} data.frame in output ?
 #' @param keep_datatable \code{logical} datatable (DT) in output ?
 #' 
 #' @return DT with statistics on dates data
 #' 
-.get_dates_indicators <- function(data, dates_vars, optional_stats, 
+.get_dates_indicators <- function(data, dates_vars, optional_stats = "all", 
                                   keep_dataframe = TRUE, keep_datatable = TRUE){
+  
+  if(!"data.frame" %in% class(data)){
+    stop("'data' must be a data.frame / data.table.")
+  }
+  
+  if(!"data.table" %in% class(data)){
+    data <- data.table::as.data.table(data)
+  }
   
   stats_dates <- data.table::rbindlist(lapply(
     dates_vars, 
@@ -286,7 +307,7 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
   }
   
   if(keep_datatable){
-  container <-  .get_stats_info(colnames(stats_dates))
+  container <-  set_datatable_var_info(colnames(stats_dates), vars_infos = .stats_info)
   dt_dates <- DT::datatable(stats_dates, container = container,
                             rownames = FALSE, filter = "bottom", escape = FALSE, 
                             selection = "none", width = "100%",
@@ -328,17 +349,28 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
 #' 
 #' \link{get_dt_num_dt_fac}
 #' 
-#' @param data \code{data.table}
+#' @param data \code{data.frame}, \code{data.table}
 #' @param fact_vars \code{character}
 #' @param nb_modal2show \code{integer}
+#' @param optional_stats \code{character} optional statistics computed on data,
+#' you can look at \link{show_data} for more information.
 #' @param keep_dataframe \code{logical} data.frame in output ?
 #' @param keep_datatable \code{logical} datatable (DT) in output ?
 #' 
 #' @return DT with statistics on factor data
 #' @import sparkline PerformanceAnalytics
 #' 
-.get_factor_indicators <- function(data, fact_vars, nb_modal2show, optional_stats, 
+.get_factor_indicators <- function(data, fact_vars, nb_modal2show, optional_stats = "all", 
                                    keep_dataframe = TRUE, keep_datatable = TRUE) {
+  
+  if(!"data.frame" %in% class(data)){
+    stop("'data' must be a data.frame / data.table.")
+  }
+  
+  if(!"data.table" %in% class(data)){
+    data <- data.table::as.data.table(data)
+  }
+  
   N <- NULL
   
   stats_fact <- data.table::rbindlist(lapply(
@@ -386,7 +418,8 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
     }))
   
   if(keep_datatable){
-    container <-  .get_stats_info(colnames(stats_fact), nb_modal2show = nb_modal2show)
+    container <-  set_datatable_var_info(colnames(stats_fact), nb_modal2show = nb_modal2show, 
+                                         vars_infos = .stats_info)
     
     dt_fact <- DT::datatable(stats_fact, container = container,
                              rownames = FALSE, filter = "bottom", escape = FALSE, 
@@ -429,13 +462,14 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
 #' Add information on variables in DT table 
 #'
 #' @param cols \code{character}. Columns names the table to be displayed.
-#' @param vars_infos \code{character}. Table with cols 'name' and 'info'.
+#' @param vars_infos  \code{data.frame}, \code{data.table} Table with cols 'name' and 'info'.
 #' @param nb_modal2show \code{integer}. todo.
 #'
 #' @return DT container arg.
 #' @export
 #' 
-#' @import data.table htmltools
+#' @import data.table
+#' @importFrom htmltools withTags
 #'
 #' @examples
 #' \dontrun{\donttest{
@@ -443,30 +477,31 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
 #' library(shiny)
 #' 
 #' # create table of variables informations
-#' vars_infos <- data.table(
+#' vars_infos <- data.frame(
 #'   # names of all possible variables 
 #'   name = c("Sepal.Length", "Species", "Petal.Length", "Sepal.Width", "Petal.Width"), 
 #'   # corresponding infos
 #'   info = c("Infos about Sepal.Length", "Infos about Species", "Infos about Petal.Length", 
-#'            "Infos about Sepal.Width", "Infos about Petal.Width"))
+#'            "Infos about Sepal.Width", "Infos about Petal.Width")
+#' )
 #' 
 #' # shiny app
 #' ui <- fluidPage(
 #'   fluidRow(
 #'     column(12,
-#'            DT::dataTableOutput("my_DT_table")        
+#'            DT::DTOutput("my_DT_table")        
 #'     )
 #'   )
 #' )
 #' 
 #' server <- function(input, output, session) {
-#'   output$my_DT_table <- DT::renderDataTable({
+#'   output$my_DT_table <- DT::renderDT({
 #'     DT::datatable(
 #'       data.table(iris), 
 #'       
 #'       rownames = F, filter = 'bottom', 
 #'       
-#'       container = .get_stats_info(
+#'       container = set_datatable_var_info(
 #'         cols = names(iris),
 #'         vars_infos = vars_infos
 #'       )
@@ -477,14 +512,24 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
 #' shinyApp(ui, server)
 #' 
 #' }}
-.get_stats_info <- function(cols, 
+set_datatable_var_info <- function(cols, 
                             vars_infos, 
                             nb_modal2show = NULL) {
   
+  if(!"data.frame" %in% class(vars_infos)){
+    stop("'vars_infos' must be a data.frame / data.table.")
+  }
+  
+  if(!"data.table" %in% class(vars_infos)){
+    vars_infos <- data.table::as.data.table(vars_infos)
+  }
+  
+  stopifnot(all.equal(colnames(vars_infos), c("name", "info")))
+  
   # ?
-  if (! is.null(nb_modal2show)) {
+  if (!is.null(nb_modal2show)) {
     nb_modal2show <- max(4, nb_modal2show)
-    dt_modal <- data.table(stats = c(paste0("modality", 1:nb_modal2show), "other"),
+    dt_modal <- data.table(name = c(paste0("modality", 1:nb_modal2show), "other"),
                            info = c("1st occuring modality", 
                                     "2nd occuring modality", 
                                     "3rd occuring modality",
@@ -498,7 +543,7 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
   
   htmlbodytitle <- c(unname(sapply(cols, function(col) {
     if (col %in% vars_infos$name) {
-      vars_infos[name == col, info] 
+      vars_infos[name == col, as.character(info)] 
     } else {
       col
     }

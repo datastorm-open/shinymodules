@@ -4,29 +4,50 @@
 \alias{show_DT}
 \title{Module d'affichage DT avec export. Partie SERVER}
 \usage{
-show_DT(input, output, session, data, dt, file_name, row.names = FALSE,
-  server = TRUE)
+show_DT(
+  input,
+  output,
+  session,
+  data,
+  dt,
+  file_name,
+  row.names = FALSE,
+  server = TRUE
+)
 }
 \arguments{
-\item{input, }{output, session : conventions shiny pour le modules}
+\item{input}{Not a real parameter, should not be set manually. 
+Done by callModule automatically.}
 
-\item{data}{: reactive. data.frame / data.table contenant les données}
+\item{output}{Not a real parameter, should not be set manually. 
+Done by callModule automatically.}
 
-\item{dt}{: reactive. dt (\code{datatable}) avec options à afficher}
+\item{session}{Not a real parameter, should not be set manually. 
+Done by callModule automatically.}
 
-\item{file_name}{: character. nom du fichier exporte (sans extension)}
+\item{data}{: reactive. \code{data.frame} / \code{data.table}}
+
+\item{dt}{: reactive. dt (\code{datatable}) with options}
+
+\item{file_name}{: character. Name of output file}
+
+\item{row.names}{: \code{logical}}
+
+\item{server}{: \code{logical}}
 }
 \description{
 Module d'affichage DT avec export. Partie SERVER
 }
 \examples{
 
+\dontrun{
 # ui
 ui = shiny::fluidPage(show_DT_UI("iris_module"))
 server = function(input, output, session) {
   callModule(show_DT, "iris_module", reactive(iris), reactive(DT::datatable(iris)), 
-   paste0("Iris_export", format(Sys.time(), format = "\%d\%m\%Y_\%H\%M\%S")))
+   paste0("Iris_export", format(Sys.time(), format = "%d%m%Y_%H%M%S")))
 }
 shiny::shinyApp(ui = ui, server = server)
-    
+  
+}  
 }

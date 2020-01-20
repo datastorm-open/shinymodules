@@ -350,8 +350,10 @@ heatmap <- function(data, classes, labels = TRUE, cex = 10, main = "",
 #' and return a DT object in a heatmap form
 #' @param data \code{data.table} data.table with two character columns
 #' @return DT in a heatmap form
-#' @import DT data.table
-
+#' 
+#' @import data.table
+#' @importFrom DT datatable
+#' 
 #' @examples 
 #' \dontrun{
 #' titanic <- data.table(datasets::Titanic)

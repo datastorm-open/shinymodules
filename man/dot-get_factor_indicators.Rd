@@ -4,15 +4,24 @@
 \alias{.get_factor_indicators}
 \title{get stats indicator on factor data}
 \usage{
-.get_factor_indicators(data, fact_vars, nb_modal2show, optional_stats,
-  keep_dataframe = TRUE, keep_datatable = TRUE)
+.get_factor_indicators(
+  data,
+  fact_vars,
+  nb_modal2show,
+  optional_stats = "all",
+  keep_dataframe = TRUE,
+  keep_datatable = TRUE
+)
 }
 \arguments{
-\item{data}{\code{data.table}}
+\item{data}{\code{data.frame}, \code{data.table}}
 
 \item{fact_vars}{\code{character}}
 
 \item{nb_modal2show}{\code{integer}}
+
+\item{optional_stats}{\code{character} optional statistics computed on data,
+you can look at \link{show_data} for more information.}
 
 \item{keep_dataframe}{\code{logical} data.frame in output ?}
 

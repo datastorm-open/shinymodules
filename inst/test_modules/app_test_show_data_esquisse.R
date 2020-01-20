@@ -6,6 +6,7 @@ library(magrittr)
 library(PerformanceAnalytics)
 library(htmlwidgets)
 library(nycflights13)
+library(esquisse)
 
 ui <- fluidPage(
   shiny::fluidRow(

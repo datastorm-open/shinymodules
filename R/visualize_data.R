@@ -14,7 +14,8 @@
 #' 
 #' @return UI page
 #' @export
-#' @import shiny DT 
+#' @import shiny
+#' @importFrom DT renderDT DTOutput
 #' 
 #' @examples 
 #' \dontrun{

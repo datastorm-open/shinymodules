@@ -7,7 +7,7 @@
 show_DT_UI(id)
 }
 \arguments{
-\item{id}{: character. id du module}
+\item{id}{: character. id}
 }
 \description{
 Module d'affichage DT avec export. Partie UI

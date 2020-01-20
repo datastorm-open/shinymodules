@@ -4,13 +4,21 @@
 \alias{.get_dates_indicators}
 \title{get stats indicator on dates data}
 \usage{
-.get_dates_indicators(data, dates_vars, optional_stats,
-  keep_dataframe = TRUE, keep_datatable = TRUE)
+.get_dates_indicators(
+  data,
+  dates_vars,
+  optional_stats = "all",
+  keep_dataframe = TRUE,
+  keep_datatable = TRUE
+)
 }
 \arguments{
-\item{data}{\code{data.table}}
+\item{data}{\code{data.frame}, \code{data.table}}
 
 \item{dates_vars}{\code{character}}
+
+\item{optional_stats}{\code{character} optional statistics computed on data,
+you can look at \link{show_data} for more information.}
 
 \item{keep_dataframe}{\code{logical} data.frame in output ?}
 

@@ -83,7 +83,7 @@ filter_dataUI <- function(id, titles = TRUE) {
 }
 
 #' @export
-#' @import shiny DT data.table magrittr
+#' @import shiny data.table magrittr
 #'
 #' @rdname filter_data_module
 filter_data <- function(input, output, session, data = NULL,

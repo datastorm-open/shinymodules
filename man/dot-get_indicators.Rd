@@ -4,16 +4,17 @@
 \alias{.get_indicators}
 \title{get stats indicator on numeric column}
 \usage{
-.get_indicators(data, var, absolute = FALSE, optional_stats)
+.get_indicators(data, var, absolute = FALSE, optional_stats = "all")
 }
 \arguments{
-\item{data}{\code{data.table}}
+\item{data}{\code{data.frame}, \code{data.table}}
 
 \item{var}{\code{character}}
 
 \item{absolute}{\code{logical}}
 
-\item{optional_stats}{\code{character}}
+\item{optional_stats}{\code{character} optional statistics computed on data,
+you can look at \link{show_data} for more information.}
 }
 \value{
 data.table with statistics on numeric data

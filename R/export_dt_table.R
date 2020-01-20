@@ -3,7 +3,10 @@
 
 #' Module d'affichage DT avec export. Partie UI
 #' 
-#' @param id : character. id du module
+#' @param id : character. id
+#' 
+#' @import shiny
+#' @importFrom DT DTOutput
 #' 
 show_DT_UI <- function(id) {
   ns <- NS(id)
@@ -11,7 +14,7 @@ show_DT_UI <- function(id) {
     column(12, 
            # affichage de la table
            withSpinner(
-             DT::dataTableOutput(ns("table"))
+             DT::DTOutput(ns("table"))
            ),
            fluidRow(
              # bouton export .csv
@@ -27,15 +30,25 @@ show_DT_UI <- function(id) {
 
 #' Module d'affichage DT avec export. Partie SERVER
 #' 
-#' @param input, output, session : conventions shiny pour le modules
-#' @param data : reactive. data.frame / data.table contenant les données
-#' @param dt : reactive. dt (\code{datatable}) avec options à afficher
-#' @param file_name : character. nom du fichier exporte (sans extension)
+#' @param input Not a real parameter, should not be set manually. 
+#' Done by callModule automatically.
+#' @param output Not a real parameter, should not be set manually. 
+#' Done by callModule automatically.
+#' @param session Not a real parameter, should not be set manually. 
+#' Done by callModule automatically.
+#' @param data : reactive. \code{data.frame} / \code{data.table}
+#' @param dt : reactive. dt (\code{datatable}) with options
+#' @param file_name : character. Name of output file
+#' @param row.names : \code{logical}
+#' @param server : \code{logical}
 #' 
-#' @import openxlsx htmlwidgets
+#' @import openxlsx htmlwidgets shiny
+#' @importFrom DT renderDT datatable
+#' @importFrom utils write.table
 #' 
 #' @examples 
 #' 
+#' \dontrun{
 #' # ui
 #' ui = shiny::fluidPage(show_DT_UI("iris_module"))
 #' server = function(input, output, session) {
@@ -43,11 +56,12 @@ show_DT_UI <- function(id) {
 #'    paste0("Iris_export", format(Sys.time(), format = "%d%m%Y_%H%M%S")))
 #' }
 #' shiny::shinyApp(ui = ui, server = server)
-#'     
+#'   
+#' }  
 show_DT <- function(input, output, session, data, dt, file_name, row.names = FALSE, server = TRUE) {
   
   # output DT
-  output$table <- DT::renderDataTable({
+  output$table <- DT::renderDT({
     dt()
   }, server = server)
   
