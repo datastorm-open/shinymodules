@@ -16,23 +16,31 @@ test_that("check sub-functions", {
   expect_equal(mape_star_target, round(shinymodules:::.mape_e(v_1, v_2), 10))
   
   expect_equivalent(data.frame(mape = mape_target, rmse = rmse_target, mea = mae_target, mape_e = mape_star_target), 
-                    round(shinymodules:::.compute_idc(data = data.table(obs = v_1, fit = v_2), col_obs = "obs", col_fit = "fit", by = "none"), 10))
+                    round(shinymodules:::compute_idc(data = data.table(obs = v_1, fit = v_2), 
+                                                     col_obs = "obs", 
+                                                     col_fit = "fit", 
+                                                     by = "Aucun",
+                                                     dec = 10), 10))
   
   expect_equivalent(
     data.frame(data.table(
             obs = v_1, fit = v_2, by = c(1, 2, 3, 4, 1, 2, 3, 4, 1, 2))[, 
             list(mape = .mape(obs, fit), rmse = .rmse(obs, fit),
-                   mae = .mae(obs, fit), mape_e = .mape_e(obs, fit)), by = by]), 
-    shinymodules:::.compute_idc(data = data.table(obs = v_1, fit = v_2, by_col = c(1, 2, 3, 4, 1, 2, 3, 4, 1, 2)), col_obs = "obs", col_fit = "fit", by = "by_col"))
+                 mae = .mae(obs, fit), mape_e = .mape_e(obs, fit)), by = by]), 
+    shinymodules:::compute_idc(data = data.table(obs = v_1, fit = v_2, by_col = c(1, 2, 3, 4, 1, 2, 3, 4, 1, 2)), 
+                               col_obs = "obs", 
+                               col_fit = "fit", 
+                               by = "by_col",
+                               dec = 10))
 
   expect_equal(data.table(obs = v_1, fit = v_2, by_var = as.character(c(1, 2, 3, 4, 1, 2, 3, 4, 1, 2))),
-               .add_by(data = data.table(obs = v_1, fit = v_2, by_var = as.character(c(1, 2, 3, 4, 1, 2, 3, 4, 1, 2))), by_col = "none"))
+               add_by(data = data.table(obs = v_1, fit = v_2, by_var = as.character(c(1, 2, 3, 4, 1, 2, 3, 4, 1, 2))), by_col = "Aucun"))
     
   expect_equal(data.table(obs = v_1, fit = v_2, by_var = as.character(c(1, 2, 3, 4, 1, 2, 3, 4, 1, 2))),
-               .add_by(data = data.table(obs = v_1, fit = v_2, by_var = as.character(c(1, 2, 3, 4, 1, 2, 3, 4, 1, 2))), by_col = "by_var"))
+               add_by(data = data.table(obs = v_1, fit = v_2, by_var = as.character(c(1, 2, 3, 4, 1, 2, 3, 4, 1, 2))), by_col = "by_var"))
   
   expect_equal(data.table(obs = v_1, fit = v_2, by_var = factor(c("[0.5,1]", "[0.5,1]", "(1,1.5]", "(1.5,2.5]", "(1.5,2.5]", "(2.5,3]", "(3,4]", "(3,4]", "(4,4.5]", "(4.5,5]"),
                                                                 levels = c("[0.5,1]", "(1,1.5]", "(1.5,2.5]", "(2.5,3]", "(3,4]", "(4,4.5]", "(4.5,5]"))),
-               .add_by(data = data.table(obs = v_1, fit = v_2, by_var = seq(0.5, 5, length.out = 10)), by_col = "by_var", nb_quantiles = 7))
+               add_by(data = data.table(obs = v_1, fit = v_2, by_var = seq(0.5, 5, length.out = 10)), by_col = "by_var", nb_quantiles = 7))
   
 })

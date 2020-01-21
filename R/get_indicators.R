@@ -303,7 +303,7 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
                              density = density
       )}))
   if (!("nb_valid" %in% optional_stats | "all" %in% optional_stats)) {
-    stats_dates[, nb_valid := NULL]
+    stats_dates[, "nb_valid" := NULL]
   }
   
   if(keep_datatable){
@@ -412,7 +412,7 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
       data_fac[, other := other]
       
       if (!("nb_valid" %in% optional_stats | "all" %in% optional_stats)) {
-        data_fac[, nb_valid := NULL]
+        data_fac[, "nb_valid" := NULL]
       }
       data_fac
     }))
@@ -469,7 +469,7 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
 #' @export
 #' 
 #' @import data.table
-#' @importFrom htmltools withTags
+#' @importFrom htmltools tags
 #'
 #' @examples
 #' \dontrun{\donttest{
@@ -529,8 +529,8 @@ set_datatable_var_info <- function(cols,
   # ?
   if (!is.null(nb_modal2show)) {
     nb_modal2show <- max(4, nb_modal2show)
-    dt_modal <- data.table(name = c(paste0("modality", 1:nb_modal2show), "other"),
-                           info = c("1st occuring modality", 
+    dt_modal <- data.table("name" = c(paste0("modality", 1:nb_modal2show), "other"),
+                           "info" = c("1st occuring modality", 
                                     "2nd occuring modality", 
                                     "3rd occuring modality",
                                     paste0(4:nb_modal2show, "th occuring modality"),
@@ -543,7 +543,7 @@ set_datatable_var_info <- function(cols,
   
   htmlbodytitle <- c(unname(sapply(cols, function(col) {
     if (col %in% vars_infos$name) {
-      vars_infos[name == col, as.character(info)] 
+      vars_infos[get("name") == col, as.character(get("info"))] 
     } else {
       col
     }
@@ -553,9 +553,9 @@ set_datatable_var_info <- function(cols,
   container = htmltools::withTags(
     table(
       class = 'display',
-      thead(
-        tr(lapply(1:length(htmlbodyth), function(val) {
-          th(htmlbodyth[val], title = htmlbodytitle[val])
+      htmltools::tags$thead(
+        htmltools::tags$tr(lapply(1:length(htmlbodyth), function(val) {
+          htmltools::tags$th(htmlbodyth[val], title = htmlbodytitle[val])
         }))
       )
     )

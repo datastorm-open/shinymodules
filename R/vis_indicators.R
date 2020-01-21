@@ -56,6 +56,7 @@
 }
 
 
+
 #' Compute indicators for given model and data
 #'
 #' @param object \code{modelInstant} (NULL). A modelInstant object. IE = ???
@@ -63,6 +64,7 @@
 #' @param col_obs \code{character}. Column name of observed values.
 #' @param col_fit \code{character} (NULL). Column name of fitted values. 
 #' @param by \code{character} (NULL). Column name of aggregation variable.
+#' @param dec \code{integer} (2). Number of decimals to be kept.
 #' @param nb.cores \code{integer} (1). Number of cores, when oject is used to make prediction.
 #'
 #' @return a data.frame whose columns are the required indicators and aggregation column.
@@ -76,18 +78,19 @@
 #' obs <- round(runif(100, 1, 10))
 #' fit <- rnorm(100, 1, 5)
 #' 
-#' .compute_idc(data = data.table(obs = obs, fit = fit), 
-#' col_obs = "obs", col_fit = "fit", by = "none")
-#' .compute_idc(data = data.table(obs = obs, fit = fit, by_var = sample(rep(1:10, 10))), 
+#' compute_idc(data = data.table(obs = obs, fit = fit), 
+#' col_obs = "obs", col_fit = "fit", by = "Aucun")
+#' compute_idc(data = data.table(obs = obs, fit = fit, by_var = sample(rep(1:10, 10))), 
 #' col_obs = "obs", col_fit = "fit", by = "by_var")
 #' 
 #' }}
-.compute_idc <- function(object = NULL, 
-                         data, 
-                         col_obs, 
-                         col_fit = NULL,
-                         by = NULL, 
-                         nb.cores = 1) {
+compute_idc <- function(object = NULL, 
+                        data, 
+                        col_obs, 
+                        col_fit = NULL,
+                        by = NULL, 
+                        dec = 2,
+                        nb.cores = 1) {
   
   # check inputs
   if (! "data.table" %in% class(data)) {
@@ -103,7 +106,7 @@
   if (! is.null(col_fit) && ! col_fit %in% colnames(data)) {
     stop("Cant find '", col_fit, "' in data.")
   }
-  if (! is.null(by) && ! by %in% c(colnames(data), "none")) {
+  if (! is.null(by) && ! by %in% c(colnames(data), "Aucun")) {
     stop("Cant find '", by, "' in data.")
   }
   if (is.null(col_fit)) {
@@ -122,11 +125,11 @@
   # compute indicators
   real <- data[[col_obs]]
   
-  if (is.null(by) || by == "none") {
-    mape.score <- .mape(real, fit)
-    rmse.score <- .rmse(real, fit)
-    mae.score  <- .mae(real, fit)
-    mape_e.score <- .mape_e(real, fit)
+  if (is.null(by) || by == "Aucun") {
+    mape.score <- round(.mape(real, fit), dec)
+    rmse.score <- round(.rmse(real, fit), dec)
+    mae.score  <- round(.mae(real, fit), dec)
+    mape_e.score <- round(.mape_e(real, fit), dec)
     
     res <- data.frame(mape = mape.score, rmse = rmse.score, mae = mae.score, mape_e = mape_e.score)
     
@@ -134,8 +137,11 @@
     data.split <- data[, list("real" = real, "fit" = fit, get(by))]
     setnames(data.split, "V3", by)
     
-    res <- data.frame(data.split[order(get(by))][, list(mape = .mape(real, fit), rmse = .rmse(real, fit),
-                                     mae = .mae(real, fit), mape_e = .mape_e(real, fit)), by = by])
+    res <- data.frame(data.split[order(get(by))][, list(mape = round(.mape(real, fit), dec), 
+                                                        rmse = round(.rmse(real, fit), dec),
+                                                        mae = round(.mae(real, fit), dec),
+                                                        mape_e = round(.mape_e(real, fit), dec)),
+                                                 by = by])
   }
   
   class(res) <- c("idc_table", "data.frame")
@@ -143,15 +149,77 @@
 }
 
 
+
+#' Add temporal (hour, day, ...) using a date column
+#'
+#' @param data \code{data.table}. Table containing a date colummn.
+#' @param col_date \code{character}. Name of the date column.
+#' @param temp_vars \code{character} (c("min", "heure", "jour_semaine", "semaine_annee", "mois_annee", "annee")). Variables to be added to the table.
+#'
+#' @return a data.table with new columns.
+#' @export
+#'
+#' @import data.table
+#'
+#' @examples
+#' \dontrun{\donttest{
+#' 
+#' data <- data.table(date = seq(Sys.time(), Sys.time() + 24*60*60, length.out = 100))
+#' 
+#' data <- add_temp_var(data = data,
+#'                      col_date = "date",
+#'                      temp_vars = c("heure", "semaine_annee", "annee"))
+#'                      
+#' }}
+add_temp_var <- function(data,
+                         col_date,
+                         temp_vars = c("min", "heure", "jour_semaine", "semaine_annee", "mois_annee", "annee")) {
+  data <- copy(data)
+  
+  if (! col_date %in% names(data)) {
+    stop(paste0("Column '", col_date, "' must be present in 'data'."))
+  } 
+  if (is.null(temp_vars) || ! all(temp_vars %in% c("min", "heure", "jour_semaine", "semaine_annee", "mois_annee", "annee"))) {
+    stop("'temp_vars' must be one of : ('min', 'heure', 'jour_semaine', 'semaine_annee', 'mois_annee', 'annee').")
+  }
+  
+  if ("min" %in% temp_vars) {
+    data[, "Minute" := format(get(col_date), tz = "UTC", format = "%M")]
+  }
+  if ("heure" %in% temp_vars) {
+    data[, "Heure" := format(get(col_date), tz = "UTC", format = "%H")]
+  }
+  if ("jour_semaine" %in% temp_vars) {
+    data[, "Jour" := factor(format(get(col_date), tz = "UTC", format = "%A"), 
+                          levels = format(seq(as.Date("2020-01-06"), as.Date("2020-01-12"), length.out = 7), tz = "UTC", format = "%A"))]
+  }
+  if ("semaine_annee" %in% temp_vars) {
+    data[, "Semaine" := format(get(col_date), tz = "UTC", format = "%V")]
+  }
+  if ("mois_annee" %in% temp_vars) {
+    data[, "Mois" := factor(format(get(col_date), tz = "UTC", format = "%B"), 
+                          levels = format(seq(as.Date("2020-01-15"), as.Date("2020-12-15"), length.out = 12), tz = "UTC", format = "%B"))]
+  }
+  if ("annee" %in% temp_vars) {
+    data[, "Annee" := format(get(col_date), tz = "UTC", format = "%Y")]
+  }
+  
+  return(data)
+}
+
+
+
 #' Format by column before plotting
 #'
 #' @param data \code{data.frame} / \code{data.table}. Table containing by or date column.
-#' @param by_col \code{character}. Either the name of the column to use for aggregation or one of ("none", "day", "week", "month", "year").
-#' @param col_date \code{character} (NULL). Column name for date values.
+#' @param by_col \code{character}. Either the name of the column to use for aggregation or 
+#' one of ("Aucun", "day", "week", "month", "year").
+#' @param col_date \code{character}. Column name for date values.
 #' @param nb_quantiles \code{integer} (NULL). Number of intervals for discretization when by_col is numeric. 
 #'
 #' @return a data.table. If 'by_col' is one of: ("day", "week", "month", "year"), a new column 
 #' is created. If 'by_col' is numeric, it is discretized. Else it is unchanged.
+#' 
 #' @import data.table
 #'
 #' @examples
@@ -163,37 +231,29 @@
 #' fit <- rnorm(100, 1, 5)
 #' 
 #' data <- data.table(obs = obs, fit = fit, by_var = sample(rep(1:10, 10)))
-#' data <- shinymodules:::.add_by(data = data, by_col = "by_var", nb_quantiles = 15)
+#' data <- shinymodules:::add_by(data = data, by_col = "by_var", nb_quantiles = 15)
 #' 
 #' }}
-.add_by <- function(data, 
-                    by_col, 
-                    col_date,
-                    nb_quantiles = NULL) {
+add_by <- function(data, 
+                   by_col, 
+                   col_date,
+                   nb_quantiles = NULL) {
   
-  
-  if (! by_col %in% c(colnames(data), c("none", "day", "week", "month", "year"))) {
-    stop("'by_col' must be a column of 'data' or one of: ('day', 'week', 'month', 'year')")
+  if (! by_col %in% c(colnames(data), c("Aucun", "year_day", "year_week", "year_month", "year"))) {
+    stop("'by_col' must be a column of 'data' or one of: ('year_day', 'year_week', 'year_month', 'year')")
   }
-  if (by_col %in% c("day", "week", "month", "year") && (is.null(col_date) || ! col_date %in% colnames(data))) {
+  if (by_col %in% c("year_day", "year_week", "year_month", "year") && 
+      (is.null(col_date) || ! col_date %in% colnames(data))) {
     stop(paste0("'", col_date, "' is not in 'data'."))
   }
-  if (! data[[by_col]] %in% c("none", "day", "week", "month", "year") && is.numeric(data[[by_col]]) && ! is.numeric(nb_quantiles)) {
+  if (! is.null(nb_quantiles) && ! data[[by_col]] %in% c("Aucun", "year_day", "year_week", "year_month", "year") && 
+      is.numeric(data[[by_col]]) && ! is.numeric(nb_quantiles)) {
     stop("'nb_quantiles' must be an integer.")
   } 
   
   data <- copy(data)
   
-  if (by_col == "year") {
-    data[, "year" := year(get(col_date))]
-  } else if (by_col == "month") {
-    data[, "month" := paste(year(get(col_date)), month(get(col_date)), sep = "/")]
-  } else if (by_col == "week") {
-    data[, "week" := paste(year(get(col_date)), week(get(col_date)), sep = " week ")]
-  } else if (by_col == "day") {
-    data[, "day" := substr(get(col_date), 1, 10)]
-    
-  } else if (is.numeric(data[[by_col]])) {
+  if (is.numeric(data[[by_col]]) && ! is.null(nb_quantiles)) {
     nb_quantiles <- round(nb_quantiles)
     
     data[, (by_col) := cut(get(by_col), 
@@ -207,6 +267,7 @@
   
   data
 }
+
 
 
 #' Plot method for idc_table objects
@@ -232,20 +293,20 @@
 #' fit <- rnorm(100, 1, 5)
 #' 
 #' data <- data.table(obs = obs, fit = fit, by_var = sample(rep(1:10, 10)))
-#' data <- shinymodules:::.add_by(data = data, by_col = "by_var", nb_quantiles = 15)
-#' data <- shinymodules:::.compute_idc(data = data, col_obs = "obs", col_fit = "fit", by = "by_var")
+#' data <- shinymodules:::add_by(data = data, by_col = "by_var", nb_quantiles = 15)
+#' data <- shinymodules:::compute_idc(data = data, col_obs = "obs", col_fit = "fit", by = "by_var")
 #' 
 #' shinymodules:::plot.idc_table(data_idc = data)
 #' 
 #' }}
 plot.idc_table <- function(data_idc, 
-                                    instantToHour = FALSE,
-                                    main = "Model's indicators", 
-                                    idc = c("mape", "rmse", "mae", "mape_e"),
-                                    col = c("black", "darkblue", "purple", "grey"), 
-                                    bullet = c("round", "square", "triangleUp", "diamond"),
-                                    dashLength = c(0, 4, 8, 12),
-                                    js = TRUE) {
+                           instantToHour = FALSE,
+                           main = "Model's indicators", 
+                           idc = c("mape", "rmse", "mae", "mape_e"),
+                           col = c("black", "darkblue", "purple", "grey"), 
+                           bullet = c("round", "square", "triangleUp", "diamond"),
+                           dashLength = c(0, 4, 8, 12),
+                           js = TRUE) {
   
   # check inputs.
   if (is.data.frame(data_idc)) {
@@ -321,8 +382,8 @@ plot.idc_table <- function(data_idc,
     }
     plt
     
-  # create graph if ??
-   } # else {
+    # create graph if ??
+  } # else {
   #   lcol <- c()
   #   lname <- c()
   #   llty <- c()
@@ -369,12 +430,15 @@ plot.idc_table <- function(data_idc,
 }
 
 
+
 #' Shiny module server-like fun to display indicators on a data.table.
 #'
 #' @param input shiny input
 #' @param output shiny input
 #' @param session shiny input
 #' @param data \code{data.frame} / \code{data.table}. Table on which indicators will be computed.
+#' @param col_id \code{character} (NULL). Column name for id values.
+#' @param keep_id \code{character} (NULL). id values to keep in col_id.
 #' @param col_obs \code{character}. Column name for observed values.
 #' @param col_fit \code{character}. Column name for fitted values.
 #' @param col_date \code{character} (NULL). Column name for date values.
@@ -382,9 +446,9 @@ plot.idc_table <- function(data_idc,
 #'
 #' @return shiny module.
 #' 
-#' @import shiny data.table rAmCharts
+#' @import shiny data.table rAmCharts visNetwork rpart
 #' 
-#' @importFrom DT datatable renderDT DTOutput
+#' @importFrom DT datatable 
 #' 
 #' @export
 #'
@@ -395,149 +459,393 @@ plot.idc_table <- function(data_idc,
 #' 
 #' data <- data.table(obs = runif(100, 1, 10))
 #' data[, fit := obs + rnorm(100, 0, 10)]
-#' data[, date := seq(as.POSIXct("2019-10-07 00:00:00 UTC", tz = "UTC"), 
-#'     as.POSIXct("2019-10-11 03:00:00 UTC", tz = "UTC"), by = 60*60)]
+#' data[, date := seq(as.POSIXct("2019-10-07 00:00:00 UTC", tz = "UTC"),
+#'                    as.POSIXct("2019-10-11 03:00:00 UTC", tz = "UTC"), by = 60*60)]
 #' data[, by_quali := factor(sample(rep(1:10, 10)))]
 #' data[, by_quanti := runif(100, 1, 20)]
 #' 
 #' col_obs <- "obs"
 #' col_fit <- "fit"
+#' col_date = "date"
 #' indicators <- c("rmse", "mae", "mape", "mape_e")
 #' 
-#' ui <- shiny::fluidPage(vis_indicators_UI("my_id", data, col_obs, col_fit))
+#' ui <- vis_indicators_UI("my_id")
 #' server <- function(input, output, session) {
-#'   callModule(vis_indicators, "my_id", data, col_obs, col_fit, indicators)
+#'   callModule(vis_indicators, "my_id", data = reactive(data), 
+#'              col_obs = col_obs,
+#'              col_fit = col_fit,
+#'              col_date = col_date,
+#'              indicators = indicators)
 #' }
 #' shiny::shinyApp(ui = ui, server = server)
 #' 
 #' }}
 vis_indicators <- function(input, output, session, 
-                           data, 
-                           col_obs, col_fit, col_date = NULL,
-                           indicators) {
+                           data,
+                           col_id = NULL,
+                           keep_id = NULL,
+                           col_obs, 
+                           col_fit, 
+                           col_date = NULL,
+                           indicators = c("rmse", "mae", "mape", "mape_e")) {
   ns <- session$ns # needed in renderUI
   
-  # display / hide quantile slider depending on whether aggr col is numeric
-  output$update_by_idc <- renderUI({
-    by <- input$by_idc
-    
-    isolate({
-      if (! is.null(data) && is.numeric(data[[by]])) {
-        tagList(
-          column(3, 
-                 sliderInput(ns("nb_quantiles_idc"), "Quantile number (quantitative vars)", min = 2, max = 100, value = 5)
-          )
-        )
-      } else {
-        NULL
-      }
-    })
-  })
-  output$update_by_boxplot <- renderUI({
-    by <- input$by_boxplot
-    
-    isolate({
-      if (! is.null(data) && is.numeric(data[[by]])) {
-        tagList(
-          column(3, 
-                 sliderInput(ns("nb_quantiles_boxplot"), "Quantile number (quantitative vars)", min = 2, max = 100, value = 5)
-          )
-        )
-      } else {
-        NULL
-      }
-    })
-  })
+  # reactive controls
+  if (! shiny::is.reactive(col_id)) {
+    get_col_id <- shiny::reactive(col_id)
+  } else {
+    get_col_id <- col_id
+  }
+  if (! shiny::is.reactive(keep_id)) {
+    get_keep_id <- shiny::reactive(keep_id)
+  } else {
+    get_keep_id <- keep_id
+  }
+  if (! shiny::is.reactive(col_obs)) {
+    get_col_obs <- shiny::reactive(col_obs)
+  } else {
+    get_col_obs <- col_obs
+  }
+  if (! shiny::is.reactive(col_fit)) {
+    get_col_fit <- shiny::reactive(col_fit)
+  } else {
+    get_col_fit <- col_fit
+  }
+  if (! shiny::is.reactive(col_date)) {
+    get_col_date <- shiny::reactive(col_date)
+  } else {
+    get_col_date <- col_date
+  }
+  if (! shiny::is.reactive(indicators)) {
+    get_indicators <- shiny::reactive(indicators)
+  } else {
+    get_indicators <- indicators
+  }
   
-  # compute indicators
-  get_data_idc <- reactive({
-    if(input$go_idc > 0){
-      isolate({
-        data_idc <- data.table(data)
-        by <- input$by_idc
+  
+  # check data
+  output$is_data <- reactive({
+    ! is.null(data())
+  })
+  outputOptions(output, "is_data", suspendWhenHidden = FALSE)
+  
+  # create data
+  get_data <- reactive({
+    data <- data()
+    
+    isolate({
+      if (! is.null(data)) {
+        withProgress(message = "Preparation des donnees", value = 0.9, {
+          
+          # filter ouvrages
+          if (! (is.null(get_keep_id()) || get_keep_id() == "Tous") && get_col_id() %in% names(data)) {
+            data <- data[get(get_col_id()) %in% get_keep_id(), ]
+          }
+          
+          # add cols min, hour, week, month, year + keep only target vars indicators
+          if (! is.null(get_col_date())) {
+            data <- add_temp_var(data = data,
+                                 col_date = get_col_date())
+          }
+        })
+        data
         
-        data_idc <- .add_by(data = data_idc, 
-                            by_col = by, 
-                            col_date = col_date,
-                            nb_quantiles = input$nb_quantiles_idc)
-
-        .compute_idc(data = data_idc, 
-                     col_obs = col_obs, 
-                     col_fit = col_fit,
-                     by = by)
-      })
-    } else{
-      NULL
-    }
+      } else {
+        NULL
+      }
+    })
   })
   
-  # display indicators plot
-  output$is_idc <- reactive({
-    ! is.null(get_data_idc())
-  })
-  outputOptions(output, "is_idc", suspendWhenHidden = FALSE)
-  output$plot_idc <- renderAmCharts({
-    data_idc <- get_data_idc()
+  # display / hide quantile slider depending on whether aggr col is numeric
+  output$idc_quantiles <- renderUI({
+    idc_by <- input$idc_by
+    discretize <- input$idc_use_quantiles
+    
     isolate({
-      if(! is.null(data_idc)){
-        withProgress(message = 'Graphic...', value = 0.5,{
-          plot(data_idc, instantToHour = FALSE, idc = indicators)
+      if (! is.null(get_data()) && is.numeric(get_data()[[idc_by]]) && (is.null(discretize) || discretize == T)) {
+        tagList(
+          column(1,
+                 div(style = "margin-top: 30px;",
+                     checkboxInput(
+                       ns("idc_use_quantiles"),
+                       label = "Discretiser ?",
+                       value = T))
+          ),
+          column(2, 
+                 div(sliderInput(ns("idc_nb_quantiles"), "Choix des quantiles", min = 2, max = 100, value = 5), align = "left")
+          )
+        )
+      } else if (! is.null(get_data()) && is.numeric(get_data()[[idc_by]]) && discretize == F) {
+        column(1,
+               div(style = "margin-top: 30px;",
+                   checkboxInput(
+                     ns("idc_use_quantiles"),
+                     label = "Discretiser ?",
+                     value = F))
+        )
+      } else {
+        NULL
+      }
+    })
+  })
+  output$boxplot_quantiles <- renderUI({
+    boxplot_by <- input$boxplot_by
+    discretize <- input$boxplot_use_quantiles
+    
+    isolate({
+      if (! is.null(get_data()) && is.numeric(get_data()[[boxplot_by]]) && (is.null(discretize) || discretize == T)) {
+        tagList(
+          column(1,
+                 div(style = "margin-top: 30px;",
+                     checkboxInput(
+                       ns("boxplot_use_quantiles"),
+                       label = "Discretiser ?",
+                       value = T))
+          ),
+          column(2, 
+                 div(sliderInput(ns("boxplot_nb_quantiles"), "Choix des quantiles", min = 2, max = 100, value = 5), align = "left")
+          )
+        )
+      } else if (! is.null(get_data()) && is.numeric(get_data()[[boxplot_by]]) && discretize == F) {
+        column(1,
+               div(style = "margin-top: 30px;",
+                   checkboxInput(
+                     ns("boxplot_use_quantiles"),
+                     label = "Discretiser ?",
+                     value = F))
+        )
+      } else {
+        NULL
+      }
+    })
+  })
+  
+  # display indicator plot
+  output$plot_idc <- renderAmCharts({
+    cpt <- input$idc_go
+    
+    isolate({
+      data <- copy(get_data())
+      
+      if (cpt > 0 && ! is.null(data) ) {
+        withProgress(message = 'Affichage des indicateurs', value = 0.5,{
+          by <- input$idc_by
+          
+          nb_quantiles = if (! is.null(input$idc_use_quantiles) && input$idc_use_quantiles) {input$idc_nb_quantiles} else {NULL}
+          data_idc <- add_by(data = data, 
+                             by_col = by, 
+                             col_date = get_col_date(),
+                             nb_quantiles = nb_quantiles)
+          
+          data_idc <- compute_idc(data = data_idc, 
+                                  col_obs = get_col_obs(), 
+                                  col_fit = get_col_fit(),
+                                  by = by)
+          
+          
+          plot(data_idc, instantToHour = FALSE, idc = get_indicators())
         })
       }
     })
   })
   # display indicators table
   output$table_idc <- DT::renderDT({
-    data_idc <- get_data_idc()
-    if(! is.null(data_idc)){
-      data_idc$mape <- round(data_idc$mape, 2)
-      data_idc$rmse <- round(data_idc$rmse, 2)
-      data_idc$mae <- round(data_idc$mae, 2)
-      data_idc$mape_e <- round(data_idc$mape_e, 2)
+    cpt <- input$idc_go
+    
+    isolate({
+      data <- copy(get_data())
       
-      DT::datatable(data_idc, caption = "data_idc", rownames = NULL)
+      if (cpt > 0 && ! is.null(data)) {
+        by <- input$idc_by
+        
+        # add aggregation column
+        nb_quantiles <- if (! is.null(input$idc_use_quantiles) && input$idc_use_quantiles) {input$idc_nb_quantiles} else {NULL}
+        data_idc <- add_by(data = data, 
+                           by_col = by, 
+                           col_date = get_col_date(),
+                           nb_quantiles = nb_quantiles)
+        
+        # compute indicators
+        data_idc <- compute_idc(data = data_idc, 
+                                col_obs = get_col_obs(), 
+                                col_fit = get_col_fit(),
+                                by = by,
+                                dec = 2)
+        
+        DT::datatable(data_idc, caption = "data_idc", rownames = NULL)
+      }
+    })
+  })
+  
+  # update aggregation column choices
+  observe({
+    data <- get_data()
+    
+    if (! is.null(data) && input$boxplot_by == "") {
+      updateSelectInput(session = session, "boxplot_by", label = "Colonne d'agregation :", 
+                        choices = c("Aucun", setdiff(names(get_data()), 
+                                                     c("date", get_col_obs(), get_col_fit()))))
+    }
+    if (! is.null(data) && input$idc_by == "") {
+      updateSelectInput(session = session, "idc_by", "Colonne d'agregation",
+                        choices = c("Aucun", setdiff(names(get_data()), 
+                                                     c("date", get_col_obs(), get_col_fit()))))
     }
   })
   
   # display errors boxplot
-  output$is_data <- reactive({
-    ! is.null(data)
-  })
-  outputOptions(output, "is_data", suspendWhenHidden = FALSE)
-  output$plot_boxplot <- renderAmCharts({
-    input$go_boxplot
+  output$boxplot_plot <- rAmCharts::renderAmCharts({
+    cpt <- input$boxplot_go
     
     isolate({
-      data <- copy(data)
+      data <- copy(get_data())
       
-      if (input$go_boxplot > 0 && ! is.null(data)) {
+      if (cpt > 0 && ! is.null(data)) {
         
-        type_boxplot <- input$type_boxplot
-        
-        if (type_boxplot == "relative") {
-          data[, "error" := get(col_obs) - get(col_fit)]
-        } else if (type_boxplot == "absolute") {
-          data[, "error" := abs(get(col_obs) - get(col_fit))]
-        } else if (type_boxplot == "quadratic") {
-          data[, "error" := c(get(col_obs) - get(col_fit))**2]
-        } 
-
-        by <- input$by_boxplot
-        if (by == "none") {
-          plt <- amBoxplot(data[["error"]], export = TRUE)
-          plt
-        } else {
-          data <- .add_by(data = data, 
-                          by_col = input$by_boxplot, 
-                          col_date = col_date,
-                          nb_quantiles = input$nb_quantiles_boxplot)
-
-          labelRotation <- ifelse(length(unique(data[[by]])) > 5, 45, 0)
+        withProgress(message = "Affichage des boxplots", value = 0.5, {
+          boxplot_error <- input$boxplot_error
+          by <- input$boxplot_by
           
-          plt <- eval(parse(text = paste0("amBoxplot(error ~ ", by, ", data = data)")))
-          plt %>>% setCategoryAxis(labelRotation = labelRotation)
-        }
+          # compute prediction errors
+          if (boxplot_error == "relative") {
+            data[, "error" := get(get_col_obs()) - get(get_col_fit())]
+          } else if (boxplot_error == "absolute") {
+            data[, "error" := abs(get(get_col_obs()) - get(get_col_fit()))]
+          } else if (boxplot_error == "quadratic") {
+            data[, "error" := c(get(get_col_obs()) - get(get_col_fit()))**2]
+          } 
+          
+          if (by == "Aucun") {
+            plt <- rAmCharts::amBoxplot(data[["error"]],
+                                        names = "", xlab = paste0("Erreur ", boxplot_error),
+                                        ylab = "Values")
+          } else {
+            # add aggregation column
+            nb_quantiles <- if (! is.null(input$boxplot_use_quantiles) && input$boxplot_use_quantiles) {input$boxplot_nb_quantiles} else {NULL}
+            data <- add_by(data = data, 
+                           by_col = by, 
+                           col_date = get_col_date(),
+                           nb_quantiles = nb_quantiles)
+            
+            # problem when using name 'id'
+            if (by == "id") {
+              by = "id2"
+              data[, "id2" := get_keep_id()]
+            }
+            
+            plt <- eval(parse(text = paste0("amBoxplot(error ~ '", by, "', data = data,
+                                          names = '', xlab = paste0(toupper(substr(boxplot_error, 1, 1)), 
+                                          substr(boxplot_error, 2, nchar(boxplot_error))),
+                                          ylab = 'Values')")))
+            plt <- plt %>>% setCategoryAxis(labelRotation = ifelse(length(unique(data[[by]])) > 5, 45, 0))
+          }
+        })
+        plt %>%
+          amOptions(export = T, zoom = T)
         
+      } else {
+        NULL
+      }
+    })
+  })
+  
+  # update x/y vars
+  observe({
+    data <- get_data()
+    
+    isolate({
+      if (! is.null(data)) {
+        y_var <- input$tree_y_var
+        
+        if (y_var == "") {
+          allowed_y_vars <- c(get_col_fit(), get_col_obs())
+          
+          updateSelectInput(session = session, "tree_x_var", choices = setdiff(names(data), c(allowed_y_vars, "date")), 
+                            selected = setdiff(names(data), c(allowed_y_vars[1], "date")))
+          updateSelectInput(session = session, "tree_y_var", choices = allowed_y_vars, 
+                            selected = allowed_y_vars[1])
+        } else {
+          allowed_y_vars <- c(get_col_fit(), get_col_obs())
+          
+          updateSelectInput(session = session, "tree_y_var", choices = allowed_y_vars, 
+                            selected = ifelse(input$tree_y_var %in% allowed_y_vars, input$tree_y_var, allowed_y_vars[1]))
+          updateSelectInput(session = session, "tree_x_var", choices = setdiff(names(data), c(allowed_y_vars, "date")), 
+                            selected = setdiff(input$tree_x_var, y_var)) 
+        } 
+      }
+    })
+  })
+  observe({
+    y_var <- input$tree_y_var
+    
+    isolate({
+      if (! is.null(get_data())) {
+        updateSelectInput(session = session, "tree_x_var", choices = setdiff(names(data), c(y_var, "date")), 
+                          selected = setdiff(input$tree_x_var, y_var)) 
+      }
+    })
+  })
+  
+  # update cp slider
+  cp_parameters <- reactiveValues(min = 0, max = 1, step = 0.005)
+  observe({
+    cpt <- input$tree_set_cp
+    
+    isolate({
+      if (cpt > 0) {
+        showModal(modalDialog(
+          title = "Complexity parameters",
+          numericInput("tree_cp_min", "Slider minimum :", cp_parameters$min),
+          numericInput("tree_cp_max", "Slider maximum :", cp_parameters$max),
+          numericInput("tree_cp_step", "Slider step :", cp_parameters$step),
+          style = "margin-top: 25px;", actionButton("tree_update_cp", "Update complexity (cp) slider"),
+          easyClose = TRUE, footer = NULL))
+      }
+    })
+  })
+  observeEvent(input$tree_update_cp, {
+    isolate({
+      cp_parameters$min <- input$tree_cp_min
+      cp_parameters$max <- input$tree_cp_max
+      cp_parameters$step <- input$tree_cp_step
+      updateSliderInput(session, "tree_cp", min = cp_parameters$min, max = cp_parameters$max, step = cp_parameters$step)
+    })
+  })
+  
+  # display error tree
+  observe({
+    cpt <- input$tree_go
+    
+    isolate({
+      if (cpt > 0) {
+        if (! is.null(input$tree_x_var)) {
+          withProgress(message = "Affichage de l'arbre", value = 0.5, {
+            data <- copy(get_data())
+            
+            formule <- paste(input$tree_y_var, "~", paste0(input$tree_x_var, collapse = "+")) %>% 
+              as.formula()
+            rpart_tree <- rpart::rpart(formule, 
+                                       data = data, 
+                                       control = rpart::rpart.control(cp = input$tree_cp, 
+                                                                      minsplit = input$tree_minsplit))
+            
+            is_const <- names(which(sapply(data, function(x) length(unique(x)) == 1)))
+          })
+          
+          callModule(visNetwork::visTreeModuleServer, "vis_tree",
+                     data = reactive(rpart_tree),
+                     tooltip_data = data[, setdiff(c(input$tree_y_var, input$tree_x_var), is_const), with = F],
+                     height = 800) 
+          
+        } else {
+          showModal(modalDialog(
+            easyClose = TRUE,
+            footer = NULL,
+            "Selectionner au moins une variable explicative."
+          ))
+          
+          NULL 
+        }
       } else {
         NULL
       }
@@ -545,16 +853,14 @@ vis_indicators <- function(input, output, session,
   })
 }
 
+
+
 #' Shiny module ui-like fun to display indicators on a data.table.
 #'
 #' @param id \code{character}. shiny id to allow multiple instanciation.
-#' @param data \code{data.frame} / \code{data.table}. Table on which indicators will be computed.
-#' @param col_obs \code{character}. Column name for observed values.
-#' @param col_fit \code{character}. Column name for fitted values.
-#' @param col_date \code{character} (NULL). Column name for date values.
-#'
+#
 #' @return shiny module.
-#' @import shiny rAmCharts
+#' @import shiny rAmCharts visNetwork
 #' @importFrom DT DTOutput renderDT
 #' @export
 #'
@@ -565,75 +871,131 @@ vis_indicators <- function(input, output, session,
 #' 
 #' data <- data.table(obs = runif(100, 1, 10))
 #' data[, fit := obs + rnorm(100, 0, 10)]
-#' data[, date := seq(as.POSIXct("2019-10-07 00:00:00 UTC", tz = "UTC"), 
-#'     as.POSIXct("2019-10-11 03:00:00 UTC", tz = "UTC"), by = 60*60)]
+#' data[, date := seq(as.POSIXct("2019-10-07 00:00:00 UTC", tz = "UTC"),
+#'                    as.POSIXct("2019-10-11 03:00:00 UTC", tz = "UTC"), by = 60*60)]
 #' data[, by_quali := factor(sample(rep(1:10, 10)))]
 #' data[, by_quanti := runif(100, 1, 20)]
 #' 
 #' col_obs <- "obs"
 #' col_fit <- "fit"
+#' col_date = "date"
 #' indicators <- c("rmse", "mae", "mape", "mape_e")
 #' 
-#' ui <- shiny::fluidPage(vis_indicators_UI("my_id", data, col_obs, col_fit))
+#' ui <- vis_indicators_UI("my_id")
 #' server <- function(input, output, session) {
-#'   callModule(vis_indicators, "my_id", data, col_obs, col_fit, indicators)
+#'   callModule(vis_indicators, "my_id", data = reactive(data), 
+#'              col_obs = col_obs, 
+#'              col_fit = col_fit, 
+#'              col_date = col_date,
+#'              indicators = indicators)
 #' }
 #' shiny::shinyApp(ui = ui, server = server)
 #' 
 #' }}
-vis_indicators_UI <- function(id, 
-                              data,
-                              col_obs,
-                              col_fit,
-                              col_date = NULL) {
+vis_indicators_UI <- function(id) {
   ns <- shiny::NS(id)
   
   fluidPage(
-    fluidRow(
-      column(3, 
-             selectInput(ns("by_idc"), "Aggregation column", c("none", setdiff(names(data), c(col_obs, col_fit, col_date)), "year", "month", "week", "day"))
-      ),
-      uiOutput(ns("update_by_idc")),
-      column(3, 
-             div(br(), actionButton(ns("go_idc"), "Display indicators"))
-      ) 
-    ),
-    conditionalPanel(condition = paste0("output['", ns("is_idc"), "'] > 0"),
-                     tabsetPanel(
-                       tabPanel("plot",
-                                amChartsOutput(ns("plot_idc"), type = "serial", height = "550px")
+    conditionalPanel(condition = paste0("output['", ns("is_data"), "']"),
+                     
+                     # indicators
+                     fluidRow(
+                       # title indicatorss
+                       div(h3("Distribution des indicateurs"), align = "center", style = "color: #3c8dbc"),
+                       # parameters
+                       column(2, 
+                              selectInput(ns("idc_by"), "Colonne d'agregation", choices = "")
                        ),
-                       tabPanel("table",
-                                fluidRow(
-                                  column(12,
-                                         br(),
-                                         DT::DTOutput(ns("table_idc"))
-                                  )
-                                )
+                       uiOutput(ns("idc_quantiles")),
+                       column(2, 
+                              div(style = "margin-top: 25px;",
+                                  actionButton(ns("idc_go"), "Afficher le graphique", width = "100%"), align = "center")
+                       ) 
+                     ),
+                     conditionalPanel(condition = paste0("output['", ns("is_data"), "'] && input['", ns('idc_go'), "'] > 0"),
+                                      tabsetPanel(
+                                        tabPanel("plot",
+                                                 rAmCharts::amChartsOutput(ns("plot_idc"), type = "serial", height = "550px")
+                                        ),
+                                        tabPanel("table",
+                                                 fluidRow(
+                                                   column(12,
+                                                          br(),
+                                                          DT::DTOutput(ns("table_idc"))
+                                                   )
+                                                 )
+                                        )
+                                      )
+                     ),
+                     conditionalPanel(condition = paste0("! output['", ns('is_data'), "'] || input['", ns('idc_go'), "'] == 0"), 
+                                      fluidRow(
+                                        div(h4("Pas de donnees", style = "color: darkblue;"), align = "center")
+                                      )
+                     ),
+                     
+                     # boxplots
+                     div(fluidRow(
+                       # title boxplots
+                       div(h3("Distribution des erreurs"), align = "center", style = "color: #3c8dbc"),
+                       # parameters
+                       column(2, 
+                              selectInput(ns("boxplot_by"), "Agregation", choices = "")
+                       ),
+                       uiOutput(ns("boxplot_quantiles")),
+                       column(2, 
+                              selectInput(ns("boxplot_error"), "Choix de l'erreur :",
+                                          c("relative", "absolute", "quadratic"), 
+                                          selected = "relative")
+                       ),
+                       column(2, 
+                              div(style = "margin-top: 25px;",
+                                  actionButton(ns("boxplot_go"), "Afficher le graphique", width = "100%"), align = "center")
+                       ) 
+                     ), 
+                     # result
+                     conditionalPanel(condition = paste0("output['", ns('is_data'), "'] && input['", ns('boxplot_go'), "'] > 0"),
+                                      rAmCharts::amChartsOutput(ns("boxplot_plot"), height = "400px")
+                     ),
+                     conditionalPanel(condition = paste0("! output['", ns('is_data'), "'] || input['", ns('boxplot_go'), "'] == 0"), 
+                                      fluidRow(
+                                        div(h4("Pas de donnees", style = "color: darkblue;"), align = "center")
+                                      )
+                     ), style = "border-top: 5px solid #3c8dbc; margin-top: 15px; padding-top: 15px"),
+                     
+                     # visNetwork
+                     div(fluidRow(
+                       # title visNetwork
+                       div(h3("Arbre de decision"), align = "center", style = "color: #3c8dbc"), 
+                       # parameters
+                       column(2,
+                              selectInput(ns("tree_y_var"), "Y :", choices = NULL, selected = NULL)
+                       ),
+                       column(5,
+                              selectInput(ns("tree_x_var"), "X :", choices = NULL,  multiple = TRUE, selected = NULL, width = "100%")
+                       ),
+                       column(2,
+                              numericInput(ns("tree_minsplit"), "Minsplit :", min = 2, max = Inf, value = 20)
+                       ),
+                       column(2,
+                              sliderInput(ns("tree_cp"), "Complexite (cp) :", min = 0, max = 1, value = 0.005, step = 0.005)
+                       ),
+                       column(1,
+                              style = "margin-top: 25px;",
+                              actionButton(ns("tree_set_cp"), "Ajuster le cp")
+                       ),
+                       column(12,
+                              div(actionButton(ns("tree_go"), "Mettre a jour les parametres", width = "20%"), align = "center")
                        )
+                     ), style = "border-top: 5px solid #3c8dbc; margin-top: 15px; padding-top: 15px"),
+                     # result
+                     conditionalPanel(condition = paste0("output['", ns('is_data'), "'] > 0 && input['", ns('tree_go'), "'] > 0"),
+                                      visNetwork::visTreeModuleUI(ns("vis_tree"), rpartParams = F)
+                     ),
+                     conditionalPanel(condition = paste0("output['", ns('is_data'), "'] == 0 || input['", ns('tree_go'), "'] == 0"),
+                                      fluidRow(
+                                        div(h4("Pas de donnees", style = "color: darkblue;"), align = "center")
+                                      )
                      )
-    ),
-    conditionalPanel(condition = paste0("output['", ns("is_idc"), "'] == 0"),
-                     "No data available."
-    ),
-    div(fluidRow(
-      column(3, 
-             selectInput(ns("by_boxplot"), "Aggregation column", c("none", setdiff(names(data), c(col_obs, col_fit, col_date)), "year", "month", "week", "day"))
-      ),
-      uiOutput(ns("update_by_boxplot")),
-      column(3, 
-             selectInput(ns("type_boxplot"), "Type of boxplot", c("relative", "absolute", "quadratic"), selected = 5)
-      ),
-      column(3, 
-             div(br(), actionButton(ns("go_boxplot"), "Display errors distribution"))
-      ) 
-    ), style = "border-top: 0.5px solid blue; margin-top: 15px; padding-top: 15px"), 
-    conditionalPanel(condition = paste0("output['", ns("is_data"), "'] > 0"),
-                     amChartsOutput(ns("plot_boxplot"), height = "400px")
-    ),
-    conditionalPanel(condition = paste0("output['", ns("is_data"), "'] == 0"), 
-                     "No data available."
     )
-    
   )
 }

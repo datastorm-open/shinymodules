@@ -337,7 +337,7 @@ filter_data <- function(input, output, session, data = NULL,
             values <- c(list(filter))
             
           }
-          dtres <- data.table(column = colname, fun = fun, values = values)
+          dtres <- data.table(column = colname, "fun" = fun, values = values)
           
           dtres
         }
@@ -346,7 +346,7 @@ filter_data <- function(input, output, session, data = NULL,
       if (nrow(ctrl) > 0 & nrow(data_to_filter()) > 0) {
         
         res <- lapply(1:nrow(ctrl), function(x) {
-          list(column = ctrl[x, column], fun = ctrl[x, fun], values = ctrl[x, unlist(values)])
+          list(column = ctrl[x, column], fun = ctrl[x, "fun"], values = ctrl[x, unlist(values)])
         })
         
       } else {

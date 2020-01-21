@@ -4,16 +4,11 @@
 \alias{plot.idc_table}
 \title{Plot method for idc_table objects}
 \usage{
-plot.idc_table(
-  data_idc,
-  instantToHour = FALSE,
-  main = "Model's indicators",
-  idc = c("mape", "rmse", "mae", "mape_e"),
-  col = c("black", "darkblue", "purple", "grey"),
+plot.idc_table(data_idc, instantToHour = FALSE,
+  main = "Model's indicators", idc = c("mape", "rmse", "mae",
+  "mape_e"), col = c("black", "darkblue", "purple", "grey"),
   bullet = c("round", "square", "triangleUp", "diamond"),
-  dashLength = c(0, 4, 8, 12),
-  js = TRUE
-)
+  dashLength = c(0, 4, 8, 12), js = TRUE)
 }
 \arguments{
 \item{data_idc}{\code{data.frame} / \code{data.table}. Table of indicators.}
@@ -47,8 +42,8 @@ obs <- round(runif(100, 1, 10))
 fit <- rnorm(100, 1, 5)
 
 data <- data.table(obs = obs, fit = fit, by_var = sample(rep(1:10, 10)))
-data <- shinymodules:::.add_by(data = data, by_col = "by_var", nb_quantiles = 15)
-data <- shinymodules:::.compute_idc(data = data, col_obs = "obs", col_fit = "fit", by = "by_var")
+data <- shinymodules:::add_by(data = data, by_col = "by_var", nb_quantiles = 15)
+data <- shinymodules:::compute_idc(data = data, col_obs = "obs", col_fit = "fit", by = "by_var")
 
 shinymodules:::plot.idc_table(data_idc = data)
 

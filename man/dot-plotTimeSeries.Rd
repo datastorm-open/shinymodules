@@ -4,18 +4,9 @@
 \alias{.plotTimeSeries}
 \title{Plot time series}
 \usage{
-.plotTimeSeries(
-  data,
-  col.date,
-  col.series,
-  ylab = "values",
-  main = NULL,
-  aggregation = "Average",
-  col = c("red", "black"),
-  point.size = 5,
-  maxSeries = 300,
-  js = TRUE
-)
+.plotTimeSeries(data, col.date, col.series, ylab = "values",
+  main = NULL, aggregation = "Average", col = c("red", "black"),
+  point.size = 5, maxSeries = 300, js = TRUE)
 }
 \arguments{
 \item{data}{: data}

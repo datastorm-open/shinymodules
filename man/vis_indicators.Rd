@@ -4,16 +4,9 @@
 \alias{vis_indicators}
 \title{Shiny module server-like fun to display indicators on a data.table.}
 \usage{
-vis_indicators(
-  input,
-  output,
-  session,
-  data,
-  col_obs,
-  col_fit,
-  col_date = NULL,
-  indicators
-)
+vis_indicators(input, output, session, data, col_id = NULL,
+  keep_id = NULL, col_obs, col_fit, col_date = NULL,
+  indicators = c("rmse", "mae", "mape", "mape_e"))
 }
 \arguments{
 \item{input}{shiny input}
@@ -23,6 +16,10 @@ vis_indicators(
 \item{session}{shiny input}
 
 \item{data}{\code{data.frame} / \code{data.table}. Table on which indicators will be computed.}
+
+\item{col_id}{\code{character} (NULL). Column name for id values.}
+
+\item{keep_id}{\code{character} (NULL). id values to keep in col_id.}
 
 \item{col_obs}{\code{character}. Column name for observed values.}
 
@@ -45,18 +42,23 @@ library(data.table)
 
 data <- data.table(obs = runif(100, 1, 10))
 data[, fit := obs + rnorm(100, 0, 10)]
-data[, date := seq(as.POSIXct("2019-10-07 00:00:00 UTC", tz = "UTC"), 
-    as.POSIXct("2019-10-11 03:00:00 UTC", tz = "UTC"), by = 60*60)]
+data[, date := seq(as.POSIXct("2019-10-07 00:00:00 UTC", tz = "UTC"),
+                   as.POSIXct("2019-10-11 03:00:00 UTC", tz = "UTC"), by = 60*60)]
 data[, by_quali := factor(sample(rep(1:10, 10)))]
 data[, by_quanti := runif(100, 1, 20)]
 
 col_obs <- "obs"
 col_fit <- "fit"
+col_date = "date"
 indicators <- c("rmse", "mae", "mape", "mape_e")
 
-ui <- shiny::fluidPage(vis_indicators_UI("my_id", data, col_obs, col_fit))
+ui <- vis_indicators_UI("my_id")
 server <- function(input, output, session) {
-  callModule(vis_indicators, "my_id", data, col_obs, col_fit, indicators)
+  callModule(vis_indicators, "my_id", data = reactive(data), 
+             col_obs = col_obs,
+             col_fit = col_fit,
+             col_date = col_date,
+             indicators = indicators)
 }
 shiny::shinyApp(ui = ui, server = server)
 
