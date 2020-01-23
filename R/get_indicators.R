@@ -9,6 +9,8 @@
 #' @param show_warnings \code{logical} Show warnings ? (example compute Min. on all NAs)
 #' @param keep_dataframe \code{logical} data.frame in output ?
 #' @param keep_datatable \code{logical} datatable (DT) in output ?
+#' @param session the Shiny session object (from the server function of the Shiny app) if relevant. For progress bar.
+#' @param message \code{character} Message of the progress computing indicators.
 #' 
 #' @return list with two DT, one with statistics on numeric data and one with
 #' statistics on factor data
@@ -23,7 +25,10 @@
 #' }
 #' 
 get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show, 
-                              show_warnings = FALSE, keep_dataframe = TRUE, keep_datatable = TRUE) {
+                              show_warnings = FALSE, keep_dataframe = TRUE, 
+                              keep_datatable = TRUE, session = NULL, 
+                              message = "Calculation in progress...") {
+  
   
   if(!show_warnings){
     user_opt_warn <- getOption("warn")
@@ -32,6 +37,13 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
   
   if(!"data.table" %in% class(data)){
     data <- data.table::as.data.table(data)
+  }
+  
+  progress <- .initProgress(session, message = message, min = 0, max = ncol(data) + 1)
+  if(!is.null(progress)) on.exit(progress$close())
+  
+  if(!is.null(progress)){
+    progress$set(value = 1)
   }
   
   # get variables with 2 to 10 levels then pass them to factors
@@ -67,6 +79,9 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
     dt_num <- NULL
   }
   
+  if(!is.null(progress)){
+    progress$inc(amount = length(num_vars))
+  }
   # generate table with stats on dates
   if (length(dates_vars) > 0) {
     dt_dates <- .get_dates_indicators(data, dates_vars, optional_stats = optional_stats, 
@@ -74,7 +89,9 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
   } else {
     dt_dates <- NULL
   }
-  
+  if(!is.null(progress)){
+    progress$inc(amount = length(dates_vars))
+  }
   
   # same for factors
   if (length(fact_vars) > 0) {
@@ -82,6 +99,9 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
                                       keep_dataframe = keep_dataframe, keep_datatable = keep_datatable)
   } else {
     dt_fact <- NULL
+  }
+  if(!is.null(progress)){
+    progress$inc(amount = length(fact_vars))
   }
   
   if(!show_warnings){

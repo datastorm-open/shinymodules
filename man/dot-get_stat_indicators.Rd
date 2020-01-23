@@ -4,8 +4,13 @@
 \alias{.get_stat_indicators}
 \title{get stats indicator on numeric data}
 \usage{
-.get_stat_indicators(data, vars, optional_stats, keep_dataframe = TRUE,
-  keep_datatable = TRUE)
+.get_stat_indicators(
+  data,
+  vars,
+  optional_stats,
+  keep_dataframe = TRUE,
+  keep_datatable = TRUE
+)
 }
 \arguments{
 \item{data}{\code{data.frame}, \code{data.table}}

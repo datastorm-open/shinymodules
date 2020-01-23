@@ -7,8 +7,17 @@
 \usage{
 show_dataUI(id, titles = TRUE, subtitles = TRUE)
 
-show_data(input, output, session, data = NULL, optional_stats = "all",
-  nb_modal2show = 3, columns_to_show = "all", show_warnings = FALSE)
+show_data(
+  input,
+  output,
+  session,
+  data = NULL,
+  optional_stats = "all",
+  nb_modal2show = 3,
+  columns_to_show = "all",
+  show_warnings = FALSE,
+  message = "Calculation in progress..."
+)
 }
 \arguments{
 \item{id}{\code{character} An id that will be used to create a namespace
@@ -42,6 +51,8 @@ for factor variables.}
 shown in the tables}
 
 \item{show_warnings}{\code{logical} Show warnings ? (example compute Min. on all NAs)}
+
+\item{message}{\code{character} Message of the progress computing indicators.}
 }
 \value{
 shiny module

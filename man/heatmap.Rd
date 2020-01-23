@@ -4,9 +4,17 @@
 \alias{heatmap}
 \title{Make chart}
 \usage{
-heatmap(data, classes, labels = TRUE, cex = 10, main = "",
-  xLabelsRotation = 45, colorby = "all", rownames, col = c("#FF0000",
-  "#FFFFFF", "#0000FF"))
+heatmap(
+  data,
+  classes,
+  labels = TRUE,
+  cex = 10,
+  main = "",
+  xLabelsRotation = 45,
+  colorby = "all",
+  rownames,
+  col = c("#FF0000", "#FFFFFF", "#0000FF")
+)
 }
 \arguments{
 \item{data}{: data.frame}
