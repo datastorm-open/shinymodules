@@ -32,7 +32,9 @@ server <- function(input, output, session) {
       if (input$data_load == "mtcars") {
         reactive_data$data_filtered <- data.table::data.table(copy(mtcars))
       } else if (input$data_load == "iris") {
-        reactive_data$data_filtered <- data.table::data.table(copy(iris))
+        tmp <- data.table::data.table(copy(iris))
+        colnames(tmp)[1] <- "Bad name"
+        reactive_data$data_filtered <- tmp
       } else if (input$data_load == "nycflights"){
         reactive_data$data_filtered <- data.table::data.table(copy(nycflights13::flights))
       }
@@ -53,7 +55,7 @@ server <- function(input, output, session) {
     callModule(module = show_data, id = "idshow",
                # optional_stats = "interquartile_range",
                data = shiny::reactive(reactive_data$data_shown), nb_modal2show = 6,
-               columns_to_show = "all")
+               columns_to_show = c("min", "max", "nb_valid", "var", "interquartile_range", "mode_max", "boxplot", "density"))
   }
   
 }

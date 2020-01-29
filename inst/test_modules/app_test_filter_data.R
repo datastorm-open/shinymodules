@@ -2,6 +2,7 @@ library(shiny)
 library(DT)
 library(data.table)
 library(magrittr)
+library(shinymodules)
 
 ui <- fluidPage(
   shiny::fluidRow(
@@ -26,7 +27,9 @@ server <- function(input, output, session) {
       if (input$data_load == "mtcars") {
         reactive_data$data <- data.table::data.table(copy(mtcars))
       } else if (input$data_load == "iris") {
-        reactive_data$data <- data.table::data.table(copy(iris))
+        tmp <- data.table::data.table(copy(iris))
+        colnames(tmp)[1] <- "Bad name"
+        reactive_data$data <- tmp
       }
       reactive_data$data_filtered <- reactive_data$data
 
@@ -39,6 +42,7 @@ server <- function(input, output, session) {
     data_filtered <<- callModule(module = filter_data, id = "id",
                                  data = shiny::reactive(reactive_data$data), 
                                  default_multisel_n = 1,
+                                 max_char_values = 100,
                                  columns_to_filter = c(colnames(reactive_data$data), "invalid_name"))
     
     observeEvent(data_filtered$data, {
