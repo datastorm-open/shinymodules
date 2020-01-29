@@ -13,6 +13,7 @@ filter_data(
   session,
   data = NULL,
   columns_to_filter = "all",
+  max_char_values = 1000,
   default_multisel_n = 10
 )
 }
@@ -35,7 +36,9 @@ Done by callModule automatically.}
 \item{columns_to_filter}{\code{character} vector o column names you want to 
 allow the user to filter (default is all)}
 
-\item{default_multisel_n}{\code{integer} How many choices are selected by default in case of multiple selection.}
+\item{max_char_values}{\code{integer} Remove character / factor columns with more than \code{max_char_values} unique values}
+
+\item{default_multisel_n}{\code{integer} Number of choices  selected by default in case of multiple selection. Defaut 10}
 }
 \value{
 UI page

@@ -14,7 +14,8 @@
 #' @param data \code{reactivevalues} reactive data.table
 #' @param columns_to_filter \code{character} vector o column names you want to 
 #' allow the user to filter (default is all)
-#' @param default_multisel_n \code{integer} How many choices are selected by default in case of multiple selection.
+#' @param max_char_values \code{integer} Remove character / factor columns with more than \code{max_char_values} unique values
+#' @param default_multisel_n \code{integer} Number of choices  selected by default in case of multiple selection. Defaut 10
 #' 
 #' @return UI page
 #' @export
@@ -87,7 +88,9 @@ filter_dataUI <- function(id, titles = TRUE) {
 #'
 #' @rdname filter_data_module
 filter_data <- function(input, output, session, data = NULL,
-                        columns_to_filter = "all", default_multisel_n = 10) {
+                        columns_to_filter = "all", 
+                        max_char_values = 1000,
+                        default_multisel_n = 10) {
   
   ns <- session$ns
   
@@ -117,6 +120,23 @@ filter_data <- function(input, output, session, data = NULL,
       if(!"all" %in% columns_to_filter){
         columns_to_filter <- intersect(columns_to_filter, colnames(data_to_filter()))
         if(length(columns_to_filter) == 0) columns_to_filter <- NULL
+      }
+      
+      if(!is.null(max_char_values) && !is.na(max_char_values) && max_char_values >= 1){
+        class <- sapply(data_to_filter(), function(x) class(x)[1])
+        ind_char <- which(class %in% c("factor", "character"))
+        if(length(ind_char) > 0){
+          ctrl_n <- data_to_filter()[, sapply(.SD, function(x) length(unique(x))), .SDcols = ind_char]
+          rm_columns_to_filter <- names(ctrl_n)[ctrl_n >= max_char_values]
+          if(length(rm_columns_to_filter) > 0){
+            if (is.null(columns_to_filter) | "all" %in% columns_to_filter) {
+              columns_to_filter <- setdiff(colnames(data_to_filter()), rm_columns_to_filter)
+            } else {
+              columns_to_filter <- setdiff(columns_to_filter, rm_columns_to_filter)
+            }
+          }
+        }
+
       }
       
       if (is.null(columns_to_filter) | "all" %in% columns_to_filter) {
