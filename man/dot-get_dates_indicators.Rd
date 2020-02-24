@@ -9,7 +9,8 @@
   dates_vars,
   optional_stats = "all",
   keep_dataframe = TRUE,
-  keep_datatable = TRUE
+  keep_datatable = TRUE,
+  progress = NULL
 )
 }
 \arguments{
@@ -23,6 +24,8 @@ you can look at \link{show_data} for more information.}
 \item{keep_dataframe}{\code{logical} data.frame in output ?}
 
 \item{keep_datatable}{\code{logical} datatable (DT) in output ?}
+
+\item{progress}{Optionnal. Shiny progress bar.}
 }
 \value{
 DT with statistics on dates data

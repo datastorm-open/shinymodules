@@ -73,8 +73,11 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
   
   # generate table with stats on numeric
   if (length(num_vars) > 0) {
-    dt_num <- .get_stat_indicators(data, num_vars, optional_stats = optional_stats, 
-                                   keep_dataframe = keep_dataframe, keep_datatable = keep_datatable)
+    dt_num <- .get_stat_indicators(data, num_vars, 
+                                   optional_stats = optional_stats, 
+                                   keep_dataframe = keep_dataframe, 
+                                   keep_datatable = keep_datatable, 
+                                   progress = progress)
   } else {
     dt_num <- NULL
   }
@@ -84,8 +87,11 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
   }
   # generate table with stats on dates
   if (length(dates_vars) > 0) {
-    dt_dates <- .get_dates_indicators(data, dates_vars, optional_stats = optional_stats, 
-                                      keep_dataframe = keep_dataframe, keep_datatable = keep_datatable)
+    dt_dates <- .get_dates_indicators(data, dates_vars, 
+                                      optional_stats = optional_stats, 
+                                      keep_dataframe = keep_dataframe, 
+                                      keep_datatable = keep_datatable, 
+                                      progress = progress)
   } else {
     dt_dates <- NULL
   }
@@ -95,8 +101,11 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
   
   # same for factors
   if (length(fact_vars) > 0) {
-    dt_fact <- .get_factor_indicators(data, fact_vars, nb_modal2show, optional_stats = optional_stats, 
-                                      keep_dataframe = keep_dataframe, keep_datatable = keep_datatable)
+    dt_fact <- .get_factor_indicators(data, fact_vars, nb_modal2show, 
+                                      optional_stats = optional_stats, 
+                                      keep_dataframe = keep_dataframe, 
+                                      keep_datatable = keep_datatable, 
+                                      progress = progress)
   } else {
     dt_fact <- NULL
   }
@@ -209,11 +218,13 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
 #' you can look at \link{show_data} for more information.
 #' @param keep_dataframe \code{logical} data.frame in output ?
 #' @param keep_datatable \code{logical} datatable (DT) in output ?
+#' @param progress Optionnal. Shiny progress bar.
 #' 
 #' @return DT with statistics on numeric data
 #' @import sparkline PerformanceAnalytics
 #' @importFrom DT renderDT datatable formatStyle styleInterval formatPercentage formatCurrency
-.get_stat_indicators <- function(data, vars, optional_stats, keep_dataframe = TRUE, keep_datatable = TRUE){
+.get_stat_indicators <- function(data, vars, optional_stats, keep_dataframe = TRUE, 
+                                 keep_datatable = TRUE, progress = NULL){
   
   if(!"data.frame" %in% class(data)){
     stop("'data' must be a data.frame / data.table.")
@@ -225,8 +236,13 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
     data_copy <- data.table::copy(data)
   }
   
-  res <- sapply(vars, function(var) .get_indicators(
-    data_copy, var, optional_stats = optional_stats), simplify = FALSE)
+  res <- lapply(vars, function(var, progress){
+    if(!is.null(progress)){
+      progress$inc(amount = 1)
+    }
+    .get_indicators(data_copy, var, optional_stats = optional_stats)
+  }, progress = progress)
+  
   stats_table <- data.table::rbindlist(res, use.names = TRUE, idcol = "variable")
   
   if (!all(optional_stats %in% c(colnames(stats_table), "all"))) {
@@ -267,7 +283,7 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
     }
     dt$dependencies <- append(dt$dependencies, htmlwidgets::getDependency("sparkline"))   
   }
- 
+  
   stats_table$density <- NULL
   stats_table$boxplot <- NULL
   
@@ -290,11 +306,13 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
 #' you can look at \link{show_data} for more information.
 #' @param keep_dataframe \code{logical} data.frame in output ?
 #' @param keep_datatable \code{logical} datatable (DT) in output ?
+#' @param progress Optionnal. Shiny progress bar.
 #' 
 #' @return DT with statistics on dates data
 #' 
 .get_dates_indicators <- function(data, dates_vars, optional_stats = "all", 
-                                  keep_dataframe = TRUE, keep_datatable = TRUE){
+                                  keep_dataframe = TRUE, keep_datatable = TRUE, 
+                                  progress = NULL){
   
   if(!"data.frame" %in% class(data)){
     stop("'data' must be a data.frame / data.table.")
@@ -304,51 +322,58 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
     data <- data.table::as.data.table(data)
   }
   
-  stats_dates <- data.table::rbindlist(lapply(
-    dates_vars, 
-    FUN = function(var){
-      density <- spk_chr(tryCatch(density(
-        data[, as.numeric(get(var))], n= 100, na.rm = T)$y, 
-        error = function(e) NULL))
-      pct_na <- sum(is.na(data[[var]]))/nrow(data)
-      nb_valid <- length(which(!is.na(data[[var]])))
-      
-      data.table::data.table(variable = var,
-                             pct_NA = pct_na,
-                             nb_valid = nb_valid,
-                             min = min(data[[var]], na.rm = T),
-                             mean = mean(data[[var]], na.rm = T),
-                             median = stats::median(data[[var]], na.rm = T),
-                             max = max(data[[var]], na.rm = T),
-                             density = density
-      )}))
+  stats_dates <- data.table::rbindlist(
+    lapply(
+      dates_vars, 
+      FUN = function(var, progress){
+        if(!is.null(progress)){
+          progress$inc(amount = 1)
+        }
+        density <- spk_chr(tryCatch(density(
+          data[, as.numeric(get(var))], n= 100, na.rm = T)$y, 
+          error = function(e) NULL))
+        pct_na <- sum(is.na(data[[var]]))/nrow(data)
+        nb_valid <- length(which(!is.na(data[[var]])))
+        
+        data.table::data.table(variable = var,
+                               pct_NA = pct_na,
+                               nb_valid = nb_valid,
+                               min = min(data[[var]], na.rm = T),
+                               mean = mean(data[[var]], na.rm = T),
+                               median = stats::median(data[[var]], na.rm = T),
+                               max = max(data[[var]], na.rm = T),
+                               density = density
+        )
+      }, progress = progress
+    )
+  )
   if (!("nb_valid" %in% optional_stats | "all" %in% optional_stats)) {
     stats_dates[, "nb_valid" := NULL]
   }
   
   if(keep_datatable){
-  container <-  set_datatable_var_info(colnames(stats_dates), vars_infos = .stats_info)
-  dt_dates <- DT::datatable(stats_dates, container = container,
-                            rownames = FALSE, filter = "bottom", escape = FALSE, 
-                            selection = "none", width = "100%",
-                            options = list(scrollX = TRUE, columnDefs = list(
-                              list(className = 'dt-center', targets = 0:5,
-                                   drawCallback =  htmlwidgets::JS(
-                                     'function(){debugger;HTMLWidgets.staticRender();}')
-                              )))) %>%  DT::formatStyle(
-                                'pct_NA',
-                                color = DT::styleInterval(0, c("green", 'red'))
-                              ) %>% DT::formatPercentage(c(
-                                'pct_NA'), 2
-                              )
-  
-  if ("nb_valid" %in% optional_stats | "all" %in% optional_stats) {
-    dt_dates <- dt_dates %>% DT::formatCurrency(
-      "nb_valid", currency = "", interval = 3, mark = " ", 
-      digits = 0)
-  }
-  dt_dates$dependencies <- append(dt_dates$dependencies, 
-                                  htmlwidgets::getDependency("sparkline"))
+    container <-  set_datatable_var_info(colnames(stats_dates), vars_infos = .stats_info)
+    dt_dates <- DT::datatable(stats_dates, container = container,
+                              rownames = FALSE, filter = "bottom", escape = FALSE, 
+                              selection = "none", width = "100%",
+                              options = list(scrollX = TRUE, columnDefs = list(
+                                list(className = 'dt-center', targets = 0:5,
+                                     drawCallback =  htmlwidgets::JS(
+                                       'function(){debugger;HTMLWidgets.staticRender();}')
+                                )))) %>%  DT::formatStyle(
+                                  'pct_NA',
+                                  color = DT::styleInterval(0, c("green", 'red'))
+                                ) %>% DT::formatPercentage(c(
+                                  'pct_NA'), 2
+                                )
+    
+    if ("nb_valid" %in% optional_stats | "all" %in% optional_stats) {
+      dt_dates <- dt_dates %>% DT::formatCurrency(
+        "nb_valid", currency = "", interval = 3, mark = " ", 
+        digits = 0)
+    }
+    dt_dates$dependencies <- append(dt_dates$dependencies, 
+                                    htmlwidgets::getDependency("sparkline"))
   } 
   
   stats_dates$density <- NULL
@@ -376,12 +401,13 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
 #' you can look at \link{show_data} for more information.
 #' @param keep_dataframe \code{logical} data.frame in output ?
 #' @param keep_datatable \code{logical} datatable (DT) in output ?
+#' @param progress Optionnal. Shiny progress bar.
 #' 
 #' @return DT with statistics on factor data
 #' @import sparkline PerformanceAnalytics
 #' 
 .get_factor_indicators <- function(data, fact_vars, nb_modal2show, optional_stats = "all", 
-                                   keep_dataframe = TRUE, keep_datatable = TRUE) {
+                                   keep_dataframe = TRUE, keep_datatable = TRUE, progress = NULL) {
   
   if(!"data.frame" %in% class(data)){
     stop("'data' must be a data.frame / data.table.")
@@ -393,49 +419,54 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
   
   N <- NULL
   
-  stats_fact <- data.table::rbindlist(lapply(
-    fact_vars, 
-    FUN = function(var){
-      
-      # get details of factor
-      data_det <- data[!is.na(get(var)), .N, var][order(-N)]
-      modalities <- paste(data_det[, get(var)], ":", 
-                          round(100*data_det[, N]/nrow(data), 2), "%")
-      
-      # control modalities
-      if(length(modalities) < nb_modal2show) {
-        lendiff <- nb_modal2show - length(modalities)
-        modalities <- c(modalities, rep("", lendiff))
-      } else if(length(modalities) > nb_modal2show) {
-        modalities <- modalities[1:nb_modal2show]
-      }
-      
-      half1 <- gsub(" [0-9]{1,}\\.[0-9]{1,} %| [0-9]{1,} %", "", modalities)
-      half2 <- gsub("^.*:", "", modalities)
-      modalities <- paste("<i>", half1, "</i> <b>", half2, "</b>")
-      
-      other <- paste(round(100*(
-        1-sum(data_det[1:min(c(nb_modal2show, nrow(data_det))), 
-                       N])/nrow(data)), 2), "%")
-      
-      # get pct na
-      pct_na <- sum(is.na(data[[var]]))/nrow(data)
-      nb_valid <- length(which(!is.na(data[[var]])))
-      data_fac <- data.table::data.table(variable = var,
-                                         nb_modalities = nrow(data_det),
-                                         pct_NA = pct_na,
-                                         nb_valid = nb_valid)
-      
-      # give modalities
-      data_fac[, paste(sapply(1:nb_modal2show, function(i){
-        paste0("modality", i)})) := as.list(modalities)]
-      data_fac[, other := other]
-      
-      if (!("nb_valid" %in% optional_stats | "all" %in% optional_stats)) {
-        data_fac[, "nb_valid" := NULL]
-      }
-      data_fac
-    }))
+  stats_fact <- data.table::rbindlist(
+    lapply(
+      fact_vars, 
+      FUN = function(var, progress){
+        if(!is.null(progress)){
+          progress$inc(amount = 1)
+        }
+        # get details of factor
+        data_det <- data[!is.na(get(var)), .N, var][order(-N)]
+        modalities <- paste(data_det[, get(var)], ":", 
+                            round(100*data_det[, N]/nrow(data), 2), "%")
+        
+        # control modalities
+        if(length(modalities) < nb_modal2show) {
+          lendiff <- nb_modal2show - length(modalities)
+          modalities <- c(modalities, rep("", lendiff))
+        } else if(length(modalities) > nb_modal2show) {
+          modalities <- modalities[1:nb_modal2show]
+        }
+        
+        half1 <- gsub(" [0-9]{1,}\\.[0-9]{1,} %| [0-9]{1,} %", "", modalities)
+        half2 <- gsub("^.*:", "", modalities)
+        modalities <- paste("<i>", half1, "</i> <b>", half2, "</b>")
+        
+        other <- paste(round(100*(
+          1-sum(data_det[1:min(c(nb_modal2show, nrow(data_det))), 
+                         N])/nrow(data)), 2), "%")
+        
+        # get pct na
+        pct_na <- sum(is.na(data[[var]]))/nrow(data)
+        nb_valid <- length(which(!is.na(data[[var]])))
+        data_fac <- data.table::data.table(variable = var,
+                                           nb_modalities = nrow(data_det),
+                                           pct_NA = pct_na,
+                                           nb_valid = nb_valid)
+        
+        # give modalities
+        data_fac[, paste(sapply(1:nb_modal2show, function(i){
+          paste0("modality", i)})) := as.list(modalities)]
+        data_fac[, other := other]
+        
+        if (!("nb_valid" %in% optional_stats | "all" %in% optional_stats)) {
+          data_fac[, "nb_valid" := NULL]
+        }
+        data_fac
+      }, progress = progress
+    )
+  )
   
   if(keep_datatable){
     container <-  set_datatable_var_info(colnames(stats_fact), nb_modal2show = nb_modal2show, 
@@ -474,7 +505,7 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
   } else {
     return(list(df = stats_fact, dt = dt_fact))
   }
-
+  
 }
 
 
@@ -533,8 +564,8 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
 #' 
 #' }}
 set_datatable_var_info <- function(cols, 
-                            vars_infos, 
-                            nb_modal2show = NULL) {
+                                   vars_infos, 
+                                   nb_modal2show = NULL) {
   
   if(!"data.frame" %in% class(vars_infos)){
     stop("'vars_infos' must be a data.frame / data.table.")
@@ -551,10 +582,10 @@ set_datatable_var_info <- function(cols,
     nb_modal2show <- max(4, nb_modal2show)
     dt_modal <- data.table("name" = c(paste0("modality", 1:nb_modal2show), "other"),
                            "info" = c("1st occuring modality", 
-                                    "2nd occuring modality", 
-                                    "3rd occuring modality",
-                                    paste0(4:nb_modal2show, "th occuring modality"),
-                                    "percentage of observations with other values than the displayed modalities"))
+                                      "2nd occuring modality", 
+                                      "3rd occuring modality",
+                                      paste0(4:nb_modal2show, "th occuring modality"),
+                                      "percentage of observations with other values than the displayed modalities"))
     vars_infos <- rbindlist(list(vars_infos, dt_modal))
   }
   
