@@ -242,7 +242,7 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
     }
     .get_indicators(data_copy, var, optional_stats = optional_stats)
   }, progress = progress)
-  
+  names(res) <- vars
   stats_table <- data.table::rbindlist(res, use.names = TRUE, idcol = "variable")
   
   if (!all(optional_stats %in% c(colnames(stats_table), "all"))) {
