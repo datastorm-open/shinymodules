@@ -136,7 +136,6 @@ filter_data <- function(input, output, session, data = NULL,
             }
           }
         }
-
       }
       
       if (is.null(columns_to_filter) | "all" %in% columns_to_filter) {
@@ -186,7 +185,12 @@ filter_data <- function(input, output, session, data = NULL,
               }
               choices <- c("single select", "multiple select")
               
-            } else if (any(ctrlclass %in% c("numeric", "integer", "POSIXct", "POSIXlt"))) {
+            } else if (any(ctrlclass %in% c("numeric", "integer"))) {
+              
+              selectedtype <- "range slider"
+              choices <- c("single slider", "range slider", "less than", "less than or equal to", "greater than", "greater than or equal to")
+              
+            } else if (any(ctrlclass %in% c("POSIXct", "POSIXlt"))) {
               
               selectedtype <- "range slider"
               choices <- c("single slider", "range slider")
@@ -269,7 +273,14 @@ filter_data <- function(input, output, session, data = NULL,
                 
               } else if (selectedtype %in% c("single slider", "range slider")) {
                 values <- range(data[, get(colname)], na.rm = TRUE)
+                
+              } else if (selectedtype %in% c("less than", "less than or equal to")) {
+                values <- max(data[, get(colname)], na.rm = TRUE)
+                
+              } else if (selectedtype %in% c("greater than", "greater than or equal to")) {
+                values <- min(data[, get(colname)], na.rm = TRUE)
               }
+              
             } else if (any(ctrlclass %in% c("IDate", "Date"))) {
               values <- range(data[, get(colname)], na.rm = TRUE)
             }
@@ -304,8 +315,12 @@ filter_data <- function(input, output, session, data = NULL,
                              start = values[1], end = values[2],
                              min = values[1], max = values[2], 
                              format = "yyyy-mm-dd", width="100%")
+            } else if(selectedtype %in% c("less than", "less than or equal to", "greater than", "greater than or equal to")){
+              numericInput(inputId = ns(paste0("filter", colname)), label = NULL, 
+                           value = values[1], min = NA, max = NA, step = NA,
+                           width = "100%")
             }
-            
+              
           })
         })
       }
@@ -356,7 +371,28 @@ filter_data <- function(input, output, session, data = NULL,
             fun <- c("%in%")
             values <- c(list(filter))
             
+          } else if(selectedtype %in% c("less than")) {
+            colname <- c(name)
+            fun <- c("<")
+            values <- c(list(gsub(",", ".", filter, fixed = TRUE)))
+            
+          } else if(selectedtype %in% c("less than or equal to")) {
+            colname <- c(name)
+            fun <- c("<=")
+            values <- c(list(gsub(",", ".", filter, fixed = TRUE)))
+            
+          } else if(selectedtype %in% c("greater than")) {
+            colname <- c(name)
+            fun <- c(">")
+            values <- c(list(gsub(",", ".", filter, fixed = TRUE)))
+            
+          } else if(selectedtype %in% c("greater than or equal to")) {
+            colname <- c(name)
+            fun <- c(">=")
+            values <- c(list(gsub(",", ".", filter, fixed = TRUE)))
+            
           }
+          
           dtres <- data.table(column = colname, "fun" = fun, values = values)
           
           dtres
