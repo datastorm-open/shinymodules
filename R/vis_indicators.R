@@ -246,7 +246,7 @@ add_by <- function(data,
       (is.null(col_date) || ! col_date %in% colnames(data))) {
     stop(paste0("'", col_date, "' is not in 'data'."))
   }
-  if (! is.null(nb_quantiles) && ! data[[by_col]] %in% c("Aucun", "year_day", "year_week", "year_month", "year") && 
+  if (! is.null(nb_quantiles) && ! by_col %in% c("Aucun", "year_day", "year_week", "year_month", "year") && 
       is.numeric(data[[by_col]]) && ! is.numeric(nb_quantiles)) {
     stop("'nb_quantiles' must be an integer.")
   } 

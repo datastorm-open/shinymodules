@@ -5,7 +5,8 @@
 \title{Run a shiny example application to filter on data and
  visualise statistics on the filtered data}
 \usage{
-run_example_app_filter_and_show_data(optional_stats = "all", nb_modal2show = 5)
+run_example_app_filter_and_show_data(optional_stats = "all",
+  nb_modal2show = 5)
 }
 \arguments{
 \item{optional_stats}{\code{character} vector of the optional statistics you

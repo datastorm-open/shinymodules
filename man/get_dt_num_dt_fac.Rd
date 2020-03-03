@@ -4,16 +4,10 @@
 \alias{get_dt_num_dt_fac}
 \title{preprocessing on data}
 \usage{
-get_dt_num_dt_fac(
-  data,
-  optional_stats,
-  nb_modal2show,
-  show_warnings = FALSE,
-  keep_dataframe = TRUE,
-  keep_datatable = TRUE,
-  session = NULL,
-  message = "Calculation in progress..."
-)
+get_dt_num_dt_fac(data, optional_stats, nb_modal2show,
+  show_warnings = FALSE, keep_dataframe = TRUE,
+  keep_datatable = TRUE, session = NULL,
+  message = "Calculation in progress...")
 }
 \arguments{
 \item{data}{\code{data.frame}, \code{data.table} input data which will be preprocessed}
