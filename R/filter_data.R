@@ -38,9 +38,6 @@
 #' } 
 #'
 #' @rdname filter_data_module
-
-
-
 filter_dataUI <- function(id, titles = TRUE) {
   ns <- shiny::NS(id)
   shiny::fluidPage(
