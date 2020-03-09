@@ -5,16 +5,37 @@
 \alias{filter_data}
 \title{UI part of the module filter_data}
 \usage{
-filter_dataUI(id, titles = TRUE)
+filter_dataUI(
+  id,
+  titles = TRUE,
+  labels = list(title = "Filters", no_data = "No data available", filter =
+    "Filter on :", reinitialize = "Reinitialize filters", validate =
+    "Apply filtering on data")
+)
 
-filter_data(input, output, session, data = NULL,
-  columns_to_filter = "all", max_char_values = 1000,
-  default_multisel_n = 10)
+filter_data(
+  input,
+  output,
+  session,
+  data = NULL,
+  columns_to_filter = "all",
+  max_char_values = 1000,
+  default_multisel_n = 10
+)
 }
 \arguments{
 \item{id}{\code{character} An id that will be used to create a namespace}
 
 \item{titles}{\code{logical} Add titles on UI ? Default to TRUE}
+
+\item{labels}{\code{list/reactive} Title / subtitle / message
+\itemize{
+ \item{"title"}{ : Module title.}
+ \item{"no_data "}{ : Printed message if no data.}
+ \item{"filter"}{ : Seleciton filters.}
+ \item{"reinitialize"}{ : Reinit button.}
+ \item{"validate"}{ :  Validate button.}
+}}
 
 \item{input}{Not a real parameter, should not be set manually. 
 Done by callModule automatically.}
@@ -25,14 +46,14 @@ Done by callModule automatically.}
 \item{session}{Not a real parameter, should not be set manually. 
 Done by callModule automatically.}
 
-\item{data}{\code{reactivevalues} reactive data.table}
+\item{data}{\code{data.frame/reactive} reactive data.table}
 
-\item{columns_to_filter}{\code{character} vector o column names you want to 
+\item{columns_to_filter}{\code{character/reactive} vector o column names you want to 
 allow the user to filter (default is all)}
 
-\item{max_char_values}{\code{integer} Remove character / factor columns with more than \code{max_char_values} unique values}
+\item{max_char_values}{\code{integer/reactive} Remove character / factor columns with more than \code{max_char_values} unique values}
 
-\item{default_multisel_n}{\code{integer} Number of choices  selected by default in case of multiple selection. Defaut 10}
+\item{default_multisel_n}{\code{integer/reactive} Number of choices  selected by default in case of multiple selection. Defaut 10}
 }
 \value{
 UI page
@@ -49,7 +70,23 @@ the filtered data.table
 ui = shiny::fluidPage(filter_dataUI(id = "id", titles = TRUE))
 server = function(input, output, session) {
   data <- reactiveValues(data = iris)
-  shiny::callModule(module = filter_data, id = "id", data = reactive(data$data))
+  shiny::callModule(module = filter_data, id = "id", data = reactive(data$data), 
+  columns_to_filter =c("Sepal.Length", "Sepal.Width"))
+}
+
+shiny::shinyApp(ui = ui, server = server)
+
+
+ui = shiny::fluidPage(filter_dataUI(id = "id", 
+  labels = list(title = "Filtres",
+  no_data = "Pas de donnÃ©es disponibles", 
+  filter = "Filtrer sur les colonnes :", 
+  reinitialize = "RÃ©initialisation des filtres", 
+  validate = "Filtrer les donnÃ©es")
+))
+
+server = function(input, output, session) {
+  shiny::callModule(module = filter_data, id = "id", data = iris)
 }
 
 shiny::shinyApp(ui = ui, server = server)

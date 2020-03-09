@@ -11,12 +11,20 @@
 #' Done by callModule automatically.
 #' @param session Not a real parameter, should not be set manually. 
 #' Done by callModule automatically.
-#' @param data \code{reactivevalues} reactive data.table
-#' @param columns_to_filter \code{character} vector o column names you want to 
+#' @param data \code{data.frame/reactive} reactive data.table
+#' @param columns_to_filter \code{character/reactive} vector o column names you want to 
 #' allow the user to filter (default is all)
-#' @param max_char_values \code{integer} Remove character / factor columns with more than \code{max_char_values} unique values
-#' @param default_multisel_n \code{integer} Number of choices  selected by default in case of multiple selection. Defaut 10
-#' 
+#' @param max_char_values \code{integer/reactive} Remove character / factor columns with more than \code{max_char_values} unique values
+#' @param default_multisel_n \code{integer/reactive} Number of choices  selected by default in case of multiple selection. Defaut 10
+#' @param labels \code{list/reactive} Title / subtitle / message
+#' \itemize{
+#'  \item{"title"}{ : Module title.}
+#'  \item{"no_data "}{ : Printed message if no data.}
+#'  \item{"filter"}{ : Seleciton filters.}
+#'  \item{"reinitialize"}{ : Reinit button.}
+#'  \item{"validate"}{ :  Validate button.}
+#'}
+#'
 #' @return UI page
 #' @export
 #' @import shiny
@@ -27,7 +35,23 @@
 #' ui = shiny::fluidPage(filter_dataUI(id = "id", titles = TRUE))
 #' server = function(input, output, session) {
 #'   data <- reactiveValues(data = iris)
-#'   shiny::callModule(module = filter_data, id = "id", data = reactive(data$data))
+#'   shiny::callModule(module = filter_data, id = "id", data = reactive(data$data), 
+#'   columns_to_filter =c("Sepal.Length", "Sepal.Width"))
+#' }
+#' 
+#' shiny::shinyApp(ui = ui, server = server)
+#' 
+#' 
+#' ui = shiny::fluidPage(filter_dataUI(id = "id", 
+#'   labels = list(title = "Filtres",
+#'   no_data = "Pas de données disponibles", 
+#'   filter = "Filtrer sur les colonnes :", 
+#'   reinitialize = "Réinitialisation des filtres", 
+#'   validate = "Filtrer les données")
+#' ))
+#' 
+#' server = function(input, output, session) {
+#'   shiny::callModule(module = filter_data, id = "id", data = iris)
 #' }
 #' 
 #' shiny::shinyApp(ui = ui, server = server)
@@ -38,28 +62,34 @@
 #' } 
 #'
 #' @rdname filter_data_module
-filter_dataUI <- function(id, titles = TRUE) {
+filter_dataUI <- function(id, titles = TRUE, 
+                          labels = list(title = "Filters",
+                                        no_data = "No data available", 
+                                        filter = "Filter on :", 
+                                        reinitialize = "Reinitialize filters", 
+                                        validate = "Apply filtering on data")
+) {
   ns <- shiny::NS(id)
   shiny::fluidPage(
     shiny::fluidRow(
       column(12,
-             if(titles) shiny::div(h2("Filters"))
+             if(titles) shiny::div(h2(labels$title))
       )
     ),
     
     shiny::conditionalPanel(
       condition = paste0("output['", ns("have_data_filter"), "'] === false"),
-      shiny::div(h2("No data available"))
+      shiny::div(h2(labels$no_data))
     ),
     
     shiny::conditionalPanel(
       condition = paste0("output['", ns("have_data_filter"), "'] === true"),
       
       shiny::fluidRow(
-        column(2, div(br(), h4("Filters on :"), align = "center")),
+        column(2, div(br(), h4(labels$filter), align = "center")),
         column(8, shiny::uiOutput(ns("choicefilter"))),
         column(2, shiny::div(br(), shiny::actionButton(
-          ns("reinitializeFilter"), "Reinitialize filters"), align = "center"))
+          ns("reinitializeFilter"), labels$reinitialize), align = "center"))
       ),
       
       # display only if there is at least one selected filter
@@ -74,7 +104,7 @@ filter_dataUI <- function(id, titles = TRUE) {
                                 column(10, shiny::hr())
                               ),
                               shiny::div(shiny::actionButton(
-                                ns("validateFilter"), "Apply filtering on data"), 
+                                ns("validateFilter"), labels$validate), 
                                 align = "center")
       )
     )
@@ -92,8 +122,33 @@ filter_data <- function(input, output, session, data = NULL,
   
   ns <- session$ns
   
+  # reactive controls
+  if (! shiny::is.reactive(data)) {
+    get_data <- shiny::reactive(data)
+  } else {
+    get_data <- data
+  }
+  
+  if (! shiny::is.reactive(columns_to_filter)) {
+    get_columns_to_filter <- shiny::reactive(columns_to_filter)
+  } else {
+    get_columns_to_filter <- columns_to_filter
+  }
+  
+  if (! shiny::is.reactive(max_char_values)) {
+    get_max_char_values <- shiny::reactive(max_char_values)
+  } else {
+    get_max_char_values <- max_char_values
+  }
+  
+  if (! shiny::is.reactive(default_multisel_n)) {
+    get_default_multisel_n <- shiny::reactive(default_multisel_n)
+  } else {
+    get_default_multisel_n <- default_multisel_n
+  }
+  
   data_to_filter <- shiny::reactive({ 
-    data <- data()
+    data <- get_data()
     if(!"data.frame" %in% class(data)){
       data <- NULL
     } else {
@@ -113,7 +168,8 @@ filter_data <- function(input, output, session, data = NULL,
   filternames <- reactiveValues(filter = NULL)
   
   output$choicefilter <- renderUI({
-    
+    columns_to_filter <- get_columns_to_filter()
+    max_char_values <- get_max_char_values()
     if( !is.null(data_to_filter()) && "data.frame" %in% class(data_to_filter()) && nrow(data_to_filter()) > 0){
       if(!"all" %in% columns_to_filter){
         columns_to_filter <- intersect(columns_to_filter, colnames(data_to_filter()))
@@ -152,7 +208,7 @@ filter_data <- function(input, output, session, data = NULL,
   # Initialize all filters (one per specified column)
   output$uifilter <- renderUI({
     data <- data_to_filter()
-    
+    columns_to_filter <- get_columns_to_filter()
     isolate({
       if (! is.null(data)) {
         
@@ -239,7 +295,7 @@ filter_data <- function(input, output, session, data = NULL,
         data <- data_to_filter()
         # reinitialize current filters only
         reinit_filters <- intersect(input$chosenfilters, colnames(data))
-
+        
         for (filter in reinit_filters) {
           selectedtype <- input[[paste0("typefilter", filter)]]
           
@@ -275,7 +331,7 @@ filter_data <- function(input, output, session, data = NULL,
             
             if (selectedtype == "multiple select") {
               updateSelectizeInput(session = session, paste0("filter", filter),
-                                   choices = values, selected = values[1:min(length(values), default_multisel_n)])
+                                   choices = values, selected = values[1:min(length(values), get_default_multisel_n())])
               
             } else if (selectedtype == "single select") {
               updateSelectInput(session = session, paste0("filter", filter),
@@ -311,6 +367,7 @@ filter_data <- function(input, output, session, data = NULL,
   # creation des filtres
   # a optimiser
   observe({
+    columns_to_filter <- get_columns_to_filter()
     if(!"all" %in% columns_to_filter){
       columns_to_filter <- intersect(columns_to_filter, colnames(data_to_filter()))
       if(length(columns_to_filter) == 0) columns_to_filter <- NULL
@@ -364,7 +421,7 @@ filter_data <- function(input, output, session, data = NULL,
             
             if (selectedtype == "multiple select") {
               selectizeInput(ns(paste0("filter", colname)), label = NULL, 
-                             choices = values, selected = values[1:min(length(values), default_multisel_n)], 
+                             choices = values, selected = values[1:min(length(values), get_default_multisel_n())], 
                              multiple = TRUE, width="100%")
               
             } else if (selectedtype == "single select") {
@@ -406,6 +463,7 @@ filter_data <- function(input, output, session, data = NULL,
   
   listfilters <- shiny::reactive({
     if(!is.null(input$validateFilter) && input$validateFilter > 0) {
+      columns_to_filter <- get_columns_to_filter()
       data <- data_to_filter()
       var <- 1:ncol(data)
       varname <- intersect(input$chosenfilters, colnames(data))
