@@ -7,9 +7,19 @@
 \usage{
 show_dataUI(id, titles = TRUE, subtitles = TRUE)
 
-show_data(input, output, session, data = NULL, optional_stats = "all",
-  nb_modal2show = 3, columns_to_show = "all", show_warnings = FALSE,
-  message = "Calculation in progress...")
+show_data(
+  input,
+  output,
+  session,
+  data = NULL,
+  optional_stats = "all",
+  nb_modal2show = 3,
+  columns_to_show = "all",
+  show_warnings = FALSE,
+  labels = list(title = "Descriptive statistics", num_var = "Numeric variables",
+    date_var = "Date variables", factor_var = "Factor variables", message =
+    "Calculation in progress...")
+)
 }
 \arguments{
 \item{id}{\code{character} An id that will be used to create a namespace
@@ -29,22 +39,29 @@ Done by callModule automatically.}
 \item{session}{Not a real parameter, should not be set manually. 
 Done by callModule automatically.}
 
-\item{data}{\code{reactivevalues} reactive data.table}
+\item{data}{\code{data.frame/reactive} reactive data.table}
 
-\item{optional_stats}{\code{character} optional statistics computed on numeric
+\item{optional_stats}{\code{character/reactive} optional statistics computed on numeric
 data, default is "all". "pct_zero", "pct_NA", "mean", "median", "sd" are
 always computed, possible values are "min", "max", "nb_valid", "var", "interquartile_range",
 "mode_max", "kurtosis", "skewness", "boxplot", "density".}
 
-\item{nb_modal2show}{\code{integer} number of modalities to show 
+\item{nb_modal2show}{\code{integer/reactive} number of modalities to show 
 for factor variables.}
 
-\item{columns_to_show}{\code{character} vector of column names you want to be
+\item{columns_to_show}{\code{character/reactive} vector of column names you want to be
 shown in the tables}
 
-\item{show_warnings}{\code{logical} Show warnings ? (example compute Min. on all NAs)}
+\item{show_warnings}{\code{logical/reactive} Show warnings ? (example compute Min. on all NAs)}
 
-\item{message}{\code{character} Message of the progress computing indicators.}
+\item{labels}{\code{list/reactive} Message of the progress computing indicators.
+\itemize{
+ \item{"title"}{ : Module title.}
+ \item{"num_var "}{ : Subtitle for numeric variables.}
+ \item{"date_var"}{ : Subtitle for date variables.}
+ \item{"factor_var"}{ : Subtitle for factor variables.}
+ \item{"message"}{ :  Message of the progress computing indicators}
+}}
 }
 \value{
 shiny module
@@ -68,15 +85,27 @@ shiny::shinyApp(ui = ui, server = server)
 ## filter on stats 
 ui = shiny::fluidPage(show_dataUI(id = "id", titles = TRUE))
 server = function(input, output, session) {
-  data <- reactiveValues(data = iris)
-  
-  shiny::callModule(module = show_data, id = "id", data = reactive(data$data),
+  shiny::callModule(module = show_data, id = "id", data = iris,
     optional_stats = c("kurtosis", "density"),
     columns_to_show = c("Species", "Petal.Width", "Sepal.Width"))
 }
 
 shiny::shinyApp(ui = ui, server = server)   
-             
+          
+## labels
+ui = shiny::fluidPage(show_dataUI(id = "id", titles = FALSE))
+server = function(input, output, session) {
+  shiny::callModule(module = show_data, id = "id", data = iris,
+    labels = list(title = "Descriptive statistics", 
+                  num_var = "Variables numÃ©riques",
+                  date_var = "Variables dates",
+                  factor_var = "Variables Facteurs",
+                  message = "Calcul en cours..."
+    ))
+}
+
+shiny::shinyApp(ui = ui, server = server)   
+                 
 ## Examples apps
 run_example_app_show_data()
 run_example_app_filter_and_show_data()
