@@ -4,8 +4,15 @@
 \alias{compute_idc}
 \title{Compute indicators for given model and data}
 \usage{
-compute_idc(object = NULL, data, col_obs, col_fit = NULL, by = NULL,
-  dec = 2, nb.cores = 1)
+compute_idc(
+  object = NULL,
+  data,
+  col_obs,
+  col_fit = NULL,
+  by = NULL,
+  dec = 2,
+  nb.cores = 1
+)
 }
 \arguments{
 \item{object}{\code{modelInstant} (NULL). A modelInstant object. IE = ???}

@@ -54,7 +54,7 @@ shown in the tables}
 
 \item{show_warnings}{\code{logical/reactive} Show warnings ? (example compute Min. on all NAs)}
 
-\item{labels}{\code{list/reactive} Message of the progress computing indicators.
+\item{labels}{\code{list/reactive} Title / subtitle / message
 \itemize{
  \item{"title"}{ : Module title.}
  \item{"num_var "}{ : Subtitle for numeric variables.}

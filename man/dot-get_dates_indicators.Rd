@@ -4,8 +4,14 @@
 \alias{.get_dates_indicators}
 \title{get stats indicator on dates data}
 \usage{
-.get_dates_indicators(data, dates_vars, optional_stats = "all",
-  keep_dataframe = TRUE, keep_datatable = TRUE, progress = NULL)
+.get_dates_indicators(
+  data,
+  dates_vars,
+  optional_stats = "all",
+  keep_dataframe = TRUE,
+  keep_datatable = TRUE,
+  progress = NULL
+)
 }
 \arguments{
 \item{data}{\code{data.frame}, \code{data.table}}

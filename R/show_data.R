@@ -23,7 +23,7 @@
 #' @param columns_to_show  \code{character/reactive} vector of column names you want to be
 #' shown in the tables
 #' @param show_warnings \code{logical/reactive} Show warnings ? (example compute Min. on all NAs)
-#' @param labels \code{list/reactive} Message of the progress computing indicators.
+#' @param labels \code{list/reactive} Title / subtitle / message
 #' \itemize{
 #'  \item{"title"}{ : Module title.}
 #'  \item{"num_var "}{ : Subtitle for numeric variables.}
