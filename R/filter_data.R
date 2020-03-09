@@ -38,9 +38,6 @@
 #' } 
 #'
 #' @rdname filter_data_module
-
-
-
 filter_dataUI <- function(id, titles = TRUE) {
   ns <- shiny::NS(id)
   shiny::fluidPage(
@@ -62,22 +59,23 @@ filter_dataUI <- function(id, titles = TRUE) {
         column(2, div(br(), h4("Filters on :"), align = "center")),
         column(8, shiny::uiOutput(ns("choicefilter"))),
         column(2, shiny::div(br(), shiny::actionButton(
-          ns("updateFilter"), "Update filters"), align = "center"))
+          ns("reinitializeFilter"), "Reinitialize filters"), align = "center"))
       ),
-      shiny::conditionalPanel(
-        condition = paste0("input['", ns("updateFilter"), "'] > 0"),
-        shiny::fluidRow(
-          column(1),
-          column(10, hr())
-        ),
-        shiny::uiOutput(ns("uifilter")),
-        shiny::fluidRow(
-          column(1),
-          column(10, shiny::hr())
-        ),
-        shiny::div(shiny::actionButton(
-          ns("validateFilter"), "Apply filtering on data"), 
-          align = "center")
+      
+      # display only if there is at least one selected filter
+      shiny::conditionalPanel(condition = paste0('input["', ns("chosenfilters"), '"] && input["', ns("chosenfilters"), '"].length > 0'),
+                              shiny::fluidRow(
+                                column(1),
+                                column(10, hr())
+                              ),
+                              shiny::uiOutput(ns("uifilter")),
+                              shiny::fluidRow(
+                                column(1),
+                                column(10, shiny::hr())
+                              ),
+                              shiny::div(shiny::actionButton(
+                                ns("validateFilter"), "Apply filtering on data"), 
+                                align = "center")
       )
     )
   )
@@ -129,7 +127,7 @@ filter_data <- function(input, output, session, data = NULL,
           ctrl_n <- data_to_filter()[, sapply(.SD, function(x) length(unique(x))), .SDcols = ind_char]
           rm_columns_to_filter <- names(ctrl_n)[ctrl_n >= max_char_values]
           if(length(rm_columns_to_filter) > 0){
-            if (is.null(columns_to_filter) | "all" %in% columns_to_filter) {
+            if (is.null(columns_to_filter) || "all" %in% columns_to_filter) {
               columns_to_filter <- setdiff(colnames(data_to_filter()), rm_columns_to_filter)
             } else {
               columns_to_filter <- setdiff(columns_to_filter, rm_columns_to_filter)
@@ -151,33 +149,34 @@ filter_data <- function(input, output, session, data = NULL,
     }
   })
   
-  # choix des filres
+  # Initialize all filters (one per specified column)
   output$uifilter <- renderUI({
     data <- data_to_filter()
-    if(input$updateFilter > 0) {
-      isolate({
-        var <- intersect(input$chosenfilters, colnames(data))
-        filternames$filter <- var
-        if(!"all" %in% columns_to_filter){
-          columns_to_filter <- intersect(columns_to_filter, colnames(data_to_filter()))
+    
+    isolate({
+      if (! is.null(data)) {
+        
+        # check columns_to_filter
+        if (! "all" %in% columns_to_filter) {
+          columns_to_filter <- intersect(columns_to_filter, colnames(data))
           if(length(columns_to_filter) == 0) columns_to_filter <- NULL
         }
-        
-        if (is.null(columns_to_filter) | "all" %in% columns_to_filter) {
-          data <- data_to_filter()
+        if (is.null(columns_to_filter) || "all" %in% columns_to_filter) {
+          var <- colnames(data)
         } else {
-          data <- data_to_filter()[, .SD, .SDcols = columns_to_filter]
+          data <- data[, .SD, .SDcols = columns_to_filter]
+          var <- columns_to_filter
         }
+        
+        filternames$filter <- var
         
         if(length(var) > 0){
           lapply(var, function(colname) {
-            
-            x <- colnames(data)[which(colnames(data) == colname)]
-            
             ctrlclass <- class(data[, get(colname)])
             
             if (any(ctrlclass %in% c("factor", "character", "logical"))) {
               values <- unique(data[, get(colname)])
+              
               if (length(values) <= 10) {
                 selectedtype <- "multiple select"
               } else {
@@ -186,48 +185,126 @@ filter_data <- function(input, output, session, data = NULL,
               choices <- c("single select", "multiple select")
               
             } else if (any(ctrlclass %in% c("numeric", "integer"))) {
-              
               selectedtype <- "range slider"
               choices <- c("single slider", "range slider", "less than", "less than or equal to", "greater than", "greater than or equal to")
               
             } else if (any(ctrlclass %in% c("POSIXct", "POSIXlt"))) {
-              
               selectedtype <- "range slider"
               choices <- c("single slider", "range slider")
               
             } else if (any(ctrlclass %in% c("IDate", "Date"))) {
-              
               selectedtype <- "range date"
               choices <- c("single date", "range date")
               
             } else {
-              
               choices <- c("single slider", "range slider", 
                            "single select", "multiple select")
               selectedtype <- "single select"
               
             }
-            fluidRow(
-              column(width = 2, offset = 1,  
-                     h5(colname, style = "font-weight: bold;")
-              ),
-              column(2,
-                     selectInput(ns(paste0("typefilter", x)), NULL,
-                                 choices = choices,
-                                 selectedtype)
-              ),
-              column(6, 
-                     uiOutput(ns(paste0("uifilter", x)))
-              )
-            )  
+            
+            # check that the column is selected to display it (a little artificial, using its position in the input vector)
+            conditionalPanel(condition = paste0('input["', ns("chosenfilters"), '"] && input["', ns("chosenfilters"), '"].indexOf("', colname, '") > -1'),
+                             fluidRow(
+                               column(width = 2, offset = 1,  
+                                      h5(colname, style = "font-weight: bold;")
+                               ),
+                               column(2,
+                                      selectInput(ns(paste0("typefilter", colname)), NULL,
+                                                  choices = choices,
+                                                  selectedtype)
+                               ),
+                               column(6, 
+                                      uiOutput(ns(paste0("uifilter", colname)))
+                               )
+                             )
+            )
           })
         } else {
           fluidRow(
             column(width = 10, offset = 1, h4("No filter selected"))
           )
         }
-      })
-    }
+      }
+    })
+  })
+  
+  
+  # reinitialize current filters
+  observe({
+    cpt <- input$reinitializeFilter
+    
+    isolate({
+      if (cpt > 0) {
+        data <- data_to_filter()
+        # reinitialize current filters only
+        reinit_filters <- intersect(input$chosenfilters, colnames(data))
+
+        for (filter in reinit_filters) {
+          selectedtype <- input[[paste0("typefilter", filter)]]
+          
+          isolate({
+            ctrlclass <- class(data[, get(filter)])
+            
+            if (any(ctrlclass %in% c("factor", "character", "logical"))) {
+              if (selectedtype %in% c("single select", "multiple select")) {
+                values <- unique(as.character(data[, get(filter)]))
+                
+              } else if (selectedtype %in% c("single slider", "range slider")) {
+                values <- range(as.numeric(as.character(data[, get(filter)])),
+                                na.rm = TRUE)
+              }
+              
+            } else if (any(ctrlclass %in% c("integer", "numeric", "POSIXct", "POSIXlt"))) {
+              if (selectedtype %in% c("single select", "multiple select")) {
+                values <- unique(as.character(data[, get(filter)]))
+                
+              } else if (selectedtype %in% c("single slider", "range slider")) {
+                values <- range(data[, get(filter)], na.rm = TRUE)
+                
+              } else if (selectedtype %in% c("less than", "less than or equal to")) {
+                values <- max(data[, get(filter)], na.rm = TRUE)
+                
+              } else if (selectedtype %in% c("greater than", "greater than or equal to")) {
+                values <- min(data[, get(filter)], na.rm = TRUE)
+              }
+              
+            } else if (any(ctrlclass %in% c("IDate", "Date"))) {
+              values <- range(data[, get(filter)], na.rm = TRUE)
+            }
+            
+            if (selectedtype == "multiple select") {
+              updateSelectizeInput(session = session, paste0("filter", filter),
+                                   choices = values, selected = values[1:min(length(values), default_multisel_n)])
+              
+            } else if (selectedtype == "single select") {
+              updateSelectInput(session = session, paste0("filter", filter),
+                                choices = values, selected = values[1])
+              
+            } else if (selectedtype == "range slider") {
+              updateSliderInput(session = session, paste0("filter", filter),
+                                min = values[1], max = values[2], value = values)
+              
+            } else if (selectedtype == "single slider") {
+              updateSliderInput(session = session, paste0("filter", filter),
+                                min = values[1], max = values[2], value = values[1])
+              
+            } else if (selectedtype == "single date") {
+              updateDateInput(session = session, paste0("filter", filter),
+                              min = values[1], max = values[2], value = values[1])
+              
+            } else if (selectedtype == "range date") {
+              updateDateRangeInput(session = session, paste0("filter", filter),
+                                   start = values[1], end = values[2],
+                                   min = values[1], max = values[2])
+            } else if (selectedtype %in% c("less than", "less than or equal to", "greater than", "greater than or equal to")) {
+              updateNumericInput(session = session, paste0("filter", filter),
+                                 value = values[1])
+            }
+          })
+        }
+      }
+    })
   })
   
   
@@ -239,7 +316,7 @@ filter_data <- function(input, output, session, data = NULL,
       if(length(columns_to_filter) == 0) columns_to_filter <- NULL
     }
     
-    if (is.null(columns_to_filter) | "all" %in% columns_to_filter) {
+    if (is.null(columns_to_filter) || "all" %in% columns_to_filter) {
       data <- data_to_filter()
     } else {
       data <- data_to_filter()[, .SD, .SDcols = columns_to_filter]
@@ -258,7 +335,7 @@ filter_data <- function(input, output, session, data = NULL,
             # colname <- colnames(data)[colnames(data) == var]
             ctrlclass <- class(data[, get(colname)])
             
-            if (any(ctrlclass %in% c("factor", "character", "logical"))){
+            if (any(ctrlclass %in% c("factor", "character", "logical"))) {
               if (selectedtype %in% c("single select", "multiple select")) {
                 values <- unique(as.character(data[, get(colname)]))
                 
@@ -268,7 +345,7 @@ filter_data <- function(input, output, session, data = NULL,
               }
               
             } else if (any(ctrlclass %in% c("integer", "numeric", "POSIXct", "POSIXlt"))) {
-              if(selectedtype %in% c("single select", "multiple select")){
+              if (selectedtype %in% c("single select", "multiple select")) {
                 values <- unique(as.character(data[, get(colname)]))
                 
               } else if (selectedtype %in% c("single slider", "range slider")) {
@@ -315,33 +392,31 @@ filter_data <- function(input, output, session, data = NULL,
                              start = values[1], end = values[2],
                              min = values[1], max = values[2], 
                              format = "yyyy-mm-dd", width="100%")
-            } else if(selectedtype %in% c("less than", "less than or equal to", "greater than", "greater than or equal to")){
+            } else if (selectedtype %in% c("less than", "less than or equal to", "greater than", "greater than or equal to")) {
               numericInput(inputId = ns(paste0("filter", colname)), label = NULL, 
                            value = values[1], min = NA, max = NA, step = NA,
                            width = "100%")
             }
-              
           })
         })
       }
-      
     })
   })
   
   
   listfilters <- shiny::reactive({
-    
     if(!is.null(input$validateFilter) && input$validateFilter > 0) {
       data <- data_to_filter()
       var <- 1:ncol(data)
-      varname <- colnames(data)
+      varname <- intersect(input$chosenfilters, colnames(data))
+      
       if(!"all" %in% columns_to_filter){
         columns_to_filter <- intersect(columns_to_filter, varname)
         if(length(columns_to_filter) == 0) columns_to_filter <- NULL
       }
       
-      if (is.null(columns_to_filter) | "all" %in% columns_to_filter) {
-        varname <- colnames(data)
+      if (is.null(columns_to_filter) || "all" %in% columns_to_filter) {
+        varname <- intersect(input$chosenfilters, colnames(data))
       } else {
         varname <- columns_to_filter
       }
@@ -422,10 +497,9 @@ filter_data <- function(input, output, session, data = NULL,
     if (is.null(listfilters())) {
       filterdata$data <- data
     } else {
-      
       filterdata$data <- .filterDataTable(data, listfilters())
     }
   })
-  return(filterdata)
   
+  return(filterdata)
 }

@@ -4,15 +4,9 @@
 \alias{.get_factor_indicators}
 \title{get stats indicator on factor data}
 \usage{
-.get_factor_indicators(
-  data,
-  fact_vars,
-  nb_modal2show,
-  optional_stats = "all",
-  keep_dataframe = TRUE,
-  keep_datatable = TRUE,
-  progress = NULL
-)
+.get_factor_indicators(data, fact_vars, nb_modal2show,
+  optional_stats = "all", keep_dataframe = TRUE,
+  keep_datatable = TRUE, progress = NULL)
 }
 \arguments{
 \item{data}{\code{data.frame}, \code{data.table}}
