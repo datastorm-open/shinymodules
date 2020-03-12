@@ -7,19 +7,11 @@
 \usage{
 show_dataUI(id, titles = TRUE, subtitles = TRUE)
 
-show_data(
-  input,
-  output,
-  session,
-  data = NULL,
-  optional_stats = "all",
-  nb_modal2show = 3,
-  columns_to_show = "all",
-  show_warnings = FALSE,
-  labels = list(title = "Descriptive statistics", num_var = "Numeric variables",
-    date_var = "Date variables", factor_var = "Factor variables", message =
-    "Calculation in progress...")
-)
+show_data(input, output, session, data = NULL, optional_stats = "all",
+  nb_modal2show = 3, columns_to_show = "all", show_warnings = FALSE,
+  labels = list(title = "Descriptive statistics", num_var =
+  "Numeric variables", date_var = "Date variables", factor_var =
+  "Factor variables", message = "Calculation in progress..."))
 }
 \arguments{
 \item{id}{\code{character} An id that will be used to create a namespace
@@ -97,7 +89,7 @@ ui = shiny::fluidPage(show_dataUI(id = "id", titles = FALSE))
 server = function(input, output, session) {
   shiny::callModule(module = show_data, id = "id", data = iris,
     labels = list(title = "Statistiques descriptives", 
-                  num_var = "Variables num\u00e9riques",
+                  num_var = "Variables num\\u00e9riques",
                   date_var = "Variables dates",
                   factor_var = "Variables Facteurs",
                   message = "Calcul en cours..."

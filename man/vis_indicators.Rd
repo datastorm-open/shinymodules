@@ -4,18 +4,9 @@
 \alias{vis_indicators}
 \title{Shiny module server-like fun to display indicators on a data.table.}
 \usage{
-vis_indicators(
-  input,
-  output,
-  session,
-  data,
-  col_id = NULL,
-  keep_id = NULL,
-  col_obs,
-  col_fit,
-  col_date = NULL,
-  indicators = c("rmse", "mae", "mape", "mape_e")
-)
+vis_indicators(input, output, session, data, col_id = NULL, keep_id = NULL,
+  col_obs, col_fit, col_date = NULL, indicators = c("rmse", "mae", "mape",
+  "mape_e"))
 }
 \arguments{
 \item{input}{shiny input}
