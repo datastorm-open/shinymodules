@@ -86,9 +86,9 @@ filter_dataUI <- function(id, titles = TRUE,
       condition = paste0("output['", ns("have_data_filter"), "'] === true"),
       
       shiny::fluidRow(
-        column(2, div(br(), h4(labels$filter), align = "center")),
-        column(8, shiny::uiOutput(ns("choicefilter"))),
-        column(2, shiny::div(br(), shiny::actionButton(
+        column(2, div(br(), h5(labels$filter), align = "center")),
+        column(7, shiny::uiOutput(ns("choicefilter"))),
+        column(3, shiny::div(br(), shiny::actionButton(
           ns("reinitializeFilter"), labels$reinitialize), align = "center"))
       ),
       
