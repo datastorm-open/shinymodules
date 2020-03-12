@@ -71,7 +71,7 @@ ui = shiny::fluidPage(filter_dataUI(id = "id", titles = TRUE))
 server = function(input, output, session) {
   data <- reactiveValues(data = iris)
   shiny::callModule(module = filter_data, id = "id", data = reactive(data$data), 
-  columns_to_filter =c("Sepal.Length", "Sepal.Width"))
+  columns_to_filter = c("Sepal.Length", "Sepal.Width"))
 }
 
 shiny::shinyApp(ui = ui, server = server)
@@ -79,10 +79,10 @@ shiny::shinyApp(ui = ui, server = server)
 
 ui = shiny::fluidPage(filter_dataUI(id = "id", 
   labels = list(title = "Filtres",
-  no_data = "Pas de donnÃ©es disponibles", 
+  no_data = "Pas de données disponibles", 
   filter = "Filtrer sur les colonnes :", 
-  reinitialize = "RÃ©initialisation des filtres", 
-  validate = "Filtrer les donnÃ©es")
+  reinitialize = "Réinitialisation des filtres", 
+  validate = "Filtrer les données")
 ))
 
 server = function(input, output, session) {

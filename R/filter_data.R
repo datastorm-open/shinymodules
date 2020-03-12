@@ -36,7 +36,7 @@
 #' server = function(input, output, session) {
 #'   data <- reactiveValues(data = iris)
 #'   shiny::callModule(module = filter_data, id = "id", data = reactive(data$data), 
-#'   columns_to_filter =c("Sepal.Length", "Sepal.Width"))
+#'   columns_to_filter = c("Sepal.Length", "Sepal.Width"))
 #' }
 #' 
 #' shiny::shinyApp(ui = ui, server = server)

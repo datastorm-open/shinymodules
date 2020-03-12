@@ -65,8 +65,8 @@
 #' ui = shiny::fluidPage(show_dataUI(id = "id", titles = FALSE))
 #' server = function(input, output, session) {
 #'   shiny::callModule(module = show_data, id = "id", data = iris,
-#'     labels = list(title = "Descriptive statistics", 
-#'                   num_var = "Variables numériques",
+#'     labels = list(title = "Statistiques descriptives", 
+#'                   num_var = "Variables num\u00e9riques",
 #'                   date_var = "Variables dates",
 #'                   factor_var = "Variables Facteurs",
 #'                   message = "Calcul en cours..."

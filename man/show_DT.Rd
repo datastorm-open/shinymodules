@@ -45,7 +45,7 @@ Module d'affichage DT avec export. Partie SERVER
 ui = shiny::fluidPage(show_DT_UI("iris_module"))
 server = function(input, output, session) {
   callModule(show_DT, "iris_module", reactive(iris), reactive(DT::datatable(iris)), 
-   paste0("Iris_export", format(Sys.time(), format = "\%d\%m\%Y_\%H\%M\%S")))
+   paste0("Iris_export", format(Sys.time(), format = "%d%m%Y_%H%M%S")))
 }
 shiny::shinyApp(ui = ui, server = server)
   
