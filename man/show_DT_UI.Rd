@@ -2,7 +2,7 @@
 % Please edit documentation in R/export_dt_table.R
 \name{show_DT_UI}
 \alias{show_DT_UI}
-\title{Module d'affichage DT avec export. Partie UI}
+\title{Show & export table using DT}
 \usage{
 show_DT_UI(id)
 }
@@ -10,5 +10,5 @@ show_DT_UI(id)
 \item{id}{: character. id}
 }
 \description{
-Module d'affichage DT avec export. Partie UI
+Show & export table using DT
 }

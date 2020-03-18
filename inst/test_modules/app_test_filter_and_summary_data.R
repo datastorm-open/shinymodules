@@ -13,9 +13,9 @@ ui <- fluidPage(
                   shiny::selectInput("data_load", label = "Choose data",
                                      choices = c("mtcars", "iris", "nycflights"))
     ),
-    shiny::column(12, filter_dataUI(id = "id")
+    shiny::column(12, filter_data_UI(id = "id")
     ),
-    shiny::column(12, show_dataUI(id = "idshow")
+    shiny::column(12, summary_data_UI(id = "idshow")
     )
   )
 )
@@ -52,7 +52,7 @@ server <- function(input, output, session) {
       reactive_data$data_shown <- datafilt
     })
     
-    callModule(module = show_data, id = "idshow",
+    callModule(module = summary_data, id = "idshow",
                # optional_stats = "interquartile_range",
                data = shiny::reactive(reactive_data$data_shown), nb_modal2show = 6,
                columns_to_show = c("min", "max", "nb_valid", "var", "interquartile_range", "mode_max", "boxplot", "density"))

@@ -20,7 +20,7 @@
 #' @examples 
 #' \dontrun{
 #' 
-#' ui = shiny::fluidPage(visualize_dataUI(id = "id", titles = TRUE))
+#' ui = shiny::fluidPage(visualize_data_UI(id = "id", titles = TRUE))
 #' server = function(input, output, session) {
 #'   data <- reactiveValues(data = iris)
 #'   shiny::callModule(module = visualize_data, id = "id", data = reactive(data$data))
@@ -35,7 +35,7 @@
 #' 
 #' @rdname visualize_data_module
 #' 
-visualize_dataUI <- function(id, titles = TRUE) {
+visualize_data_UI <- function(id, titles = TRUE) {
   ns <- shiny::NS(id)
   shiny::fluidPage(
     shiny::fluidRow(

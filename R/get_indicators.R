@@ -4,7 +4,7 @@
 #' 
 #' @param data \code{data.frame}, \code{data.table} input data which will be preprocessed
 #' @param optional_stats \code{character} optional statistics computed on data,
-#' you can look at \link{show_data} for more information.
+#' you can look at \link{summary_data} for more information.
 #' @param nb_modal2show \code{integer} number of modalities to show for factor variables.
 #' @param show_warnings \code{logical} Show warnings ? (example compute Min. on all NAs)
 #' @param keep_dataframe \code{logical} data.frame in output ?
@@ -127,7 +127,7 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
 #' @param var \code{character}
 #' @param absolute \code{logical}
 #' @param optional_stats \code{character} optional statistics computed on data,
-#' you can look at \link{show_data} for more information.
+#' you can look at \link{summary_data} for more information.
 #' @return data.table with statistics on numeric data
 #' @import sparkline PerformanceAnalytics
 #' 
@@ -215,7 +215,7 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
 #' @param data \code{data.frame}, \code{data.table}
 #' @param vars \code{character}
 #' @param optional_stats \code{character} optional statistics computed on data,
-#' you can look at \link{show_data} for more information.
+#' you can look at \link{summary_data} for more information.
 #' @param keep_dataframe \code{logical} data.frame in output ?
 #' @param keep_datatable \code{logical} datatable (DT) in output ?
 #' @param progress Optionnal. Shiny progress bar.
@@ -303,7 +303,7 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
 #' @param data \code{data.frame}, \code{data.table}
 #' @param dates_vars \code{character}
 #' @param optional_stats \code{character} optional statistics computed on data,
-#' you can look at \link{show_data} for more information.
+#' you can look at \link{summary_data} for more information.
 #' @param keep_dataframe \code{logical} data.frame in output ?
 #' @param keep_datatable \code{logical} datatable (DT) in output ?
 #' @param progress Optionnal. Shiny progress bar.
@@ -398,7 +398,7 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
 #' @param fact_vars \code{character}
 #' @param nb_modal2show \code{integer}
 #' @param optional_stats \code{character} optional statistics computed on data,
-#' you can look at \link{show_data} for more information.
+#' you can look at \link{summary_data} for more information.
 #' @param keep_dataframe \code{logical} data.frame in output ?
 #' @param keep_datatable \code{logical} datatable (DT) in output ?
 #' @param progress Optionnal. Shiny progress bar.
