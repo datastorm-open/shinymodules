@@ -10,7 +10,7 @@ ui <- fluidPage(
                   shiny::selectInput("data_load", label = "Choose data",
                                      choices = c("mtcars", "iris"))
     ),
-    shiny::column(12, filter_dataUI(id = "id")
+    shiny::column(12, filter_data_UI(id = "id")
     ),
     shiny::column(12, downloadButton("downloadData", "Download filtered data")
                   

@@ -1,7 +1,4 @@
-# module shiny pour afficher une table avec DT, 
-# en mettant trois boutons d'export dessous
-
-#' Module d'affichage DT avec export. Partie UI
+#' Show & export table using DT
 #' 
 #' @param id : character. id
 #' 
@@ -28,7 +25,7 @@ show_DT_UI <- function(id) {
   )
 }
 
-#' Module d'affichage DT avec export. Partie SERVER
+#' Show & export table using DT
 #' 
 #' @param input Not a real parameter, should not be set manually. 
 #' Done by callModule automatically.

@@ -1,4 +1,4 @@
-#' @title UI part of the module show_data
+#' @title UI part of the module summary_data
 #' 
 #' @description Shiny module to show descripive statistics on data
 #' 
@@ -42,19 +42,19 @@
 #' 
 #' \dontrun{
 #' 
-#' ui = shiny::fluidPage(show_dataUI(id = "id", titles = TRUE))
+#' ui = shiny::fluidPage(summary_data_UI(id = "id", titles = TRUE))
 #' server = function(input, output, session) {
 #'   data <- reactiveValues(data = iris)
-#'   shiny::callModule(module = show_data, id = "id", data = reactive(data$data),
+#'   shiny::callModule(module = summary_data, id = "id", data = reactive(data$data),
 #'     optional_stats = "all")
 #' }
 #' 
 #' shiny::shinyApp(ui = ui, server = server)
 #'      
 #' ## filter on stats 
-#' ui = shiny::fluidPage(show_dataUI(id = "id", titles = TRUE))
+#' ui = shiny::fluidPage(summary_data_UI(id = "id", titles = TRUE))
 #' server = function(input, output, session) {
-#'   shiny::callModule(module = show_data, id = "id", data = iris,
+#'   shiny::callModule(module = summary_data, id = "id", data = iris,
 #'     optional_stats = c("kurtosis", "density"),
 #'     columns_to_show = c("Species", "Petal.Width", "Sepal.Width"))
 #' }
@@ -62,9 +62,9 @@
 #' shiny::shinyApp(ui = ui, server = server)   
 #'           
 #' ## labels
-#' ui = shiny::fluidPage(show_dataUI(id = "id", titles = FALSE))
+#' ui = shiny::fluidPage(summary_data_UI(id = "id", titles = FALSE))
 #' server = function(input, output, session) {
-#'   shiny::callModule(module = show_data, id = "id", data = iris,
+#'   shiny::callModule(module = summary_data, id = "id", data = iris,
 #'     labels = list(title = "Statistiques descriptives", 
 #'                   num_var = "Variables num\u00e9riques",
 #'                   date_var = "Variables dates",
@@ -76,13 +76,13 @@
 #' shiny::shinyApp(ui = ui, server = server)   
 #'                  
 #' ## Examples apps
-#' run_example_app_show_data()
-#' run_example_app_filter_and_show_data()
+#' run_example_app_summary_data()
+#' run_example_app_filter_and_summary_data()
 #' }
 #' 
-#' @rdname show_data_module
+#' @rdname summary_data_module
 #' 
-show_dataUI <- function(id, titles = TRUE, subtitles = TRUE) {
+summary_data_UI <- function(id, titles = TRUE, subtitles = TRUE) {
   ns <- shiny::NS(id)
   shiny::fluidPage(
     ## Stats descriptives on numerical variables in a first tab
@@ -136,8 +136,8 @@ show_dataUI <- function(id, titles = TRUE, subtitles = TRUE) {
 #' @export
 #' @import shiny data.table magrittr sparkline PerformanceAnalytics htmlwidgets
 #'
-#' @rdname show_data_module
-show_data <- function(input, output, session, data = NULL, optional_stats = "all", 
+#' @rdname summary_data_module
+summary_data <- function(input, output, session, data = NULL, optional_stats = "all", 
                       nb_modal2show = 3, columns_to_show = "all", show_warnings = FALSE, 
                       labels = list(title = "Descriptive statistics", 
                                     num_var = "Numeric variables",

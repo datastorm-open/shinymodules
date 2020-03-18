@@ -2,10 +2,18 @@
 % Please edit documentation in R/export_dt_table.R
 \name{show_DT}
 \alias{show_DT}
-\title{Module d'affichage DT avec export. Partie SERVER}
+\title{Show & export table using DT}
 \usage{
-show_DT(input, output, session, data, dt, file_name, row.names = FALSE,
-  server = TRUE)
+show_DT(
+  input,
+  output,
+  session,
+  data,
+  dt,
+  file_name,
+  row.names = FALSE,
+  server = TRUE
+)
 }
 \arguments{
 \item{input}{Not a real parameter, should not be set manually. 
@@ -28,7 +36,7 @@ Done by callModule automatically.}
 \item{server}{: \code{logical}}
 }
 \description{
-Module d'affichage DT avec export. Partie SERVER
+Show & export table using DT
 }
 \examples{
 
@@ -37,7 +45,7 @@ Module d'affichage DT avec export. Partie SERVER
 ui = shiny::fluidPage(show_DT_UI("iris_module"))
 server = function(input, output, session) {
   callModule(show_DT, "iris_module", reactive(iris), reactive(DT::datatable(iris)), 
-   paste0("Iris_export", format(Sys.time(), format = "\%d\%m\%Y_\%H\%M\%S")))
+   paste0("Iris_export", format(Sys.time(), format = "%d%m%Y_%H%M%S")))
 }
 shiny::shinyApp(ui = ui, server = server)
   

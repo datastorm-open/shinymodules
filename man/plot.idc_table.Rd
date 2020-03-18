@@ -4,10 +4,16 @@
 \alias{plot.idc_table}
 \title{Plot method for idc_table objects}
 \usage{
-plot.idc_table(data_idc, instantToHour = FALSE, main = "Model's indicators",
-  idc = c("mape", "rmse", "mae", "mape_e"), col = c("black", "darkblue",
-  "purple", "grey"), bullet = c("round", "square", "triangleUp", "diamond"),
-  dashLength = c(0, 4, 8, 12), js = TRUE)
+plot.idc_table(
+  data_idc,
+  instantToHour = FALSE,
+  main = "Model's indicators",
+  idc = c("mape", "rmse", "mae", "mape_e"),
+  col = c("black", "darkblue", "purple", "grey"),
+  bullet = c("round", "square", "triangleUp", "diamond"),
+  dashLength = c(0, 4, 8, 12),
+  js = TRUE
+)
 }
 \arguments{
 \item{data_idc}{\code{data.frame} / \code{data.table}. Table of indicators.}

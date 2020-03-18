@@ -4,8 +4,11 @@
 \alias{add_temp_var}
 \title{Add temporal (hour, day, ...) using a date column}
 \usage{
-add_temp_var(data, col_date, temp_vars = c("min", "heure", "jour_semaine",
-  "semaine_annee", "mois_annee", "annee"))
+add_temp_var(
+  data,
+  col_date,
+  temp_vars = c("min", "heure", "jour_semaine", "semaine_annee", "mois_annee", "annee")
+)
 }
 \arguments{
 \item{data}{\code{data.table}. Table containing a date colummn.}

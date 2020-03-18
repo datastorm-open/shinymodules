@@ -32,7 +32,7 @@
 #' @examples 
 #' \dontrun{
 #' 
-#' ui = shiny::fluidPage(filter_dataUI(id = "id", titles = TRUE))
+#' ui = shiny::fluidPage(filter_data_UI(id = "id", titles = TRUE))
 #' server = function(input, output, session) {
 #'   data <- reactiveValues(data = iris)
 #'   shiny::callModule(module = filter_data, id = "id", data = reactive(data$data), 
@@ -42,54 +42,49 @@
 #' shiny::shinyApp(ui = ui, server = server)
 #' 
 #' 
-#' ui = shiny::fluidPage(filter_dataUI(id = "id", 
-#'   labels = list(title = "Filtres",
-#'   no_data = "Pas de données disponibles", 
-#'   filter = "Filtrer sur les colonnes :", 
-#'   reinitialize = "Réinitialisation des filtres", 
-#'   validate = "Filtrer les données")
-#' ))
+#' ui = shiny::fluidPage(filter_data_UI(id = "id"))
 #' 
 #' server = function(input, output, session) {
-#'   shiny::callModule(module = filter_data, id = "id", data = iris)
-#' }
+#'   shiny::callModule(module = filter_data, id = "id", data = iris, 
+#'   labels = list(
+#'       title = "Filtres",
+#'       no_data = "Pas de données disponibles", 
+#'       filter = "Filtrer sur les colonnes :", 
+#'       reinitialize = "Réinitialisation des filtres", 
+#'       validate = "Filtrer les données"
+#'    )
+#' )}
 #' 
 #' shiny::shinyApp(ui = ui, server = server)
 #' 
 #' ## Example apps
-#' run_example_app_show_data()
-#' run_example_app_filter_and_show_data()
+#' run_example_app_summary_data()
+#' run_example_app_filter_and_summary_data()
 #' } 
 #'
 #' @rdname filter_data_module
-filter_dataUI <- function(id, titles = TRUE, 
-                          labels = list(title = "Filters",
-                                        no_data = "No data available", 
-                                        filter = "Filter on :", 
-                                        reinitialize = "Reinitialize filters", 
-                                        validate = "Apply filtering on data")
-) {
+filter_data_UI <- function(id, titles = TRUE) {
   ns <- shiny::NS(id)
   shiny::fluidPage(
     shiny::fluidRow(
       column(12,
-             if(titles) shiny::div(h2(labels$title))
+             if(titles) uiOutput(ns("ui_title"))
       )
     ),
     
     shiny::conditionalPanel(
       condition = paste0("output['", ns("have_data_filter"), "'] === false"),
-      shiny::div(h2(labels$no_data))
+      uiOutput(ns("ui_no_data"))
     ),
     
     shiny::conditionalPanel(
       condition = paste0("output['", ns("have_data_filter"), "'] === true"),
       
       shiny::fluidRow(
-        column(2, div(br(), h5(labels$filter), align = "center")),
+        column(2, div(br(), uiOutput(ns("ui_filter")), align = "center")),
         column(7, shiny::uiOutput(ns("choicefilter"))),
         column(3, shiny::div(br(), shiny::actionButton(
-          ns("reinitializeFilter"), labels$reinitialize), align = "center"))
+          ns("reinitializeFilter"), "Reinitialize filters"), align = "center"))
       ),
       
       # display only if there is at least one selected filter
@@ -104,7 +99,7 @@ filter_dataUI <- function(id, titles = TRUE,
                                 column(10, shiny::hr())
                               ),
                               shiny::div(shiny::actionButton(
-                                ns("validateFilter"), labels$validate), 
+                                ns("validateFilter"), "Apply filtering on data"), 
                                 align = "center")
       )
     )
@@ -118,7 +113,12 @@ filter_dataUI <- function(id, titles = TRUE,
 filter_data <- function(input, output, session, data = NULL,
                         columns_to_filter = "all", 
                         max_char_values = 1000,
-                        default_multisel_n = 10) {
+                        default_multisel_n = 10, 
+                        labels = list(title = "Filters",
+                                      no_data = "No data available", 
+                                      filter = "Filter on :", 
+                                      reinitialize = "Reinitialize filters", 
+                                      validate = "Apply filtering on data")) {
   
   ns <- session$ns
   
@@ -146,6 +146,36 @@ filter_data <- function(input, output, session, data = NULL,
   } else {
     get_default_multisel_n <- default_multisel_n
   }
+  
+  if (! shiny::is.reactive(labels)) {
+    get_labels <- shiny::reactive(labels)
+  } else {
+    get_labels <- labels
+  }
+  
+  output$ui_title <- renderUI({
+    shiny::div(h2(get_labels()$title))
+  })
+  output$ui_no_data <- renderUI({
+    shiny::div(h2(get_labels()$no_data))
+  })
+  output$ui_filter <- renderUI({
+    shiny::h5(get_labels()$filter)
+  })
+
+  observe({
+    button_validate_label <- get_labels()$validate
+    if(!is.null(button_validate_label)){
+      updateActionButton(session, "validateFilter", label = button_validate_label)
+    }
+  })
+  
+  observe({
+    button_renit_label <- get_labels()$reinitialize
+    if(!is.null(button_renit_label)){
+      updateActionButton(session, "reinitializeFilter", label = button_renit_label)
+    }
+  })
   
   data_to_filter <- shiny::reactive({ 
     data <- get_data()
