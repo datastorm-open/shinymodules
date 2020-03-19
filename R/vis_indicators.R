@@ -220,7 +220,7 @@ add_temp_var <- function(data,
 #' @return a data.table. If 'by_col' is one of: ("day", "week", "month", "year"), a new column 
 #' is created. If 'by_col' is numeric, it is discretized. Else it is unchanged.
 #' 
-#' @import data.table
+#' @import data.table stats
 #'
 #' @examples
 #' \dontrun{\donttest{
@@ -258,7 +258,7 @@ add_by <- function(data,
     
     data[, (by_col) := cut(get(by_col), 
                            breaks = unique(
-                             quantile(get(by_col), 
+                             stats::quantile(get(by_col), 
                                       probs = seq(0, 1, length.out = as.numeric(nb_quantiles) + 1), 
                                       type = 1)), 
                            dig.lab = 3,
@@ -282,7 +282,7 @@ add_by <- function(data,
 #' @param js \code{boolean} (TRUE). ??
 #' 
 #' @return a rAmCharts grpahic: amSerialChart of indicators.
-#' @import data.table rAmCharts
+#' @import data.table rAmCharts pipeR
 #'
 #' @examples
 #' \dontrun{\donttest{
@@ -446,7 +446,7 @@ plot.idc_table <- function(data_idc,
 #'
 #' @return shiny module.
 #' 
-#' @import shiny data.table rAmCharts visNetwork rpart
+#' @import shiny data.table rAmCharts visNetwork rpart stats
 #' 
 #' @importFrom DT datatable 
 #' 
@@ -823,7 +823,7 @@ vis_indicators <- function(input, output, session,
             data <- copy(get_data())
             
             formule <- paste(input$tree_y_var, "~", paste0(input$tree_x_var, collapse = "+")) %>% 
-              as.formula()
+              stats::as.formula()
             rpart_tree <- rpart::rpart(formule, 
                                        data = data, 
                                        control = rpart::rpart.control(cp = input$tree_cp, 

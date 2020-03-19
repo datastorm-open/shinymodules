@@ -148,7 +148,7 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
   
   getmode <- function(x, ...) {
     #dstx <- density(x, ...)
-    dstx <- tryCatch(density(x, ...), error = function(e) NULL)
+    dstx <- tryCatch(stats::density(x, ...), error = function(e) NULL)
     mode <- ifelse(is.null(dstx), NA, dstx$x[which(dstx$y == max(dstx$y))])
   }
   
