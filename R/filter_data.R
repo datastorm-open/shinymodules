@@ -321,7 +321,7 @@ filter_data <- function(input, output, session, data = NULL,
     cpt <- input$reinitializeFilter
     
     isolate({
-      if (cpt > 0) {
+      if (!is.null(cpt) && cpt > 0) {
         data <- data_to_filter()
         # reinitialize current filters only
         reinit_filters <- intersect(input$chosenfilters, colnames(data))
