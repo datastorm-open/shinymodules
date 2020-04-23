@@ -2,15 +2,12 @@
 
 This package provides shiny modules to build quickly an ergonomic tool to explore a table.
 
-## Features
 
-- Dynamically filter on your table with `shinymodules::filter_data` : `filter_data` displays a `selectInput` that let the user choose one of several table's columns. For each selected columns, a shiny input will be displayed to apply a filter on this column. This shiny input depends on the column type (character, factor, numeric, date).
-- Display an automatically generate dashboard that shows descriptive statistics with `shinymodules::show_data` : for every columns from the table you selected. The statistics chosen depend on the column's type (character, factor, numeric, date) 
-- (Deprecated) Display a module to build dynamically your chart with `shinymodules::visualize_data`. We recommand you to use the package esquisseR instead. 
+## `filter_data`
 
-## Examples
+filter_data is a module used to filter a given data.table on chosen columns by the user. The server part returns a reactive value containing the filtered data.table.
 
-### `filter_data`
+![img1](inst/doc_img/filter_data.png)
 
 ```r
 ## UI
@@ -30,15 +27,34 @@ output_filter <- shiny::callModule(module = shinymodules::filter_data,
 your_filtered_table <- output_filter$data
 ```
 
-### `show_data`
+## `show_DT`
+
+Show & export table using DT
+
+![img1](inst/doc_img/show_dt.png)
 
 ```r
 ## UI
-shinymodules::show_dataUI(id = "stat_desc_id", titles = FALSE)
+shinymodules::show_DT_UI("iris_module")
+
+## SERVER
+shiny::callModule(show_DT, "iris_module", reactive(iris), reactive(DT::datatable(iris)), 
+   paste0("Iris_export", format(Sys.time(), format = "...")))
+```
+
+## `summary_data`
+
+Display an automatically generate dashboard that shows descriptive statistics with `shinymodules::summary_data` : for every columns from the table you selected. The statistics chosen depend on the column's type (character, factor, numeric, date).
+
+![img1](inst/doc_img/summary_data.png)
+
+```r
+## UI
+shinymodules::summary_dataUI(id = "stat_desc_id", titles = FALSE)
 
 ## SERVER
 input_show <- shiny::reactiveValues(data = NULL)
-shiny::callModule(module = shinymodules::show_data, 
+shiny::callModule(module = shinymodules::summary_data, 
 		  data = shiny::reactive(input_show$data),
 		  optional_stats = "all",
 		  nb_modal2show = 6, 
@@ -49,8 +65,27 @@ shiny::callModule(module = shinymodules::show_data,
 				message = "Calcul des indicateurs en cours..."))
 ```
 
+## `vis_indicators`
 
-## Questions 
+This module provides tools to monitor models.
 
-- Why labels are passed in UI for filter and in server for show ? 
-- Why/does we need a structure sth-reactive$data ?
+![img1](inst/doc_img/vis_indicator_1.png)
+
+![img2](inst/doc_img/vis_indicator_2.png)
+
+![img3](inst/doc_img/vis_indicator_3.png)
+
+```r
+## UI
+shinymodules::vis_indicators_UI("my_id")
+
+## SERVER
+shiny::callModule(shinymodules::vis_indicators, "my_id", data = reactive(data), 
+                  col_obs = col_obs,
+                  col_fit = col_fit,
+                  col_date = col_date,
+                  indicators = indicators)
+```
+
+
+
