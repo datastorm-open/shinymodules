@@ -1,6 +1,6 @@
 Package: shinymodules
 Title: Shiny module tools
-Version: 0.0.7
+Version: 0.0.7.1
 Authors@R: 
     person(given = "Datastorm",
            family = "Datastorm",
