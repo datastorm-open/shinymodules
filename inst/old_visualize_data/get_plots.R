@@ -10,7 +10,7 @@
 #' @param id \code{character} if you use an id column, default NULL
 #' @param palette_ggplot \code{character} ggplot color palette for scale_fill_gradientn function, default NULL "RdYlGn"
 
-#' @import ggplot2 rAmCharts
+#' @import ggplot2 rAmCharts pipeR
 #' 
 #'
 .plotScatterplot <- function(data, type = "line", js = TRUE, id = NULL,

@@ -14,7 +14,7 @@
 \item{absolute}{\code{logical}}
 
 \item{optional_stats}{\code{character} optional statistics computed on data,
-you can look at \link{show_data} for more information.}
+you can look at \link{summary_data} for more information.}
 }
 \value{
 data.table with statistics on numeric data

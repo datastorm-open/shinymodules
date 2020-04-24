@@ -14,7 +14,7 @@ ui <- fluidPage(
                                      choices = c("mtcars", "flights", "iris"), 
                                      selected = "flights")
     ),
-    shiny::column(12, show_dataUI(id = "id")
+    shiny::column(12, summary_data_UI(id = "id")
     )
   )
 )
@@ -42,10 +42,11 @@ server <- function(input, output, session) {
       reactive_data$data <- data.table::data.table(data)
     }
   })
-  callModule(module = show_data, id = "id",
+  callModule(module = summary_data, id = "id",
              data = shiny::reactive(reactive_data$data), 
              optional_stats = optional_stats, show_warnings = FALSE,
-             nb_modal2show = nb_modal2show, columns_to_show = c(colnames(reactive_data$data), "invalid"))
+             nb_modal2show = nb_modal2show, 
+             columns_to_show = reactive(c(colnames(reactive_data$data), "invalid")))
 }
 
 # Run the application

@@ -14,7 +14,7 @@ ui <- fluidPage(
                   shiny::selectInput("data_load", label = "Choose data",
                                      choices = c("mtcars", "iris", "nycflights"))
     ),
-    shiny::column(12, visualize_dataUI(id = "id")
+    shiny::column(12, visualize_data_UI(id = "id")
     )
   )
 )

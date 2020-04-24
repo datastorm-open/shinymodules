@@ -13,7 +13,7 @@
 \item{vars}{\code{character}}
 
 \item{optional_stats}{\code{character} optional statistics computed on data,
-you can look at \link{show_data} for more information.}
+you can look at \link{summary_data} for more information.}
 
 \item{keep_dataframe}{\code{logical} data.frame in output ?}
 

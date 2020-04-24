@@ -1,4 +1,4 @@
-#' @title UI part of the module show_data
+#' @title UI part of the module summary_data
 #' 
 #' @description Shiny module to show descripive statistics on data
 #' 
@@ -13,18 +13,24 @@
 #' Done by callModule automatically.
 #' @param session Not a real parameter, should not be set manually. 
 #' Done by callModule automatically.
-#' @param data \code{reactivevalues} reactive data.table
-#' @param optional_stats \code{character} optional statistics computed on numeric
+#' @param data \code{data.frame/reactive} reactive data.table
+#' @param optional_stats \code{character/reactive} optional statistics computed on numeric
 #' data, default is "all". "pct_zero", "pct_NA", "mean", "median", "sd" are
 #' always computed, possible values are "min", "max", "nb_valid", "var", "interquartile_range",
 #' "mode_max", "kurtosis", "skewness", "boxplot", "density".
-#' @param nb_modal2show \code{integer} number of modalities to show 
+#' @param nb_modal2show \code{integer/reactive} number of modalities to show 
 #' for factor variables. 
-#' @param columns_to_show  \code{character} vector of column names you want to be
+#' @param columns_to_show  \code{character/reactive} vector of column names you want to be
 #' shown in the tables
-#' @param show_warnings \code{logical} Show warnings ? (example compute Min. on all NAs)
-#' @param message \code{character} Message of the progress computing indicators.
-#' 
+#' @param show_warnings \code{logical/reactive} Show warnings ? (example compute Min. on all NAs)
+#' @param labels \code{list/reactive} Title / subtitle / message
+#' \itemize{
+#'  \item{"title"}{ : Module title.}
+#'  \item{"num_var "}{ : Subtitle for numeric variables.}
+#'  \item{"date_var"}{ : Subtitle for date variables.}
+#'  \item{"factor_var"}{ : Subtitle for factor variables.}
+#'  \item{"message"}{ :  Message of the progress computing indicators}
+#'}
 #' @return shiny module
 #' 
 #' @export
@@ -36,42 +42,54 @@
 #' 
 #' \dontrun{
 #' 
-#' ui = shiny::fluidPage(show_dataUI(id = "id", titles = TRUE))
+#' ui = shiny::fluidPage(summary_data_UI(id = "id", titles = TRUE))
 #' server = function(input, output, session) {
 #'   data <- reactiveValues(data = iris)
-#'   shiny::callModule(module = show_data, id = "id", data = reactive(data$data),
+#'   shiny::callModule(module = summary_data, id = "id", data = reactive(data$data),
 #'     optional_stats = "all")
 #' }
 #' 
 #' shiny::shinyApp(ui = ui, server = server)
 #'      
 #' ## filter on stats 
-#' ui = shiny::fluidPage(show_dataUI(id = "id", titles = TRUE))
+#' ui = shiny::fluidPage(summary_data_UI(id = "id", titles = TRUE))
 #' server = function(input, output, session) {
-#'   data <- reactiveValues(data = iris)
-#'   
-#'   shiny::callModule(module = show_data, id = "id", data = reactive(data$data),
+#'   shiny::callModule(module = summary_data, id = "id", data = iris,
 #'     optional_stats = c("kurtosis", "density"),
 #'     columns_to_show = c("Species", "Petal.Width", "Sepal.Width"))
 #' }
 #' 
 #' shiny::shinyApp(ui = ui, server = server)   
-#'              
-#' ## Examples apps
-#' run_example_app_show_data()
-#' run_example_app_filter_and_show_data()
+#'           
+#' ## labels
+#' ui = shiny::fluidPage(summary_data_UI(id = "id", titles = FALSE))
+#' server = function(input, output, session) {
+#'   shiny::callModule(module = summary_data, id = "id", data = iris,
+#'     labels = list(title = "Statistiques descriptives", 
+#'                   num_var = "Variables num\u00e9riques",
+#'                   date_var = "Variables dates",
+#'                   factor_var = "Variables Facteurs",
+#'                   message = "Calcul en cours..."
+#'     ))
 #' }
 #' 
-#' @rdname show_data_module
+#' shiny::shinyApp(ui = ui, server = server)   
+#'                  
+#' ## Examples apps
+#' run_example_app_summary_data()
+#' run_example_app_filter_and_summary_data()
+#' }
 #' 
-show_dataUI <- function(id, titles = TRUE, subtitles = TRUE) {
+#' @rdname summary_data_module
+#' 
+summary_data_UI <- function(id, titles = TRUE, subtitles = TRUE) {
   ns <- shiny::NS(id)
   shiny::fluidPage(
     ## Stats descriptives on numerical variables in a first tab
     ## then on factor variables in a second tab
     shiny::fluidRow(
       column(12,
-             if(titles) shiny::div(h2("Descriptive statistics"))
+             if(titles) uiOutput(ns("title"))
       )
     ),
     shiny::conditionalPanel(
@@ -85,9 +103,9 @@ show_dataUI <- function(id, titles = TRUE, subtitles = TRUE) {
         column(12,
                shiny::conditionalPanel(
                  condition = paste0("output['", ns("have_dt_num"), "'] === true"),
-                 if(subtitles) shiny::div(h4("Numeric variables")),
-                   show_DT_UI(ns("dt_num_ui"))
-                 )
+                 if(subtitles) uiOutput(ns("subtitle_num_var")),
+                 show_DT_UI(ns("dt_num_ui"))
+               )
         )
       ),
       shiny::fluidRow(
@@ -95,7 +113,7 @@ show_dataUI <- function(id, titles = TRUE, subtitles = TRUE) {
                shiny::conditionalPanel(
                  condition = paste0("output['", ns("have_dt_dates"), "'] === true"),
                  shiny::hr(),
-                 if(subtitles) shiny::div(h4("Date variables")),
+                 if(subtitles) uiOutput(ns("subtitle_date_var")),
                  show_DT_UI(ns("dt_dates_ui"))
                )
         )
@@ -105,9 +123,9 @@ show_dataUI <- function(id, titles = TRUE, subtitles = TRUE) {
                shiny::conditionalPanel(
                  condition = paste0("output['", ns("have_dt_fact"), "'] === true"),
                  shiny::hr(),
-                 if(subtitles) shiny::div(h4("Factor variables")),
+                 if(subtitles) uiOutput(ns("subtitle_factor_var")),
                  show_DT_UI(ns("dt_fact_ui"))
-              )
+               )
         )
       )
     )
@@ -118,19 +136,75 @@ show_dataUI <- function(id, titles = TRUE, subtitles = TRUE) {
 #' @export
 #' @import shiny data.table magrittr sparkline PerformanceAnalytics htmlwidgets
 #'
-#' @rdname show_data_module
-show_data <- function(input, output, session, data = NULL, optional_stats = "all", 
+#' @rdname summary_data_module
+summary_data <- function(input, output, session, data = NULL, optional_stats = "all", 
                       nb_modal2show = 3, columns_to_show = "all", show_warnings = FALSE, 
-                      message = "Calculation in progress...") {
+                      labels = list(title = "Descriptive statistics", 
+                                    num_var = "Numeric variables",
+                                    date_var = "Date variables",
+                                    factor_var = "Factor variables",
+                                    message = "Calculation in progress..."
+                      )
+) {
   ns <- session$ns
   
+  # reactive controls
+  if (! shiny::is.reactive(data)) {
+    get_data <- shiny::reactive(data)
+  } else {
+    get_data <- data
+  }
+  
+  if (! shiny::is.reactive(optional_stats)) {
+    get_optional_stats <- shiny::reactive(optional_stats)
+  } else {
+    get_optional_stats <- optional_stats
+  }
+  
+  if (! shiny::is.reactive(nb_modal2show)) {
+    get_nb_modal2show <- shiny::reactive(nb_modal2show)
+  } else {
+    get_nb_modal2show <- nb_modal2show
+  }
+  
+  if (! shiny::is.reactive(columns_to_show)) {
+    get_columns_to_show <- shiny::reactive(columns_to_show)
+  } else {
+    get_columns_to_show <- columns_to_show
+  }
+  
+  if (! shiny::is.reactive(show_warnings)) {
+    get_show_warnings <- shiny::reactive(show_warnings)
+  } else {
+    get_show_warnings <- show_warnings
+  }
+  
+  if (! shiny::is.reactive(labels)) {
+    get_labels <- shiny::reactive(labels)
+  } else {
+    get_labels <- labels
+  }
+  
+  output$title <- renderUI({
+    shiny::div(h2(get_labels()$title))
+  })
+  output$subtitle_num_var <- renderUI({
+    shiny::div(h4(get_labels()$num_var))
+  })
+  output$subtitle_factor_var <- renderUI({
+    shiny::div(h4(get_labels()$factor_var))
+  })
+  output$subtitle_date_var <- renderUI({
+    shiny::div(h4(get_labels()$date_var))
+  })
+  
   output$have_data <- shiny::reactive({
-    !is.null(data()) && "data.frame" %in% class(data()) && nrow(data()) > 0
+    !is.null(get_data()) && "data.frame" %in% class(get_data()) && nrow(get_data()) > 0
   })
   shiny::outputOptions(output, "have_data", suspendWhenHidden = FALSE)
   
   data_num_fact <- shiny::reactive({
-    data <- data()
+    data <- get_data()
     if(!"data.frame" %in% class(data)){
       data <- NULL
     } else {
@@ -140,8 +214,9 @@ show_data <- function(input, output, session, data = NULL, optional_stats = "all
     }
     
     if(!is.null(data) && nrow(data) > 0){
+      columns_to_show <- get_columns_to_show()
       if(!"all" %in% columns_to_show){
-        columns_to_show <- intersect(columns_to_show, colnames(data()))
+        columns_to_show <- intersect(columns_to_show, colnames(get_data()))
         if(length(columns_to_show) == 0) columns_to_show <- NULL
       }
       if (is.null(columns_to_show) | "all" %in% columns_to_show) {
@@ -151,7 +226,8 @@ show_data <- function(input, output, session, data = NULL, optional_stats = "all
         data <- data[, .SD, .SDcols = columns_to_show]
       }
       setcolorder(data, colnames(data)[order(colnames(data))])
-      get_dt_num_dt_fac(data, optional_stats = optional_stats, nb_modal2show, show_warnings = show_warnings, message = message, session = session)
+      get_dt_num_dt_fac(data, optional_stats = get_optional_stats(), nb_modal2show = get_nb_modal2show(), 
+                        show_warnings = get_show_warnings(), message = get_labels()$message, session = session)
     } else {
       NULL
     }

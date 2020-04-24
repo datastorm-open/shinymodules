@@ -13,7 +13,7 @@ get_dt_num_dt_fac(data, optional_stats, nb_modal2show,
 \item{data}{\code{data.frame}, \code{data.table} input data which will be preprocessed}
 
 \item{optional_stats}{\code{character} optional statistics computed on data,
-you can look at \link{show_data} for more information.}
+you can look at \link{summary_data} for more information.}
 
 \item{nb_modal2show}{\code{integer} number of modalities to show for factor variables.}
 
