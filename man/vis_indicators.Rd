@@ -7,23 +7,23 @@
 vis_indicators(input, output, session, data, col_id = NULL,
   keep_id = NULL, col_obs, col_fit, col_date = NULL,
   indicators = c("rmse", "mae", "mape", "mape_e"),
-  labels = list(progress_data = "Préparation des données", no_data =
-  "Pas de données", no_choice = "Aucun", idc_title =
-  "Distribution des indicateurs", idc_aggr = "Colonne d'agrégation",
-  idv_opt_discretiser = "Discrétiser ?", idv_choice_quantiles =
+  labels = list(progress_data = "Preparation des donnees", no_data =
+  "Pas de donnees", no_choice = "Aucun", idc_title =
+  "Distribution des indicateurs", idc_aggr = "Colonne d'agregation",
+  idv_opt_discretiser = "Discretiser ?", idv_choice_quantiles =
   "Choix des quantiles", idc_button = "Afficher le graphique", idc_progress
   = "Affichage des indicateurs", idc_plot_title = "Model's indicators",
   err_title = "Distribution des erreurs", err_aggr =
-  "Colonne d'agrégation", err_type = "Choix du type d'erreur", err_button
-  = "Afficher le graphique",      err_progress = "Affichage des boxplots",
+  "Colonne d'agregation", err_type = "Choix du type d'erreur", err_button =
+  "Afficher le graphique",      err_progress = "Affichage des boxplots",
   err_ylab = "Values", error_xlab = "erreur : ", tree_title =
-  "Arbre de décision", tree_y = "Y", tree_x = "X", tree_minsplit =
-  "Minsplit", tree_cp = "Complexité (cp)", tree_maj_cp = "Ajuster le cp",
-  tree_maj_params = "Mettre à jour les paramètres", tree_run =
-  "Mettre à jour l'arbre", tree_cp_modal_titre = "Mise à jour du CP",
+  "Arbre de decision", tree_y = "Y", tree_x = "X", tree_minsplit =
+  "Minsplit", tree_cp = "Complexite (cp)", tree_maj_cp = "Ajuster le cp",
+  tree_maj_params = "Mettre a jour les parametres", tree_run =
+  "Mettre a jour l'arbre", tree_cp_modal_titre = "Mise a jour du CP",
   tree_cp_modal_min = "Slider minimum", tree_cp_modal_max =
   "Slider maximum", tree_cp_modal_step = "Slider step",
-  tree_cp_modal_bouton = "Valider la mise à jour",      warning_var =
+  tree_cp_modal_bouton = "Valider la mise a jour",      warning_var =
   "Selectionner au moins une variable explicative."))
 }
 \arguments{
@@ -80,36 +80,36 @@ server <- function(input, output, session) {
              col_date = col_date,
              indicators = indicators,
              labels = list(
-               "progress_data" = "Préparation des données",
-               "no_data" = "Pas de données",
+               "progress_data" = "Preparation des donnees",
+               "no_data" = "Pas de donnees",
                "no_choice" = "Auckkskidfhlun",
                "idc_title" = "Distribution des indicateurs",
-               "idc_aggr" = "Colonne d'agrégation",
-               "idv_opt_discretiser" = "Discrétiser ?",
+               "idc_aggr" = "Colonne d'agregation",
+               "idv_opt_discretiser" = "Discretiser ?",
                "idv_choice_quantiles" = "Choix des quantiles",
                "idc_button" = "Afficher le graphique",
                "idc_progress" = "Affichage des indicateurs",
                "idc_plot_title" = "Model's indicators",
                "err_title" = "Distribution des erreurs", 
-               "err_aggr" = "Colonne d'agrégation",
+               "err_aggr" = "Colonne d'agregation",
                "err_type" = "Choix du type d'erreur",
                "err_button" = "Afficher le graphique",
                "err_progress" = "Affichage des boxplots",
                "err_ylab" = "Values",
                "error_xlab" = "erreur : ",
-               "tree_title" = "Arbre de décision",
+               "tree_title" = "Arbre de decision",
                "tree_y" = "Y",
                "tree_x" = "X",
                "tree_minsplit" = "Minsplit",
-               "tree_cp" = "Complexité (cp)",
+               "tree_cp" = "Complexite (cp)",
                "tree_maj_cp" = "Ajuster le cp",
-               "tree_maj_params" = "Mettre à jour les paramètres",
-               "tree_run" = "Mettre à jour l'arbre",
-               "tree_cp_modal_titre" = "Mise à jour du CP",
+               "tree_maj_params" = "Mettre a jour les parametres",
+               "tree_run" = "Mettre a jour l'arbre",
+               "tree_cp_modal_titre" = "Mise a jour du CP",
                "tree_cp_modal_min" = "Slider minimum",
                "tree_cp_modal_max" = "Slider maximum",
                "tree_cp_modal_step" = "Slider step",
-               "tree_cp_modal_bouton" = "Valider la mise à jour",
+               "tree_cp_modal_bouton" = "Valider la mise a jour",
                "warning_var" = "Selectionner au moins une variable explicative."))
 }
 shiny::shinyApp(ui = ui, server = server)
