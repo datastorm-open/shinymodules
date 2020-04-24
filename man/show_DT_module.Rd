@@ -34,6 +34,10 @@ Done by callModule automatically.}
 \item{row.names}{: \code{logical}}
 
 \item{server}{: \code{logical}}
+
+\item{id}{: character. id}
+
+\item{export}{: character. Wanted export type ? Can be multiple}
 }
 \description{
 Show & export table using DT
@@ -42,7 +46,8 @@ Show & export table using DT
 
 \dontrun{
 # ui
-ui = shiny::fluidPage(show_DT_UI("iris_module"))
+ui = shiny::fluidPage(show_DT_UI("iris_module", export = c("csv", "html")))
+
 server = function(input, output, session) {
   callModule(show_DT, "iris_module", reactive(iris), reactive(DT::datatable(iris)), 
    paste0("Iris_export", format(Sys.time(), format = "%d%m%Y_%H%M%S")))
@@ -50,4 +55,5 @@ server = function(input, output, session) {
 shiny::shinyApp(ui = ui, server = server)
   
 }  
+
 }
