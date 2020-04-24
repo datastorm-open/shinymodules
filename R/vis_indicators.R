@@ -66,6 +66,7 @@
 #' @param by \code{character} (NULL). Column name of aggregation variable.
 #' @param dec \code{integer} (2). Number of decimals to be kept.
 #' @param nb.cores \code{integer} (1). Number of cores, when oject is used to make prediction.
+#' @param label_no_choice \code{character} ("Aucun"). Label for no selection.
 #'
 #' @return a data.frame whose columns are the required indicators and aggregation column.
 #' @import data.table
@@ -90,7 +91,8 @@ compute_idc <- function(object = NULL,
                         col_fit = NULL,
                         by = NULL, 
                         dec = 2,
-                        nb.cores = 1) {
+                        nb.cores = 1,
+                        label_no_choice = "Aucun") {
   
   # check inputs
   if (! "data.table" %in% class(data)) {
@@ -106,7 +108,7 @@ compute_idc <- function(object = NULL,
   if (! is.null(col_fit) && ! col_fit %in% colnames(data)) {
     stop("Cant find '", col_fit, "' in data.")
   }
-  if (! is.null(by) && ! by %in% c(colnames(data), "Aucun")) {
+  if (! is.null(by) && ! by %in% c(colnames(data), label_no_choice)) {
     stop("Cant find '", by, "' in data.")
   }
   if (is.null(col_fit)) {
@@ -125,7 +127,7 @@ compute_idc <- function(object = NULL,
   # compute indicators
   real <- data[[col_obs]]
   
-  if (is.null(by) || by == "Aucun") {
+  if (is.null(by) || by == label_no_choice) {
     mape.score <- round(.mape(real, fit), dec)
     rmse.score <- round(.rmse(real, fit), dec)
     mae.score  <- round(.mae(real, fit), dec)
@@ -191,14 +193,14 @@ add_temp_var <- function(data,
   }
   if ("jour_semaine" %in% temp_vars) {
     data[, "Jour" := factor(format(get(col_date), tz = "UTC", format = "%A"), 
-                          levels = format(seq(as.Date("2020-01-06"), as.Date("2020-01-12"), length.out = 7), tz = "UTC", format = "%A"))]
+                            levels = format(seq(as.Date("2020-01-06"), as.Date("2020-01-12"), length.out = 7), tz = "UTC", format = "%A"))]
   }
   if ("semaine_annee" %in% temp_vars) {
     data[, "Semaine" := format(get(col_date), tz = "UTC", format = "%V")]
   }
   if ("mois_annee" %in% temp_vars) {
     data[, "Mois" := factor(format(get(col_date), tz = "UTC", format = "%B"), 
-                          levels = format(seq(as.Date("2020-01-15"), as.Date("2020-12-15"), length.out = 12), tz = "UTC", format = "%B"))]
+                            levels = format(seq(as.Date("2020-01-15"), as.Date("2020-12-15"), length.out = 12), tz = "UTC", format = "%B"))]
   }
   if ("annee" %in% temp_vars) {
     data[, "Annee" := format(get(col_date), tz = "UTC", format = "%Y")]
@@ -216,6 +218,7 @@ add_temp_var <- function(data,
 #' one of ("Aucun", "day", "week", "month", "year").
 #' @param col_date \code{character}. Column name for date values.
 #' @param nb_quantiles \code{integer} (NULL). Number of intervals for discretization when by_col is numeric. 
+#' @param label_no_choice \code{character} ("Aucun"). Label for no selection.
 #'
 #' @return a data.table. If 'by_col' is one of: ("day", "week", "month", "year"), a new column 
 #' is created. If 'by_col' is numeric, it is discretized. Else it is unchanged.
@@ -237,16 +240,17 @@ add_temp_var <- function(data,
 add_by <- function(data, 
                    by_col, 
                    col_date,
-                   nb_quantiles = NULL) {
+                   nb_quantiles = NULL,
+                   label_no_choice = "Aucun") {
   
-  if (! by_col %in% c(colnames(data), c("Aucun", "year_day", "year_week", "year_month", "year"))) {
+  if (! by_col %in% c(colnames(data), c(label_no_choice, "year_day", "year_week", "year_month", "year"))) {
     stop("'by_col' must be a column of 'data' or one of: ('year_day', 'year_week', 'year_month', 'year')")
   }
   if (by_col %in% c("year_day", "year_week", "year_month", "year") && 
       (is.null(col_date) || ! col_date %in% colnames(data))) {
     stop(paste0("'", col_date, "' is not in 'data'."))
   }
-  if (! is.null(nb_quantiles) && ! by_col %in% c("Aucun", "year_day", "year_week", "year_month", "year") && 
+  if (! is.null(nb_quantiles) && ! by_col %in% c(label_no_choice, "year_day", "year_week", "year_month", "year") && 
       is.numeric(data[[by_col]]) && ! is.numeric(nb_quantiles)) {
     stop("'nb_quantiles' must be an integer.")
   } 
@@ -443,6 +447,7 @@ plot.idc_table <- function(data_idc,
 #' @param col_fit \code{character}. Column name for fitted values.
 #' @param col_date \code{character} (NULL). Column name for date values.
 #' @param indicators \code{characters}. Indicators to be computed, amongst: ("rmse", "mae", "mape", "mape_star").
+#' @param labels \code{character}. Labels to modify displayed texts. See default in examples.
 #'
 #' @return shiny module.
 #' 
@@ -475,7 +480,39 @@ plot.idc_table <- function(data_idc,
 #'              col_obs = col_obs,
 #'              col_fit = col_fit,
 #'              col_date = col_date,
-#'              indicators = indicators)
+#'              indicators = indicators,
+#'              labels = list(
+#'                "progress_data" = "Préparation des données",
+#'                "no_data" = "Pas de données",
+#'                "no_choice" = "Auckkskidfhlun",
+#'                "idc_title" = "Distribution des indicateurs",
+#'                "idc_aggr" = "Colonne d'agrégation",
+#'                "idv_opt_discretiser" = "Discrétiser ?",
+#'                "idv_choice_quantiles" = "Choix des quantiles",
+#'                "idc_button" = "Afficher le graphique",
+#'                "idc_progress" = "Affichage des indicateurs",
+#'                "idc_plot_title" = "Model's indicators",
+#'                "err_title" = "Distribution des erreurs", 
+#'                "err_aggr" = "Colonne d'agrégation",
+#'                "err_type" = "Choix du type d'erreur",
+#'                "err_button" = "Afficher le graphique",
+#'                "err_progress" = "Affichage des boxplots",
+#'                "err_ylab" = "Values",
+#'                "error_xlab" = "erreur : ",
+#'                "tree_title" = "Arbre de décision",
+#'                "tree_y" = "Y",
+#'                "tree_x" = "X",
+#'                "tree_minsplit" = "Minsplit",
+#'                "tree_cp" = "Complexité (cp)",
+#'                "tree_maj_cp" = "Ajuster le cp",
+#'                "tree_maj_params" = "Mettre à jour les paramètres",
+#'                "tree_run" = "Mettre à jour l'arbre",
+#'                "tree_cp_modal_titre" = "Mise à jour du CP",
+#'                "tree_cp_modal_min" = "Slider minimum",
+#'                "tree_cp_modal_max" = "Slider maximum",
+#'                "tree_cp_modal_step" = "Slider step",
+#'                "tree_cp_modal_bouton" = "Valider la mise à jour",
+#'                "warning_var" = "Selectionner au moins une variable explicative."))
 #' }
 #' shiny::shinyApp(ui = ui, server = server)
 #' 
@@ -487,7 +524,40 @@ vis_indicators <- function(input, output, session,
                            col_obs, 
                            col_fit, 
                            col_date = NULL,
-                           indicators = c("rmse", "mae", "mape", "mape_e")) {
+                           indicators = c("rmse", "mae", "mape", "mape_e"),
+                           labels = list(
+                             "progress_data" = "Préparation des données",
+                             "no_data" = "Pas de données",
+                             "no_choice" = "Aucun",
+                             "idc_title" = "Distribution des indicateurs",
+                             "idc_aggr" = "Colonne d'agrégation",
+                             "idv_opt_discretiser" = "Discrétiser ?",
+                             "idv_choice_quantiles" = "Choix des quantiles",
+                             "idc_button" = "Afficher le graphique",
+                             "idc_progress" = "Affichage des indicateurs",
+                             "idc_plot_title" = "Model's indicators",
+                             "err_title" = "Distribution des erreurs", 
+                             "err_aggr" = "Colonne d'agrégation",
+                             "err_type" = "Choix du type d'erreur",
+                             "err_button" = "Afficher le graphique",
+                             "err_progress" = "Affichage des boxplots",
+                             "err_ylab" = "Values",
+                             "error_xlab" = "erreur : ",
+                             "tree_title" = "Arbre de décision",
+                             "tree_y" = "Y",
+                             "tree_x" = "X",
+                             "tree_minsplit" = "Minsplit",
+                             "tree_cp" = "Complexité (cp)",
+                             "tree_maj_cp" = "Ajuster le cp",
+                             "tree_maj_params" = "Mettre à jour les paramètres",
+                             "tree_run" = "Mettre à jour l'arbre",
+                             "tree_cp_modal_titre" = "Mise à jour du CP",
+                             "tree_cp_modal_min" = "Slider minimum",
+                             "tree_cp_modal_max" = "Slider maximum",
+                             "tree_cp_modal_step" = "Slider step",
+                             "tree_cp_modal_bouton" = "Valider la mise à jour",
+                             "warning_var" = "Selectionner au moins une variable explicative.")
+) {
   ns <- session$ns # needed in renderUI
   
   # reactive controls
@@ -521,7 +591,43 @@ vis_indicators <- function(input, output, session,
   } else {
     get_indicators <- indicators
   }
+  if (! shiny::is.reactive(labels)) {
+    get_labels <- shiny::reactive(labels)
+  } else {
+    get_labels <- labels
+  }
   
+  # labels 
+  output$no_data <- renderText({get_labels()$no_data})
+  output$idc_title <- renderText({get_labels()$idc_title})
+  output$err_title <- renderText({get_labels()$err_title})
+  output$tree_title <- renderText({get_labels()$tree_title})
+  output$init_idc_button <- renderUI({
+    actionButton(ns("idc_go"), get_labels()$idc_button, width = "100%")
+  })
+  output$init_err_type <- renderUI({
+    selectInput(ns("boxplot_error"), get_labels()$err_type,
+                c("relative", "absolute", "quadratic"), 
+                selected = "relative")
+  })
+  output$init_err_button <- renderUI({
+    actionButton(ns("boxplot_go"), get_labels()$err_button, width = "100%")
+  })
+  output$init_tree_y <- renderUI({
+    selectInput(ns("tree_y_var"), get_labels()$tree_y, choices = NULL, selected = NULL)
+  })
+  output$init_tree_minsplit <- renderUI({
+    numericInput(ns("tree_minsplit"), label = get_labels()$tree_minsplit, min = 2, max = Inf, value = 20)
+  })
+  output$init_tree_cp <- renderUI({
+    sliderInput(ns("tree_cp"), label = get_labels()$tree_cp, min = 0, max = 1, value = 0.005, step = 0.005)
+  })
+  output$init_tree_maj_cp <- renderUI({
+    actionButton(ns("tree_set_cp"), label = get_labels()$tree_maj_cp)
+  })
+  output$init_tree_maj_params <- renderUI({
+    actionButton(ns("tree_go"), label = get_labels()$tree_maj_params, width = "20%")
+  })
   
   # check data
   output$is_data <- reactive({
@@ -535,7 +641,7 @@ vis_indicators <- function(input, output, session,
     
     isolate({
       if (! is.null(data)) {
-        withProgress(message = "Preparation des donnees", value = 0.9, {
+        withProgress(message = get_labels()$progress_data, value = 0.9, {
           
           # filter ouvrages
           if (! (is.null(get_keep_id()) || get_keep_id() == "Tous") && get_col_id() %in% names(data)) {
@@ -568,19 +674,19 @@ vis_indicators <- function(input, output, session,
                  div(style = "margin-top: 30px;",
                      checkboxInput(
                        ns("idc_use_quantiles"),
-                       label = "Discretiser ?",
+                       label = get_labels()$idv_opt_discretiser,
                        value = T))
           ),
           column(2, 
-                 div(sliderInput(ns("idc_nb_quantiles"), "Choix des quantiles", min = 2, max = 100, value = 5), align = "left")
+                 div(sliderInput(ns("idc_nb_quantiles"), get_labels()$idv_choice_quantiles, min = 2, max = 100, value = 5), align = "left")
           )
         )
-      } else if (! is.null(get_data()) && is.numeric(get_data()[[idc_by]]) && discretize == F) {
+      } else if (! is.null(get_data()) && is.numeric(get_data()[[idc_by]]) && ! is.null(discretize) && discretize == F) {
         column(1,
                div(style = "margin-top: 30px;",
                    checkboxInput(
                      ns("idc_use_quantiles"),
-                     label = "Discretiser ?",
+                     label = get_labels()$idv_opt_discretiser,
                      value = F))
         )
       } else {
@@ -599,11 +705,11 @@ vis_indicators <- function(input, output, session,
                  div(style = "margin-top: 30px;",
                      checkboxInput(
                        ns("boxplot_use_quantiles"),
-                       label = "Discretiser ?",
+                       label = get_labels()$idv_opt_discretiser,
                        value = T))
           ),
           column(2, 
-                 div(sliderInput(ns("boxplot_nb_quantiles"), "Choix des quantiles", min = 2, max = 100, value = 5), align = "left")
+                 div(sliderInput(ns("boxplot_nb_quantiles"), get_labels()$idv_choice_quantiles, min = 2, max = 100, value = 5), align = "left")
           )
         )
       } else if (! is.null(get_data()) && is.numeric(get_data()[[boxplot_by]]) && discretize == F) {
@@ -611,7 +717,7 @@ vis_indicators <- function(input, output, session,
                div(style = "margin-top: 30px;",
                    checkboxInput(
                      ns("boxplot_use_quantiles"),
-                     label = "Discretiser ?",
+                     label = get_labels()$idv_opt_discretiser,
                      value = F))
         )
       } else {
@@ -627,23 +733,25 @@ vis_indicators <- function(input, output, session,
     isolate({
       data <- copy(get_data())
       
-      if (cpt > 0 && ! is.null(data) ) {
-        withProgress(message = 'Affichage des indicateurs', value = 0.5,{
+      if (! is.null(cpt) && cpt > 0 && ! is.null(data) ) {
+        withProgress(message = get_labels()$idc_progress, value = 0.5,{
           by <- input$idc_by
           
           nb_quantiles = if (! is.null(input$idc_use_quantiles) && input$idc_use_quantiles) {input$idc_nb_quantiles} else {NULL}
           data_idc <- add_by(data = data, 
                              by_col = by, 
                              col_date = get_col_date(),
-                             nb_quantiles = nb_quantiles)
+                             nb_quantiles = nb_quantiles,
+                             label_no_choice = get_labels()$no_choice)
           
           data_idc <- compute_idc(data = data_idc, 
                                   col_obs = get_col_obs(), 
                                   col_fit = get_col_fit(),
-                                  by = by)
+                                  by = by,
+                                  label_no_choice = get_labels()$no_choice)
           
           
-          plot(data_idc, instantToHour = FALSE, idc = get_indicators())
+          plot(data_idc, instantToHour = FALSE, idc = get_indicators(), main = get_labels()$idc_plot_title)
         })
       }
     })
@@ -655,7 +763,7 @@ vis_indicators <- function(input, output, session,
     isolate({
       data <- copy(get_data())
       
-      if (cpt > 0 && ! is.null(data)) {
+      if (! is.null(cpt) && cpt > 0 && ! is.null(data)) {
         by <- input$idc_by
         
         # add aggregation column
@@ -663,14 +771,16 @@ vis_indicators <- function(input, output, session,
         data_idc <- add_by(data = data, 
                            by_col = by, 
                            col_date = get_col_date(),
-                           nb_quantiles = nb_quantiles)
+                           nb_quantiles = nb_quantiles,
+                           label_no_choice = get_labels()$no_choice)
         
         # compute indicators
         data_idc <- compute_idc(data = data_idc, 
                                 col_obs = get_col_obs(), 
                                 col_fit = get_col_fit(),
                                 by = by,
-                                dec = 2)
+                                dec = 2,
+                                label_no_choice = get_labels()$no_choice)
         
         DT::datatable(data_idc, caption = "data_idc", rownames = NULL)
       }
@@ -682,13 +792,13 @@ vis_indicators <- function(input, output, session,
     data <- get_data()
     
     if (! is.null(data) && input$boxplot_by == "") {
-      updateSelectInput(session = session, "boxplot_by", label = "Colonne d'agregation :", 
-                        choices = c("Aucun", setdiff(names(get_data()), 
+      updateSelectInput(session = session, "boxplot_by", label = get_labels()$err_aggr, 
+                        choices = c(get_labels()$no_choice, setdiff(names(get_data()), 
                                                      c("date", get_col_obs(), get_col_fit()))))
     }
     if (! is.null(data) && input$idc_by == "") {
-      updateSelectInput(session = session, "idc_by", "Colonne d'agregation",
-                        choices = c("Aucun", setdiff(names(get_data()), 
+      updateSelectInput(session = session, "idc_by", get_labels()$idc_aggr,
+                        choices = c(get_labels()$no_choice, setdiff(names(get_data()), 
                                                      c("date", get_col_obs(), get_col_fit()))))
     }
   })
@@ -700,9 +810,9 @@ vis_indicators <- function(input, output, session,
     isolate({
       data <- copy(get_data())
       
-      if (cpt > 0 && ! is.null(data)) {
+      if (! is.null(cpt) && cpt > 0 && ! is.null(data)) {
         
-        withProgress(message = "Affichage des boxplots", value = 0.5, {
+        withProgress(message = get_labels()$err_progress, value = 0.5, {
           boxplot_error <- input$boxplot_error
           by <- input$boxplot_by
           
@@ -715,17 +825,18 @@ vis_indicators <- function(input, output, session,
             data[, "error" := c(get(get_col_obs()) - get(get_col_fit()))**2]
           } 
           
-          if (by == "Aucun") {
+          if (by == get_labels()$no_choice) {
             plt <- rAmCharts::amBoxplot(data[["error"]],
-                                        names = "", xlab = paste0("Erreur ", boxplot_error),
-                                        ylab = "Values")
+                                        names = "", xlab = paste0(get_labels()$error_xlab, boxplot_error),
+                                        ylab = get_labels()$err_ylab)
           } else {
             # add aggregation column
             nb_quantiles <- if (! is.null(input$boxplot_use_quantiles) && input$boxplot_use_quantiles) {input$boxplot_nb_quantiles} else {NULL}
             data <- add_by(data = data, 
                            by_col = by, 
                            col_date = get_col_date(),
-                           nb_quantiles = nb_quantiles)
+                           nb_quantiles = nb_quantiles,
+                           label_no_choice = get_labels()$no_choice)
             
             # problem when using name 'id'
             if (by == "id") {
@@ -734,20 +845,20 @@ vis_indicators <- function(input, output, session,
             }
             
             plt <- eval(parse(text = paste0("amBoxplot(error ~ '", by, "', data = data,
-                                          names = '', xlab = paste0(toupper(substr(boxplot_error, 1, 1)), 
-                                          substr(boxplot_error, 2, nchar(boxplot_error))),
-                                          ylab = 'Values')")))
+                                            names = '', xlab = paste0(toupper(substr(boxplot_error, 1, 1)), 
+                                            substr(boxplot_error, 2, nchar(boxplot_error))),
+                                            ylab = 'Values')")))
             plt <- plt %>>% setCategoryAxis(labelRotation = ifelse(length(unique(data[[by]])) > 5, 45, 0))
           }
         })
         plt %>%
           amOptions(export = T, zoom = T)
         
-      } else {
-        NULL
-      }
-    })
-  })
+        } else {
+          NULL
+        }
+        })
+      })
   
   # update x/y vars
   observe({
@@ -757,17 +868,19 @@ vis_indicators <- function(input, output, session,
       if (! is.null(data)) {
         y_var <- input$tree_y_var
         
-        if (y_var == "") {
+        if (is.null(y_var)) {
           allowed_y_vars <- c(get_col_fit(), get_col_obs())
           
-          updateSelectInput(session = session, "tree_x_var", choices = setdiff(names(data), c(allowed_y_vars, "date")), 
+          updateSelectInput(session = session, "tree_x_var", label = get_labels()$tree_x,
+                            choices = setdiff(names(data), c(allowed_y_vars, "date")), 
                             selected = setdiff(names(data), c(allowed_y_vars[1], "date")))
           updateSelectInput(session = session, "tree_y_var", choices = allowed_y_vars, 
                             selected = allowed_y_vars[1])
         } else {
           allowed_y_vars <- c(get_col_fit(), get_col_obs())
           
-          updateSelectInput(session = session, "tree_y_var", choices = allowed_y_vars, 
+          updateSelectInput(session = session, "tree_y_var", label = get_labels()$tree_y,
+                            choices = allowed_y_vars, 
                             selected = ifelse(input$tree_y_var %in% allowed_y_vars, input$tree_y_var, allowed_y_vars[1]))
           updateSelectInput(session = session, "tree_x_var", choices = setdiff(names(data), c(allowed_y_vars, "date")), 
                             selected = setdiff(input$tree_x_var, y_var)) 
@@ -780,7 +893,8 @@ vis_indicators <- function(input, output, session,
     
     isolate({
       if (! is.null(get_data())) {
-        updateSelectInput(session = session, "tree_x_var", choices = setdiff(names(data), c(y_var, "date")), 
+        updateSelectInput(session = session, "tree_x_var", label = get_labels()$tree_x,
+                          choices = setdiff(names(data), c(y_var, "date")), 
                           selected = setdiff(input$tree_x_var, y_var)) 
       }
     })
@@ -792,13 +906,13 @@ vis_indicators <- function(input, output, session,
     cpt <- input$tree_set_cp
     
     isolate({
-      if (cpt > 0) {
+      if (! is.null(cpt) && cpt > 0) {
         showModal(modalDialog(
-          title = "Complexity parameters",
-          numericInput("tree_cp_min", "Slider minimum :", cp_parameters$min),
-          numericInput("tree_cp_max", "Slider maximum :", cp_parameters$max),
-          numericInput("tree_cp_step", "Slider step :", cp_parameters$step),
-          style = "margin-top: 25px;", actionButton("tree_update_cp", "Update complexity (cp) slider"),
+          title = get_labels()$tree_cp_modal_titre,
+          numericInput("tree_cp_min", get_labels()$tree_cp_modal_min, cp_parameters$min),
+          numericInput("tree_cp_max", get_labels()$tree_cp_modal_max, cp_parameters$max),
+          numericInput("tree_cp_step", get_labels()$tree_cp_modal_step, cp_parameters$step),
+          style = "margin-top: 25px;", actionButton("tree_update_cp", get_labels()$tree_cp_modal_bouton),
           easyClose = TRUE, footer = NULL))
       }
     })
@@ -817,9 +931,9 @@ vis_indicators <- function(input, output, session,
     cpt <- input$tree_go
     
     isolate({
-      if (cpt > 0) {
+      if (! is.null(cpt) && cpt > 0) {
         if (! is.null(input$tree_x_var)) {
-          withProgress(message = "Affichage de l'arbre", value = 0.5, {
+          withProgress(message = get_labels()$tree_title, value = 0.5, {
             data <- copy(get_data())
             
             formule <- paste(input$tree_y_var, "~", paste0(input$tree_x_var, collapse = "+")) %>% 
@@ -841,7 +955,7 @@ vis_indicators <- function(input, output, session,
           showModal(modalDialog(
             easyClose = TRUE,
             footer = NULL,
-            "Selectionner au moins une variable explicative."
+            get_labels()$warning_var
           ))
           
           NULL 
@@ -851,7 +965,7 @@ vis_indicators <- function(input, output, session,
       }
     })
   })
-}
+  }
 
 
 
@@ -901,7 +1015,7 @@ vis_indicators_UI <- function(id) {
                      # indicators
                      fluidRow(
                        # title indicatorss
-                       div(h3("Distribution des indicateurs"), align = "center", style = "color: #3c8dbc"),
+                       div(h3(textOutput(ns("idc_title"))), align = "center", style = "color: #3c8dbc"),
                        # parameters
                        column(2, 
                               selectInput(ns("idc_by"), "Colonne d'agregation", choices = "")
@@ -909,7 +1023,7 @@ vis_indicators_UI <- function(id) {
                        uiOutput(ns("idc_quantiles")),
                        column(2, 
                               div(style = "margin-top: 25px;",
-                                  actionButton(ns("idc_go"), "Afficher le graphique", width = "100%"), align = "center")
+                                  uiOutput(ns("init_idc_button")), align = "center")
                        ) 
                      ),
                      conditionalPanel(condition = paste0("output['", ns("is_data"), "'] && input['", ns('idc_go'), "'] > 0"),
@@ -929,27 +1043,25 @@ vis_indicators_UI <- function(id) {
                      ),
                      conditionalPanel(condition = paste0("! output['", ns('is_data'), "'] || input['", ns('idc_go'), "'] == 0"), 
                                       fluidRow(
-                                        div(h4("Pas de donnees", style = "color: darkblue;"), align = "center")
+                                        # div(h4(textOutput(ns("no_data")), style = "color: darkblue;"), align = "center")
                                       )
                      ),
                      
                      # boxplots
                      div(fluidRow(
                        # title boxplots
-                       div(h3("Distribution des erreurs"), align = "center", style = "color: #3c8dbc"),
+                       div(h3(textOutput(ns("err_title"))), align = "center", style = "color: #3c8dbc"),
                        # parameters
                        column(2, 
                               selectInput(ns("boxplot_by"), "Agregation", choices = "")
                        ),
                        uiOutput(ns("boxplot_quantiles")),
                        column(2, 
-                              selectInput(ns("boxplot_error"), "Choix de l'erreur :",
-                                          c("relative", "absolute", "quadratic"), 
-                                          selected = "relative")
+                              uiOutput(ns("init_err_type"))
                        ),
                        column(2, 
                               div(style = "margin-top: 25px;",
-                                  actionButton(ns("boxplot_go"), "Afficher le graphique", width = "100%"), align = "center")
+                                  uiOutput(ns("init_err_button")), align = "center")
                        ) 
                      ), 
                      # result
@@ -958,33 +1070,32 @@ vis_indicators_UI <- function(id) {
                      ),
                      conditionalPanel(condition = paste0("! output['", ns('is_data'), "'] || input['", ns('boxplot_go'), "'] == 0"), 
                                       fluidRow(
-                                        div(h4("Pas de donnees", style = "color: darkblue;"), align = "center")
+                                        # div(h4(textOutput(ns("no_data")), style = "color: darkblue;"), align = "center")
                                       )
                      ), style = "border-top: 5px solid #3c8dbc; margin-top: 15px; padding-top: 15px"),
                      
                      # visNetwork
                      div(fluidRow(
                        # title visNetwork
-                       div(h3("Arbre de decision"), align = "center", style = "color: #3c8dbc"), 
+                       div(h3(textOutput(ns("tree_title"))), align = "center", style = "color: #3c8dbc"), 
                        # parameters
                        column(2,
-                              selectInput(ns("tree_y_var"), "Y :", choices = NULL, selected = NULL)
+                              uiOutput(ns("init_tree_y"))
                        ),
                        column(5,
                               selectInput(ns("tree_x_var"), "X :", choices = NULL,  multiple = TRUE, selected = NULL, width = "100%")
                        ),
                        column(2,
-                              numericInput(ns("tree_minsplit"), "Minsplit :", min = 2, max = Inf, value = 20)
+                              uiOutput(ns("init_tree_minsplit"))
                        ),
                        column(2,
-                              sliderInput(ns("tree_cp"), "Complexite (cp) :", min = 0, max = 1, value = 0.005, step = 0.005)
+                              uiOutput(ns("init_tree_cp"))
                        ),
                        column(1,
-                              style = "margin-top: 25px;",
-                              actionButton(ns("tree_set_cp"), "Ajuster le cp")
+                              div(uiOutput(ns("init_tree_maj_cp")), style = "margin-top: 25px;")
                        ),
                        column(12,
-                              div(actionButton(ns("tree_go"), "Mettre a jour les parametres", width = "20%"), align = "center")
+                              div(uiOutput(ns("init_tree_maj_params")), align = "center")
                        )
                      ), style = "border-top: 5px solid #3c8dbc; margin-top: 15px; padding-top: 15px"),
                      # result
@@ -993,7 +1104,7 @@ vis_indicators_UI <- function(id) {
                      ),
                      conditionalPanel(condition = paste0("output['", ns('is_data'), "'] == 0 || input['", ns('tree_go'), "'] == 0"),
                                       fluidRow(
-                                        div(h4("Pas de donnees", style = "color: darkblue;"), align = "center")
+                                        div(h4(textOutput(ns("no_data")), style = "color: darkblue;"), align = "center")
                                       )
                      )
     )

@@ -5,7 +5,7 @@
 \title{Compute indicators for given model and data}
 \usage{
 compute_idc(object = NULL, data, col_obs, col_fit = NULL, by = NULL,
-  dec = 2, nb.cores = 1)
+  dec = 2, nb.cores = 1, label_no_choice = "Aucun")
 }
 \arguments{
 \item{object}{\code{modelInstant} (NULL). A modelInstant object. IE = ???}
@@ -21,6 +21,8 @@ compute_idc(object = NULL, data, col_obs, col_fit = NULL, by = NULL,
 \item{dec}{\code{integer} (2). Number of decimals to be kept.}
 
 \item{nb.cores}{\code{integer} (1). Number of cores, when oject is used to make prediction.}
+
+\item{label_no_choice}{\code{character} ("Aucun"). Label for no selection.}
 }
 \value{
 a data.frame whose columns are the required indicators and aggregation column.

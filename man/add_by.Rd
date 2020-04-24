@@ -4,7 +4,8 @@
 \alias{add_by}
 \title{Format by column before plotting}
 \usage{
-add_by(data, by_col, col_date, nb_quantiles = NULL)
+add_by(data, by_col, col_date, nb_quantiles = NULL,
+  label_no_choice = "Aucun")
 }
 \arguments{
 \item{data}{\code{data.frame} / \code{data.table}. Table containing by or date column.}
@@ -15,6 +16,8 @@ one of ("Aucun", "day", "week", "month", "year").}
 \item{col_date}{\code{character}. Column name for date values.}
 
 \item{nb_quantiles}{\code{integer} (NULL). Number of intervals for discretization when by_col is numeric.}
+
+\item{label_no_choice}{\code{character} ("Aucun"). Label for no selection.}
 }
 \value{
 a data.table. If 'by_col' is one of: ("day", "week", "month", "year"), a new column 
