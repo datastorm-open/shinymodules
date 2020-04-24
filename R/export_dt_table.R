@@ -1,4 +1,6 @@
 #' @export
+#' 
+#' @rdname show_DT_module
 show_DT_UI <- function(id, export = c("csv", "excel", "html")) {
   ns <- NS(id)
   
