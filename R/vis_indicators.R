@@ -66,7 +66,7 @@
 #' @param by \code{character} (NULL). Column name of aggregation variable.
 #' @param dec \code{integer} (2). Number of decimals to be kept.
 #' @param nb.cores \code{integer} (1). Number of cores, when oject is used to make prediction.
-#' @param label_no_choice \code{character} ("Aucun"). Label for no selection.
+#' @param label_no_choice \code{character} ("None"). Label for no selection.
 #'
 #' @return a data.frame whose columns are the required indicators and aggregation column.
 #' @import data.table
@@ -80,7 +80,7 @@
 #' fit <- rnorm(100, 1, 5)
 #' 
 #' compute_idc(data = data.table(obs = obs, fit = fit), 
-#' col_obs = "obs", col_fit = "fit", by = "Aucun")
+#' col_obs = "obs", col_fit = "fit", by = "None")
 #' compute_idc(data = data.table(obs = obs, fit = fit, by_var = sample(rep(1:10, 10))), 
 #' col_obs = "obs", col_fit = "fit", by = "by_var")
 #' 
@@ -92,7 +92,7 @@ compute_idc <- function(object = NULL,
                         by = NULL, 
                         dec = 2,
                         nb.cores = 1,
-                        label_no_choice = "Aucun") {
+                        label_no_choice = "None") {
   
   # check inputs
   if (! "data.table" %in% class(data)) {
@@ -215,10 +215,10 @@ add_temp_var <- function(data,
 #'
 #' @param data \code{data.frame} / \code{data.table}. Table containing by or date column.
 #' @param by_col \code{character}. Either the name of the column to use for aggregation or 
-#' one of ("Aucun", "day", "week", "month", "year").
+#' one of ("None", "day", "week", "month", "year").
 #' @param col_date \code{character}. Column name for date values.
 #' @param nb_quantiles \code{integer} (NULL). Number of intervals for discretization when by_col is numeric. 
-#' @param label_no_choice \code{character} ("Aucun"). Label for no selection.
+#' @param label_no_choice \code{character} ("None"). Label for no selection.
 #'
 #' @return a data.table. If 'by_col' is one of: ("day", "week", "month", "year"), a new column 
 #' is created. If 'by_col' is numeric, it is discretized. Else it is unchanged.
@@ -241,7 +241,7 @@ add_by <- function(data,
                    by_col, 
                    col_date,
                    nb_quantiles = NULL,
-                   label_no_choice = "Aucun") {
+                   label_no_choice = "None") {
   
   if (! by_col %in% c(colnames(data), c(label_no_choice, "year_day", "year_week", "year_month", "year"))) {
     stop("'by_col' must be a column of 'data' or one of: ('year_day', 'year_week', 'year_month', 'year')")
@@ -476,43 +476,43 @@ plot.idc_table <- function(data_idc,
 #' 
 #' ui <- vis_indicators_UI("my_id")
 #' server <- function(input, output, session) {
-#'   callModule(vis_indicators, "my_id", data = reactive(data), 
+#'   callModule(vis_indicators, "my_id", data = reactive(data),
 #'              col_obs = col_obs,
 #'              col_fit = col_fit,
 #'              col_date = col_date,
 #'              indicators = indicators,
 #'              labels = list(
-#'                "progress_data" = "Preparation des donnees",
-#'                "no_data" = "Pas de donnees",
-#'                "no_choice" = "Auckkskidfhlun",
-#'                "idc_title" = "Distribution des indicateurs",
-#'                "idc_aggr" = "Colonne d'agregation",
-#'                "idv_opt_discretiser" = "Discretiser ?",
-#'                "idv_choice_quantiles" = "Choix des quantiles",
-#'                "idc_button" = "Afficher le graphique",
-#'                "idc_progress" = "Affichage des indicateurs",
+#'                "progress_data" = "Processing data",
+#'                "no_data" = "No data",
+#'                "no_choice" = "None",
+#'                "idc_title" = "Distribution of indicators",
+#'                "idc_aggr" = "Aggregation column",
+#'                "idv_opt_discretiser" = "Discretise ?",
+#'                "idv_choice_quantiles" = "Quantiles choice",
+#'                "idc_button" = "Display graphic",
+#'                "idc_progress" = "Processing indicators",
 #'                "idc_plot_title" = "Model's indicators",
-#'                "err_title" = "Distribution des erreurs", 
-#'                "err_aggr" = "Colonne d'agregation",
-#'                "err_type" = "Choix du type d'erreur",
-#'                "err_button" = "Afficher le graphique",
-#'                "err_progress" = "Affichage des boxplots",
+#'                "err_title" = "Distribution of errors", 
+#'                "err_aggr" = "Aggregation column",
+#'                "err_type" = "Error type choice",
+#'                "err_button" = "Display graphic",
+#'                "err_progress" = "Processing boxplots",
 #'                "err_ylab" = "Values",
-#'                "error_xlab" = "erreur : ",
-#'                "tree_title" = "Arbre de decision",
+#'                "error_xlab" = "error : ",
+#'                "tree_title" = "Decision tree",
 #'                "tree_y" = "Y",
 #'                "tree_x" = "X",
 #'                "tree_minsplit" = "Minsplit",
-#'                "tree_cp" = "Complexite (cp)",
-#'                "tree_maj_cp" = "Ajuster le cp",
-#'                "tree_maj_params" = "Mettre a jour les parametres",
-#'                "tree_run" = "Mettre a jour l'arbre",
-#'                "tree_cp_modal_titre" = "Mise a jour du CP",
-#'                "tree_cp_modal_min" = "Slider minimum",
-#'                "tree_cp_modal_max" = "Slider maximum",
+#'                "tree_cp" = "Complexity (cp)",
+#'                "tree_maj_cp" = "Update cp",
+#'                "tree_maj_params" = "Update parameters",
+#'                "tree_run" = "Update tree",
+#'                "tree_cp_modal_titre" = "Update cp",
+#'                "tree_cp_modal_min" = "Slider min",
+#'                "tree_cp_modal_max" = "Slider max",
 #'                "tree_cp_modal_step" = "Slider step",
-#'                "tree_cp_modal_bouton" = "Valider la mise a jour",
-#'                "warning_var" = "Selectionner au moins une variable explicative."))
+#'                "tree_cp_modal_bouton" = "Validate update",
+#'                "warning_var" = "Select at least one explanatory variable."))
 #' }
 #' shiny::shinyApp(ui = ui, server = server)
 #' 
@@ -526,37 +526,37 @@ vis_indicators <- function(input, output, session,
                            col_date = NULL,
                            indicators = c("rmse", "mae", "mape", "mape_e"),
                            labels = list(
-                             "progress_data" = "Preparation des donnees",
-                             "no_data" = "Pas de donnees",
-                             "no_choice" = "Aucun",
-                             "idc_title" = "Distribution des indicateurs",
-                             "idc_aggr" = "Colonne d'agregation",
-                             "idv_opt_discretiser" = "Discretiser ?",
-                             "idv_choice_quantiles" = "Choix des quantiles",
-                             "idc_button" = "Afficher le graphique",
-                             "idc_progress" = "Affichage des indicateurs",
+                             "progress_data" = "Processing data",
+                             "no_data" = "No data",
+                             "no_choice" = "None",
+                             "idc_title" = "Distribution of indicators",
+                             "idc_aggr" = "Aggregation column",
+                             "idv_opt_discretiser" = "Discretise ?",
+                             "idv_choice_quantiles" = "Quantiles choice",
+                             "idc_button" = "Display graphic",
+                             "idc_progress" = "Processing indicators",
                              "idc_plot_title" = "Model's indicators",
-                             "err_title" = "Distribution des erreurs", 
-                             "err_aggr" = "Colonne d'agregation",
-                             "err_type" = "Choix du type d'erreur",
-                             "err_button" = "Afficher le graphique",
-                             "err_progress" = "Affichage des boxplots",
+                             "err_title" = "Distribution of errors", 
+                             "err_aggr" = "Aggregation column",
+                             "err_type" = "Error type choice",
+                             "err_button" = "Display graphic",
+                             "err_progress" = "Processing boxplots",
                              "err_ylab" = "Values",
-                             "error_xlab" = "erreur : ",
-                             "tree_title" = "Arbre de decision",
+                             "error_xlab" = "error : ",
+                             "tree_title" = "Decision tree",
                              "tree_y" = "Y",
                              "tree_x" = "X",
                              "tree_minsplit" = "Minsplit",
-                             "tree_cp" = "Complexite (cp)",
-                             "tree_maj_cp" = "Ajuster le cp",
-                             "tree_maj_params" = "Mettre a jour les parametres",
-                             "tree_run" = "Mettre a jour l'arbre",
-                             "tree_cp_modal_titre" = "Mise a jour du CP",
-                             "tree_cp_modal_min" = "Slider minimum",
-                             "tree_cp_modal_max" = "Slider maximum",
+                             "tree_cp" = "Complexity (cp)",
+                             "tree_maj_cp" = "Update cp",
+                             "tree_maj_params" = "Update parameters",
+                             "tree_run" = "Update tree",
+                             "tree_cp_modal_titre" = "Update cp",
+                             "tree_cp_modal_min" = "Slider min",
+                             "tree_cp_modal_max" = "Slider max",
                              "tree_cp_modal_step" = "Slider step",
-                             "tree_cp_modal_bouton" = "Valider la mise a jour",
-                             "warning_var" = "Selectionner au moins une variable explicative.")
+                             "tree_cp_modal_bouton" = "Validate update",
+                             "warning_var" = "Select at least one explanatory variable.")
 ) {
   ns <- session$ns # needed in renderUI
   
