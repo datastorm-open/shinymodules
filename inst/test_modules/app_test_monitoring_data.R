@@ -1,8 +1,7 @@
 library(shiny)
 library(data.table)
-library(rAmCharts)
 library(DT)
-library(pipeR)
+
 
 # create data
 data <- data.table(obs = runif(100, 1, 10))
@@ -18,12 +17,25 @@ col_date = "date"
 indicators <- c("rmse", "mae", "mape", "mape_e")
 
 # ui
-ui <- fluidPage(monitoring_data_UI("my_id_1", data, col_obs, col_fit, col_date),
-                monitoring_data_UI("my_id_2", data, col_obs, col_fit, col_date))
+ui <- fluidPage(
+  monitoring_data_UI("my_id_1"),
+  monitoring_data_UI("my_id_2")
+)
 # server
 server <- function(input, output, session) {
-  callModule(monitoring_data, "my_id_1", data, col_obs, col_fit, col_date, indicators)
-  callModule(monitoring_data, "my_id_2", data, col_obs, col_fit, col_date, indicators)
+  callModule(monitoring_data, "my_id_1", 
+             data = reactive(data), 
+             col_obs = col_obs, 
+             col_fit = col_fit, 
+             col_date = col_date, 
+             indicators = indicators
+  )
+  callModule(monitoring_data, "my_id_2", data = reactive(data), 
+             col_obs = col_obs, 
+             col_fit = col_fit, 
+             col_date = col_date, 
+             indicators = indicators
+  )
 }
 # launcher
 shinyApp(ui = ui, server = server)
