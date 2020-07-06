@@ -43,10 +43,13 @@
 #' \dontrun{
 #' 
 #' ui = shiny::fluidPage(summary_data_UI(id = "id", titles = TRUE))
+#' 
 #' server = function(input, output, session) {
 #'   data <- reactiveValues(data = iris)
-#'   shiny::callModule(module = summary_data, id = "id", data = reactive(data$data),
-#'     optional_stats = "all")
+#'   shiny::callModule(module = summary_data, id = "id", 
+#'     data = reactive(data$data),
+#'     optional_stats = "all"
+#'    )
 #' }
 #' 
 #' shiny::shinyApp(ui = ui, server = server)

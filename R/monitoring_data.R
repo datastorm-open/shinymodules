@@ -435,7 +435,7 @@ plot.idc_table <- function(data_idc,
 
 
 
-#' Shiny module server-like fun to display indicators on a data.table.
+#' Shiny module server-like fun to display monitoring indicators on a data.table.
 #'
 #' @param input shiny input
 #' @param output shiny input
@@ -474,50 +474,21 @@ plot.idc_table <- function(data_idc,
 #' col_date = "date"
 #' indicators <- c("rmse", "mae", "mape", "mape_e")
 #' 
-#' ui <- vis_indicators_UI("my_id")
+#' ui <- monitoring_data_UI(id = "my_id")
+#' 
 #' server <- function(input, output, session) {
-#'   callModule(vis_indicators, "my_id", data = reactive(data),
+#'   callModule(module = monitoring_data, id = "my_id", 
+#'              data = reactive(data),
 #'              col_obs = col_obs,
 #'              col_fit = col_fit,
 #'              col_date = col_date,
-#'              indicators = indicators,
-#'              labels = list(
-#'                "progress_data" = "Processing data",
-#'                "no_data" = "No data",
-#'                "no_choice" = "None",
-#'                "idc_title" = "Distribution of indicators",
-#'                "idc_aggr" = "Aggregation column",
-#'                "idv_opt_discretiser" = "Discretise ?",
-#'                "idv_choice_quantiles" = "Quantiles choice",
-#'                "idc_button" = "Display graphic",
-#'                "idc_progress" = "Processing indicators",
-#'                "idc_plot_title" = "Model's indicators",
-#'                "err_title" = "Distribution of errors", 
-#'                "err_aggr" = "Aggregation column",
-#'                "err_type" = "Error type choice",
-#'                "err_button" = "Display graphic",
-#'                "err_progress" = "Processing boxplots",
-#'                "err_ylab" = "Values",
-#'                "error_xlab" = "error : ",
-#'                "tree_title" = "Decision tree",
-#'                "tree_y" = "Y",
-#'                "tree_x" = "X",
-#'                "tree_minsplit" = "Minsplit",
-#'                "tree_cp" = "Complexity (cp)",
-#'                "tree_maj_cp" = "Update cp",
-#'                "tree_maj_params" = "Update parameters",
-#'                "tree_run" = "Update tree",
-#'                "tree_cp_modal_titre" = "Update cp",
-#'                "tree_cp_modal_min" = "Slider min",
-#'                "tree_cp_modal_max" = "Slider max",
-#'                "tree_cp_modal_step" = "Slider step",
-#'                "tree_cp_modal_bouton" = "Validate update",
-#'                "warning_var" = "Select at least one explanatory variable."))
+#'              indicators = indicators
+#'   )
 #' }
 #' shiny::shinyApp(ui = ui, server = server)
 #' 
 #' }}
-vis_indicators <- function(input, output, session, 
+monitoring_data <- function(input, output, session, 
                            data,
                            col_id = NULL,
                            keep_id = NULL,
@@ -995,9 +966,9 @@ vis_indicators <- function(input, output, session,
 #' col_date = "date"
 #' indicators <- c("rmse", "mae", "mape", "mape_e")
 #' 
-#' ui <- vis_indicators_UI("my_id")
+#' ui <- monitoring_data_UI("my_id")
 #' server <- function(input, output, session) {
-#'   callModule(vis_indicators, "my_id", data = reactive(data), 
+#'   callModule(monitoring_data, "my_id", data = reactive(data), 
 #'              col_obs = col_obs, 
 #'              col_fit = col_fit, 
 #'              col_date = col_date,
@@ -1006,7 +977,7 @@ vis_indicators <- function(input, output, session,
 #' shiny::shinyApp(ui = ui, server = server)
 #' 
 #' }}
-vis_indicators_UI <- function(id) {
+monitoring_data_UI <- function(id) {
   ns <- shiny::NS(id)
   
   fluidPage(

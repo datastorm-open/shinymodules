@@ -7,11 +7,18 @@
 \usage{
 filter_data_UI(id, titles = TRUE)
 
-filter_data(input, output, session, data = NULL,
-  columns_to_filter = "all", max_char_values = 1000,
-  default_multisel_n = 10, labels = list(title = "Filters", no_data =
-  "No data available", filter = "Filter on :", reinitialize =
-  "Reinitialize filters", validate = "Apply filtering on data"))
+filter_data(
+  input,
+  output,
+  session,
+  data = NULL,
+  columns_to_filter = "all",
+  max_char_values = 1000,
+  default_multisel_n = 10,
+  labels = list(title = "Filters", no_data = "No data available", filter =
+    "Filter on :", reinitialize = "Reinitialize filters", validate =
+    "Apply filtering on data")
+)
 }
 \arguments{
 \item{id}{\code{character} An id that will be used to create a namespace}
@@ -40,7 +47,7 @@ allow the user to filter (default is all)}
 \itemize{
  \item{"title"}{ : Module title.}
  \item{"no_data "}{ : Printed message if no data.}
- \item{"filter"}{ : Seleciton filters.}
+ \item{"filter"}{ : Selection filters.}
  \item{"reinitialize"}{ : Reinit button.}
  \item{"validate"}{ :  Validate button.}
 }}
@@ -58,10 +65,13 @@ the filtered data.table
 \dontrun{
 
 ui = shiny::fluidPage(filter_data_UI(id = "id", titles = TRUE))
+
 server = function(input, output, session) {
   data <- reactiveValues(data = iris)
-  shiny::callModule(module = filter_data, id = "id", data = reactive(data$data), 
-  columns_to_filter = c("Sepal.Length", "Sepal.Width"))
+  shiny::callModule(module = filter_data, id = "id", 
+    data = reactive(data$data), 
+    columns_to_filter = c("Sepal.Length", "Sepal.Width")
+  )
 }
 
 shiny::shinyApp(ui = ui, server = server)
@@ -73,10 +83,10 @@ server = function(input, output, session) {
   shiny::callModule(module = filter_data, id = "id", data = iris, 
   labels = list(
       title = "Filtres",
-      no_data = "Pas de données disponibles", 
+      no_data = "Pas de donnÃ©es disponibles", 
       filter = "Filtrer sur les colonnes :", 
-      reinitialize = "Réinitialisation des filtres", 
-      validate = "Filtrer les données"
+      reinitialize = "RÃ©initialisation des filtres", 
+      validate = "Filtrer les donnÃ©es"
    )
 )}
 

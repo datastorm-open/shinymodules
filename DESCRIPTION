@@ -15,7 +15,7 @@ LazyData: true
 Suggests: 
     testthat (>= 2.1.0),
     nycflights13
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.0
 Imports: 
     shiny,
     data.table,

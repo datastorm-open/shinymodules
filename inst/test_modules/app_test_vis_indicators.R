@@ -18,12 +18,12 @@ col_date = "date"
 indicators <- c("rmse", "mae", "mape", "mape_e")
 
 # ui
-ui <- fluidPage(vis_indicators_UI("my_id_1", data, col_obs, col_fit, col_date),
-                vis_indicators_UI("my_id_2", data, col_obs, col_fit, col_date))
+ui <- fluidPage(monitoring_data_UI("my_id_1", data, col_obs, col_fit, col_date),
+                monitoring_data_UI("my_id_2", data, col_obs, col_fit, col_date))
 # server
 server <- function(input, output, session) {
-  callModule(vis_indicators, "my_id_1", data, col_obs, col_fit, col_date, indicators)
-  callModule(vis_indicators, "my_id_2", data, col_obs, col_fit, col_date, indicators)
+  callModule(monitoring_data, "my_id_1", data, col_obs, col_fit, col_date, indicators)
+  callModule(monitoring_data, "my_id_2", data, col_obs, col_fit, col_date, indicators)
 }
 # launcher
 shinyApp(ui = ui, server = server)
