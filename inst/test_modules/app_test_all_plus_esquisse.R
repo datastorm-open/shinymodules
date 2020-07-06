@@ -43,7 +43,7 @@ ui <- fluidPage(
                                 )
                )
       ),
-      tabPanel("Monritoring", 
+      tabPanel("Monitoring", 
                monitoring_data_UI(id = "monitoring")
       )
     )
