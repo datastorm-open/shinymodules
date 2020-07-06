@@ -603,9 +603,9 @@ monitoring_data <- function(input, output, session,
   output$init_err_button <- renderUI({
     actionButton(ns("boxplot_go"), get_labels()$err_button, width = "100%")
   })
-  output$init_tree_y <- renderUI({
-    selectInput(ns("tree_y_var"), get_labels()$tree_y, choices = NULL, selected = NULL)
-  })
+  # output$init_tree_y <- renderUI({
+  #   selectInput(ns("tree_y_var"), get_labels()$tree_y, choices = NULL, selected = NULL)
+  # })
   output$init_tree_minsplit <- renderUI({
     numericInput(ns("tree_minsplit"), label = get_labels()$tree_minsplit, min = 2, max = Inf, value = 20)
   })
@@ -857,23 +857,28 @@ monitoring_data <- function(input, output, session,
     isolate({
       if (! is.null(data)) {
         y_var <- input$tree_y_var
-        
         if (is.null(y_var)) {
           allowed_y_vars <- c(get_col_fit(), get_col_obs())
           
-          updateSelectInput(session = session, "tree_x_var", label = get_labels()$tree_x,
+          updateSelectInput(session = session, "tree_x_var", 
+                            label = get_labels()$tree_x,
                             choices = setdiff(names(data), c(allowed_y_vars, "date")), 
-                            selected = setdiff(names(data), c(allowed_y_vars[1], "date")))
-          updateSelectInput(session = session, "tree_y_var", choices = allowed_y_vars, 
+                            selected = setdiff(names(data), c(allowed_y_vars, "date")))
+          updateSelectInput(session = session, "tree_y_var", 
+                            label = get_labels()$tree_y,
+                            choices = allowed_y_vars, 
                             selected = allowed_y_vars[1])
         } else {
           allowed_y_vars <- c(get_col_fit(), get_col_obs())
           
-          updateSelectInput(session = session, "tree_y_var", label = get_labels()$tree_y,
+          updateSelectInput(session = session, "tree_y_var",
+                            label = get_labels()$tree_y,
                             choices = allowed_y_vars, 
                             selected = ifelse(input$tree_y_var %in% allowed_y_vars, input$tree_y_var, allowed_y_vars[1]))
-          updateSelectInput(session = session, "tree_x_var", choices = setdiff(names(data), c(allowed_y_vars, "date")), 
-                            selected = setdiff(input$tree_x_var, y_var)) 
+          updateSelectInput(session = session, "tree_x_var", 
+                            label = get_labels()$tree_x,
+                            choices = setdiff(names(data), c(allowed_y_vars, "date")), 
+                            selected = setdiff(names(data), c(allowed_y_vars, "date"))) 
         } 
       }
     })
@@ -883,9 +888,16 @@ monitoring_data <- function(input, output, session,
     
     isolate({
       if (! is.null(get_data())) {
-        updateSelectInput(session = session, "tree_x_var", label = get_labels()$tree_x,
-                          choices = setdiff(names(data), c(y_var, "date")), 
-                          selected = setdiff(input$tree_x_var, y_var)) 
+        choices = setdiff(names(data), c(y_var, "date"))
+        if(is.null(input$tree_x_var)){
+          selected <- choices
+        } else {
+          selected <- intersect(input$tree_x_var, choices)
+        }
+        updateSelectInput(session = session, "tree_x_var", 
+                          label = get_labels()$tree_x,
+                          choices = choices, 
+                          selected = selected) 
       }
     })
   })
@@ -922,7 +934,7 @@ monitoring_data <- function(input, output, session,
     
     isolate({
       if (! is.null(cpt) && cpt > 0) {
-        if (! is.null(input$tree_x_var)) {
+        if (! is.null(input$tree_x_var) && !is.null(input$tree_y_var)) {
           withProgress(message = get_labels()$tree_title, value = 0.5, {
             data <- copy(get_data())
             
@@ -1040,7 +1052,7 @@ monitoring_data_UI <- function(id) {
                        div(h3(textOutput(ns("tree_title"))), align = "center", style = "color: #3c8dbc"), 
                        # parameters
                        column(2,
-                              uiOutput(ns("init_tree_y"))
+                              selectInput(ns("tree_y_var"), "Y : ", choices = NULL, selected = NULL)
                        ),
                        column(5,
                               selectInput(ns("tree_x_var"), "X :", choices = NULL,  multiple = TRUE, selected = NULL, width = "100%")
