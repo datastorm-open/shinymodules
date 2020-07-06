@@ -59,17 +59,20 @@
 
 #' Compute indicators for given model and data
 #'
-#' @param object \code{modelInstant} (NULL). A modelInstant object. IE = ???
+#' @param object \code{model object} (NULL). Can be a R model. So we compute prediction on \code{data} using 
+#' \code{fit = predict(object, newdata = data, ...)}. Else, \code{col_fit} must be in \code{data}
 #' @param data \code{data.frame} / \code{data.table}. Data on which to measure the quality of the model.
 #' @param col_obs \code{character}. Column name of observed values.
 #' @param col_fit \code{character} (NULL). Column name of fitted values. 
 #' @param by \code{character} (NULL). Column name of aggregation variable.
 #' @param dec \code{integer} (2). Number of decimals to be kept.
-#' @param nb.cores \code{integer} (1). Number of cores, when oject is used to make prediction.
 #' @param label_no_choice \code{character} ("None"). Label for no selection.
-#'
+#' @param ... in case of \code{model object}, optionnals arguments of \code{predict}
+#' 
 #' @return a data.frame whose columns are the required indicators and aggregation column.
 #' @import data.table
+#' 
+#' @export
 #'
 #' @examples
 #' \dontrun{\donttest{
@@ -79,20 +82,25 @@
 #' obs <- round(runif(100, 1, 10))
 #' fit <- rnorm(100, 1, 5)
 #' 
-#' compute_idc(data = data.table(obs = obs, fit = fit), 
-#' col_obs = "obs", col_fit = "fit", by = "None")
-#' compute_idc(data = data.table(obs = obs, fit = fit, by_var = sample(rep(1:10, 10))), 
-#' col_obs = "obs", col_fit = "fit", by = "by_var")
+#' compute_model_idc(data = data.table(obs = obs, fit = fit), 
+#'     col_obs = "obs", col_fit = "fit", by = "None"
+#' )
+#' 
+#' data_idc <- compute_model_idc(
+#'    data = data.table(obs = obs, fit = fit, by_var = sample(rep(1:10, 10))), 
+#'    col_obs = "obs", col_fit = "fit", by = "by_var"
+#' )
+#' plot_idc_table(data_idc = data_idc)
 #' 
 #' }}
-compute_idc <- function(object = NULL, 
+compute_model_idc <- function(object = NULL, 
                         data, 
                         col_obs, 
                         col_fit = NULL,
                         by = NULL, 
                         dec = 2,
-                        nb.cores = 1,
-                        label_no_choice = "None") {
+                        label_no_choice = "None", 
+                        ...) {
   
   # check inputs
   if (! "data.table" %in% class(data)) {
@@ -115,8 +123,7 @@ compute_idc <- function(object = NULL,
     if (is.null(object)) {
       stop("'object' and 'col_fit' cannot be missing at the same time.")
     }
-    fit <- try(predict(object, newdata = data, nb.cores = nb.cores),
-               silent = TRUE)
+    fit <- try(predict(object, newdata = data, ...), silent = TRUE)
     if (class(fit) == "try-error") {
       stop("An error occurred during prediction.")
     }
@@ -285,7 +292,6 @@ add_by <- function(data,
 #' Plot method for idc_table objects
 #'
 #' @param data_idc \code{data.frame} / \code{data.table}. Table of indicators.
-#' @param instantToHour \code{boolean} (FALSE). ??
 #' @param main \code{character}. Title of the graphic.
 #' @param idc \code{character}. Indicators to be plotted.
 #' @param col \code{character}. Colors of the curve for each indicator.
@@ -295,7 +301,9 @@ add_by <- function(data,
 #' 
 #' @return a rAmCharts grpahic: amSerialChart of indicators.
 #' @import data.table rAmCharts pipeR
-#'
+#' 
+#' @export
+#' 
 #' @examples
 #' \dontrun{\donttest{
 #' 
@@ -306,13 +314,12 @@ add_by <- function(data,
 #' 
 #' data <- data.table(obs = obs, fit = fit, by_var = sample(rep(1:10, 10)))
 #' data <- shinymodules:::add_by(data = data, by_col = "by_var", nb_quantiles = 15)
-#' data <- shinymodules:::compute_idc(data = data, col_obs = "obs", col_fit = "fit", by = "by_var")
+#' data <- compute_model_idc(data = data, col_obs = "obs", col_fit = "fit", by = "by_var")
 #' 
-#' shinymodules:::plot.idc_table(data_idc = data)
+#' plot_idc_table(data_idc = data)
 #' 
 #' }}
-plot.idc_table <- function(data_idc, 
-                           instantToHour = FALSE,
+plot_idc_table <- function(data_idc, 
                            main = "Model's indicators", 
                            idc = c("mape", "rmse", "mae", "mape_e"),
                            col = c("black", "darkblue", "purple", "grey"), 
@@ -351,13 +358,6 @@ plot.idc_table <- function(data_idc,
     if ("mape_e" %in% idc) {
       data_idc$mape_e <- round(data_idc$mape_e * 100, 1)
     }
-    
-    # if (instantToHour) {
-    #   data_idc[, by] <- substring(
-    #              seq.POSIXt(as.POSIXct("2010-01-01 00:00:00", tz = "UTC"),
-    #                  as.POSIXct("2010-01-02 00:00:00", tz = "UTC"),
-    #                  length.out = nrow(data_idc)), 12, 19)
-    # }
     
     labelRotation <- ifelse(length(unique(data_idc[[by]])) > 5, 45, 0)
     
@@ -730,14 +730,14 @@ monitoring_data <- function(input, output, session,
                              nb_quantiles = nb_quantiles,
                              label_no_choice = get_labels()$no_choice)
           
-          data_idc <- compute_idc(data = data_idc, 
+          data_idc <- compute_model_idc(data = data_idc, 
                                   col_obs = get_col_obs(), 
                                   col_fit = get_col_fit(),
                                   by = by,
                                   label_no_choice = get_labels()$no_choice)
           
           
-          plot(data_idc, instantToHour = FALSE, idc = get_indicators(), main = get_labels()$idc_plot_title)
+          plot_idc_table(data_idc, idc = get_indicators(), main = get_labels()$idc_plot_title)
         })
       }
     })
@@ -761,7 +761,7 @@ monitoring_data <- function(input, output, session,
                            label_no_choice = get_labels()$no_choice)
         
         # compute indicators
-        data_idc <- compute_idc(data = data_idc, 
+        data_idc <- compute_model_idc(data = data_idc, 
                                 col_obs = get_col_obs(), 
                                 col_fit = get_col_fit(),
                                 by = by,

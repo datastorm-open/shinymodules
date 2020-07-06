@@ -16,7 +16,7 @@ test_that("check sub-functions", {
   expect_equal(mape_star_target, round(shinymodules:::.mape_e(v_1, v_2), 10))
   
   expect_equivalent(data.frame(mape = mape_target, rmse = rmse_target, mea = mae_target, mape_e = mape_star_target), 
-                    round(shinymodules:::compute_idc(data = data.table(obs = v_1, fit = v_2), 
+                    round(compute_model_idc(data = data.table(obs = v_1, fit = v_2), 
                                                      col_obs = "obs", 
                                                      col_fit = "fit", 
                                                      by = NULL,
@@ -28,7 +28,7 @@ test_that("check sub-functions", {
       obs = v_1, fit = v_2, by = c(1, 2, 3, 4, 1, 2, 3, 4, 1, 2))[, 
                                                                   list(mape = .mape(obs, fit), rmse = .rmse(obs, fit),
                                                                        mae = .mae(obs, fit), mape_e = .mape_e(obs, fit)), by = by]), 
-    shinymodules:::compute_idc(data = data.table(obs = v_1, fit = v_2, by_col = c(1, 2, 3, 4, 1, 2, 3, 4, 1, 2)), 
+    compute_model_idc(data = data.table(obs = v_1, fit = v_2, by_col = c(1, 2, 3, 4, 1, 2, 3, 4, 1, 2)), 
                                col_obs = "obs", 
                                col_fit = "fit", 
                                by = "by_col",
