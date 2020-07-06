@@ -7,6 +7,7 @@
 add_temp_var(
   data,
   col_date,
+  tz = "UTC",
   temp_vars = c("min", "heure", "jour_semaine", "semaine_annee", "mois_annee", "annee")
 )
 }
@@ -14,6 +15,8 @@ add_temp_var(
 \item{data}{\code{data.table}. Table containing a date colummn.}
 
 \item{col_date}{\code{character}. Name of the date column.}
+
+\item{tz}{\code{character}. Timezone of new columns. Default to "UTC"}
 
 \item{temp_vars}{\code{character} (c("min", "heure", "jour_semaine", "semaine_annee", "mois_annee", "annee")). Variables to be added to the table.}
 }
@@ -30,6 +33,12 @@ data <- data.table(date = seq(Sys.time(), Sys.time() + 24*60*60, length.out = 10
 
 data <- add_temp_var(data = data,
                      col_date = "date",
+                     tz = "CET",
+                     temp_vars = c("heure", "semaine_annee", "annee"))
+                 
+data_utc <- add_temp_var(data = data,
+                     col_date = "date",
+                     tz = "UTC",
                      temp_vars = c("heure", "semaine_annee", "annee"))
                      
 }}

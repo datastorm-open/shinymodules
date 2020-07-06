@@ -14,6 +14,7 @@ monitoring_data(
   col_obs,
   col_fit,
   col_date = NULL,
+  tz = "UTC",
   indicators = c("rmse", "mae", "mape", "mape_e"),
   labels = list(progress_data = "Processing data", no_data = "No data", no_choice =
     "None", idc_title = "Distribution of indicators", idc_aggr = "Aggregation column",
@@ -48,6 +49,8 @@ monitoring_data(
 \item{col_fit}{\code{character}. Column name for fitted values.}
 
 \item{col_date}{\code{character} (NULL). Column name for date values.}
+
+\item{tz}{\code{character}. Timezone of new columns. Default to "UTC"}
 
 \item{indicators}{\code{characters}. Indicators to be computed, amongst: ("rmse", "mae", "mape", "mape_star").}
 

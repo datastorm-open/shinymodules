@@ -156,6 +156,7 @@ compute_idc <- function(object = NULL,
 #'
 #' @param data \code{data.table}. Table containing a date colummn.
 #' @param col_date \code{character}. Name of the date column.
+#' @param tz \code{character}. Timezone of new columns. Default to "UTC"
 #' @param temp_vars \code{character} (c("min", "heure", "jour_semaine", "semaine_annee", "mois_annee", "annee")). Variables to be added to the table.
 #'
 #' @return a data.table with new columns.
@@ -170,11 +171,18 @@ compute_idc <- function(object = NULL,
 #' 
 #' data <- add_temp_var(data = data,
 #'                      col_date = "date",
+#'                      tz = "CET",
+#'                      temp_vars = c("heure", "semaine_annee", "annee"))
+#'                  
+#' data_utc <- add_temp_var(data = data,
+#'                      col_date = "date",
+#'                      tz = "UTC",
 #'                      temp_vars = c("heure", "semaine_annee", "annee"))
 #'                      
 #' }}
 add_temp_var <- function(data,
                          col_date,
+                         tz = "UTC",
                          temp_vars = c("min", "heure", "jour_semaine", "semaine_annee", "mois_annee", "annee")) {
   data <- copy(data)
   
@@ -186,24 +194,24 @@ add_temp_var <- function(data,
   }
   
   if ("min" %in% temp_vars) {
-    data[, "Minute" := format(get(col_date), tz = "UTC", format = "%M")]
+    data[, "Minute" := format(get(col_date), tz = tz, format = "%M")]
   }
   if ("heure" %in% temp_vars) {
-    data[, "Heure" := format(get(col_date), tz = "UTC", format = "%H")]
+    data[, "Heure" := format(get(col_date), tz = tz, format = "%H")]
   }
   if ("jour_semaine" %in% temp_vars) {
-    data[, "Jour" := factor(format(get(col_date), tz = "UTC", format = "%A"), 
-                            levels = format(seq(as.Date("2020-01-06"), as.Date("2020-01-12"), length.out = 7), tz = "UTC", format = "%A"))]
+    data[, "Jour" := factor(format(get(col_date), tz = tz, format = "%A"), 
+                            levels = format(seq(as.Date("2020-01-06"), as.Date("2020-01-12"), length.out = 7), tz = tz, format = "%A"))]
   }
   if ("semaine_annee" %in% temp_vars) {
-    data[, "Semaine" := format(get(col_date), tz = "UTC", format = "%V")]
+    data[, "Semaine" := format(get(col_date), tz = tz, format = "%V")]
   }
   if ("mois_annee" %in% temp_vars) {
-    data[, "Mois" := factor(format(get(col_date), tz = "UTC", format = "%B"), 
+    data[, "Mois" := factor(format(get(col_date), tz = tz, format = "%B"), 
                             levels = format(seq(as.Date("2020-01-15"), as.Date("2020-12-15"), length.out = 12), tz = "UTC", format = "%B"))]
   }
   if ("annee" %in% temp_vars) {
-    data[, "Annee" := format(get(col_date), tz = "UTC", format = "%Y")]
+    data[, "Annee" := format(get(col_date), tz = tz, format = "%Y")]
   }
   
   return(data)
@@ -446,6 +454,7 @@ plot.idc_table <- function(data_idc,
 #' @param col_obs \code{character}. Column name for observed values.
 #' @param col_fit \code{character}. Column name for fitted values.
 #' @param col_date \code{character} (NULL). Column name for date values.
+#' @param tz \code{character}. Timezone of new columns. Default to "UTC"
 #' @param indicators \code{characters}. Indicators to be computed, amongst: ("rmse", "mae", "mape", "mape_star").
 #' @param labels \code{character}. Labels to modify displayed texts. See default in examples.
 #'
@@ -495,6 +504,7 @@ monitoring_data <- function(input, output, session,
                            col_obs, 
                            col_fit, 
                            col_date = NULL,
+                           tz = "UTC",
                            indicators = c("rmse", "mae", "mape", "mape_e"),
                            labels = list(
                              "progress_data" = "Processing data",
@@ -556,6 +566,11 @@ monitoring_data <- function(input, output, session,
     get_col_date <- shiny::reactive(col_date)
   } else {
     get_col_date <- col_date
+  }
+  if (! shiny::is.reactive(tz)) {
+    get_tz <- shiny::reactive(tz)
+  } else {
+    get_tz <- tz
   }
   if (! shiny::is.reactive(indicators)) {
     get_indicators <- shiny::reactive(indicators)
@@ -621,7 +636,7 @@ monitoring_data <- function(input, output, session,
           
           # add cols min, hour, week, month, year + keep only target vars indicators
           if (! is.null(get_col_date())) {
-            data <- add_temp_var(data = data,
+            data <- add_temp_var(data = data, tz = get_tz(), 
                                  col_date = get_col_date())
           }
         })
