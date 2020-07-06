@@ -274,8 +274,7 @@ get_summary_data_dt <- function(data, optional_stats, nb_modal2show,
                           c('pct_NA', "pct_zero"), 2
                         ) 
     names_num <- attr(dt$x, "colnames")[which(
-      !(attr(dt$x, "colnames") %in% c(
-        "pct_NA", "pct_zero", "boxplot", "density")))]
+      !(attr(dt$x, "colnames") %in% c("variable", "pct_NA", "pct_zero", "boxplot", "density")))]
     
     dt <- dt %>% DT::formatCurrency(
       names_num, currency = "", interval = 3, mark = " ")
