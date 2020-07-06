@@ -20,7 +20,7 @@
 #' \itemize{
 #'  \item{"title"}{ : Module title.}
 #'  \item{"no_data "}{ : Printed message if no data.}
-#'  \item{"filter"}{ : Seleciton filters.}
+#'  \item{"filter"}{ : Selection filters.}
 #'  \item{"reinitialize"}{ : Reinit button.}
 #'  \item{"validate"}{ :  Validate button.}
 #'}
