@@ -3,7 +3,7 @@
 export(add_temp_var)
 export(filter_data)
 export(filter_data_UI)
-export(get_dt_num_dt_fac)
+export(get_summary_data_dt)
 export(monitoring_data)
 export(monitoring_data_UI)
 export(run_example_app_filter_and_summary_data)

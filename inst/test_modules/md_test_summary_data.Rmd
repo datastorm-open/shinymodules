@@ -14,7 +14,7 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 
 ```{r , eval = TRUE, echo = FALSE, message = FALSE, warning = TRUE, results='asis'}
 
-obj <- get_dt_num_dt_fac(data = nycflights13::flights, optional_stats = "all", nb_modal2show = 4)
+obj <- get_summary_data_dt(data = nycflights13::flights, optional_stats = "all", nb_modal2show = 4)
 ```
 
 ## Statistics on numeric variables

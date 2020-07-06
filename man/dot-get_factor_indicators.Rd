@@ -36,5 +36,5 @@ DT with statistics on factor data
 \description{
 return statistics from factor data, is called by 
 
-\link{get_dt_num_dt_fac}
+\link{get_summary_data_dt}
 }

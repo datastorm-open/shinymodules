@@ -229,7 +229,7 @@ summary_data <- function(input, output, session, data = NULL, optional_stats = "
         data <- data[, .SD, .SDcols = columns_to_show]
       }
       setcolorder(data, colnames(data)[order(colnames(data))])
-      get_dt_num_dt_fac(data, optional_stats = get_optional_stats(), nb_modal2show = get_nb_modal2show(), 
+      get_summary_data_dt(data, optional_stats = get_optional_stats(), nb_modal2show = get_nb_modal2show(), 
                         show_warnings = get_show_warnings(), message = get_labels()$message, session = session)
     } else {
       NULL
