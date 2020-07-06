@@ -443,8 +443,9 @@ plot_idc_table <- function(data_idc,
 
 
 
-#' Shiny module server-like fun to display monitoring indicators on a data.table.
+#' Shiny module to display monitoring indicators on a data.table.
 #'
+#' @param id \code{character}. shiny id to allow multiple instanciation.
 #' @param input shiny input
 #' @param output shiny input
 #' @param session shiny input
@@ -497,6 +498,9 @@ plot_idc_table <- function(data_idc,
 #' shiny::shinyApp(ui = ui, server = server)
 #' 
 #' }}
+#' 
+#' @rdname monitoring_data_module
+#' 
 monitoring_data <- function(input, output, session, 
                            data,
                            col_id = NULL,
@@ -955,43 +959,13 @@ monitoring_data <- function(input, output, session,
 
 
 
-#' Shiny module ui-like fun to display indicators on a data.table.
-#'
-#' @param id \code{character}. shiny id to allow multiple instanciation.
-#
-#' @return shiny module.
 #' @import shiny rAmCharts visNetwork
 #' @importFrom DT DTOutput renderDT
+#' 
 #' @export
 #'
-#' @examples
-#' \dontrun{\donttest{
+#' @rdname monitoring_data_module
 #' 
-#' library(data.table)
-#' 
-#' data <- data.table(obs = runif(100, 1, 10))
-#' data[, fit := obs + rnorm(100, 0, 10)]
-#' data[, date := seq(as.POSIXct("2019-10-07 00:00:00 UTC", tz = "UTC"),
-#'                    as.POSIXct("2019-10-11 03:00:00 UTC", tz = "UTC"), by = 60*60)]
-#' data[, by_quali := factor(sample(rep(1:10, 10)))]
-#' data[, by_quanti := runif(100, 1, 20)]
-#' 
-#' col_obs <- "obs"
-#' col_fit <- "fit"
-#' col_date = "date"
-#' indicators <- c("rmse", "mae", "mape", "mape_e")
-#' 
-#' ui <- monitoring_data_UI("my_id")
-#' server <- function(input, output, session) {
-#'   callModule(monitoring_data, "my_id", data = reactive(data), 
-#'              col_obs = col_obs, 
-#'              col_fit = col_fit, 
-#'              col_date = col_date,
-#'              indicators = indicators)
-#' }
-#' shiny::shinyApp(ui = ui, server = server)
-#' 
-#' }}
 monitoring_data_UI <- function(id) {
   ns <- shiny::NS(id)
   

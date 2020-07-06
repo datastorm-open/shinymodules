@@ -2,6 +2,7 @@
 % Please edit documentation in R/monitoring_data.R
 \name{monitoring_data}
 \alias{monitoring_data}
+\alias{monitoring_data_UI}
 \title{Shiny module server-like fun to display monitoring indicators on a data.table.}
 \usage{
 monitoring_data(
@@ -30,6 +31,8 @@ monitoring_data(
     tree_cp_modal_step = "Slider step", tree_cp_modal_bouton = "Validate update",
     warning_var = "Select at least one explanatory variable.")
 )
+
+monitoring_data_UI(id)
 }
 \arguments{
 \item{input}{shiny input}
@@ -55,8 +58,12 @@ monitoring_data(
 \item{indicators}{\code{characters}. Indicators to be computed, amongst: ("rmse", "mae", "mape", "mape_star").}
 
 \item{labels}{\code{character}. Labels to modify displayed texts. See default in examples.}
+
+\item{id}{\code{character}. shiny id to allow multiple instanciation.}
 }
 \value{
+shiny module.
+
 shiny module.
 }
 \description{
@@ -93,4 +100,5 @@ server <- function(input, output, session) {
 shiny::shinyApp(ui = ui, server = server)
 
 }}
+
 }
