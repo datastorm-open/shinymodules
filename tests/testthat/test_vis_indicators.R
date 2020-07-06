@@ -19,23 +19,22 @@ test_that("check sub-functions", {
                     round(shinymodules:::compute_idc(data = data.table(obs = v_1, fit = v_2), 
                                                      col_obs = "obs", 
                                                      col_fit = "fit", 
-                                                     by = "Aucun",
-                                                     dec = 10), 10))
+                                                     by = NULL,
+                                                     dec = 10), 10)
+  )
   
   expect_equivalent(
     data.frame(data.table(
-            obs = v_1, fit = v_2, by = c(1, 2, 3, 4, 1, 2, 3, 4, 1, 2))[, 
-            list(mape = .mape(obs, fit), rmse = .rmse(obs, fit),
-                 mae = .mae(obs, fit), mape_e = .mape_e(obs, fit)), by = by]), 
+      obs = v_1, fit = v_2, by = c(1, 2, 3, 4, 1, 2, 3, 4, 1, 2))[, 
+                                                                  list(mape = .mape(obs, fit), rmse = .rmse(obs, fit),
+                                                                       mae = .mae(obs, fit), mape_e = .mape_e(obs, fit)), by = by]), 
     shinymodules:::compute_idc(data = data.table(obs = v_1, fit = v_2, by_col = c(1, 2, 3, 4, 1, 2, 3, 4, 1, 2)), 
                                col_obs = "obs", 
                                col_fit = "fit", 
                                by = "by_col",
-                               dec = 10))
-
-  expect_equal(data.table(obs = v_1, fit = v_2, by_var = as.character(c(1, 2, 3, 4, 1, 2, 3, 4, 1, 2))),
-               add_by(data = data.table(obs = v_1, fit = v_2, by_var = as.character(c(1, 2, 3, 4, 1, 2, 3, 4, 1, 2))), by_col = "Aucun"))
-    
+                               dec = 10)
+  )
+  
   expect_equal(data.table(obs = v_1, fit = v_2, by_var = as.character(c(1, 2, 3, 4, 1, 2, 3, 4, 1, 2))),
                add_by(data = data.table(obs = v_1, fit = v_2, by_var = as.character(c(1, 2, 3, 4, 1, 2, 3, 4, 1, 2))), by_col = "by_var"))
   
