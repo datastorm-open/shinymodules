@@ -59,17 +59,20 @@
 
 #' Compute indicators for given model and data
 #'
-#' @param object \code{modelInstant} (NULL). A modelInstant object. IE = ???
+#' @param object \code{model object} (NULL). Can be a R model. So we compute prediction on \code{data} using 
+#' \code{fit = predict(object, newdata = data, ...)}. Else, \code{col_fit} must be in \code{data}
 #' @param data \code{data.frame} / \code{data.table}. Data on which to measure the quality of the model.
 #' @param col_obs \code{character}. Column name of observed values.
 #' @param col_fit \code{character} (NULL). Column name of fitted values. 
 #' @param by \code{character} (NULL). Column name of aggregation variable.
 #' @param dec \code{integer} (2). Number of decimals to be kept.
-#' @param nb.cores \code{integer} (1). Number of cores, when oject is used to make prediction.
 #' @param label_no_choice \code{character} ("None"). Label for no selection.
-#'
+#' @param ... in case of \code{model object}, optionnals arguments of \code{predict}
+#' 
 #' @return a data.frame whose columns are the required indicators and aggregation column.
 #' @import data.table
+#' 
+#' @export
 #'
 #' @examples
 #' \dontrun{\donttest{
@@ -79,20 +82,25 @@
 #' obs <- round(runif(100, 1, 10))
 #' fit <- rnorm(100, 1, 5)
 #' 
-#' compute_idc(data = data.table(obs = obs, fit = fit), 
-#' col_obs = "obs", col_fit = "fit", by = "None")
-#' compute_idc(data = data.table(obs = obs, fit = fit, by_var = sample(rep(1:10, 10))), 
-#' col_obs = "obs", col_fit = "fit", by = "by_var")
+#' compute_model_idc(data = data.table(obs = obs, fit = fit), 
+#'     col_obs = "obs", col_fit = "fit", by = "None"
+#' )
+#' 
+#' data_idc <- compute_model_idc(
+#'    data = data.table(obs = obs, fit = fit, by_var = sample(rep(1:10, 10))), 
+#'    col_obs = "obs", col_fit = "fit", by = "by_var"
+#' )
+#' plot_idc_table(data_idc = data_idc)
 #' 
 #' }}
-compute_idc <- function(object = NULL, 
+compute_model_idc <- function(object = NULL, 
                         data, 
                         col_obs, 
                         col_fit = NULL,
                         by = NULL, 
                         dec = 2,
-                        nb.cores = 1,
-                        label_no_choice = "None") {
+                        label_no_choice = "None", 
+                        ...) {
   
   # check inputs
   if (! "data.table" %in% class(data)) {
@@ -115,8 +123,7 @@ compute_idc <- function(object = NULL,
     if (is.null(object)) {
       stop("'object' and 'col_fit' cannot be missing at the same time.")
     }
-    fit <- try(predict(object, newdata = data, nb.cores = nb.cores),
-               silent = TRUE)
+    fit <- try(predict(object, newdata = data, ...), silent = TRUE)
     if (class(fit) == "try-error") {
       stop("An error occurred during prediction.")
     }
@@ -156,6 +163,7 @@ compute_idc <- function(object = NULL,
 #'
 #' @param data \code{data.table}. Table containing a date colummn.
 #' @param col_date \code{character}. Name of the date column.
+#' @param tz \code{character}. Timezone of new columns. Default to "UTC"
 #' @param temp_vars \code{character} (c("min", "heure", "jour_semaine", "semaine_annee", "mois_annee", "annee")). Variables to be added to the table.
 #'
 #' @return a data.table with new columns.
@@ -170,11 +178,18 @@ compute_idc <- function(object = NULL,
 #' 
 #' data <- add_temp_var(data = data,
 #'                      col_date = "date",
+#'                      tz = "CET",
+#'                      temp_vars = c("heure", "semaine_annee", "annee"))
+#'                  
+#' data_utc <- add_temp_var(data = data,
+#'                      col_date = "date",
+#'                      tz = "UTC",
 #'                      temp_vars = c("heure", "semaine_annee", "annee"))
 #'                      
 #' }}
 add_temp_var <- function(data,
                          col_date,
+                         tz = "UTC",
                          temp_vars = c("min", "heure", "jour_semaine", "semaine_annee", "mois_annee", "annee")) {
   data <- copy(data)
   
@@ -186,24 +201,24 @@ add_temp_var <- function(data,
   }
   
   if ("min" %in% temp_vars) {
-    data[, "Minute" := format(get(col_date), tz = "UTC", format = "%M")]
+    data[, "Minute" := format(get(col_date), tz = tz, format = "%M")]
   }
   if ("heure" %in% temp_vars) {
-    data[, "Heure" := format(get(col_date), tz = "UTC", format = "%H")]
+    data[, "Heure" := format(get(col_date), tz = tz, format = "%H")]
   }
   if ("jour_semaine" %in% temp_vars) {
-    data[, "Jour" := factor(format(get(col_date), tz = "UTC", format = "%A"), 
-                            levels = format(seq(as.Date("2020-01-06"), as.Date("2020-01-12"), length.out = 7), tz = "UTC", format = "%A"))]
+    data[, "Jour" := factor(format(get(col_date), tz = tz, format = "%A"), 
+                            levels = format(seq(as.Date("2020-01-06"), as.Date("2020-01-12"), length.out = 7), tz = tz, format = "%A"))]
   }
   if ("semaine_annee" %in% temp_vars) {
-    data[, "Semaine" := format(get(col_date), tz = "UTC", format = "%V")]
+    data[, "Semaine" := format(get(col_date), tz = tz, format = "%V")]
   }
   if ("mois_annee" %in% temp_vars) {
-    data[, "Mois" := factor(format(get(col_date), tz = "UTC", format = "%B"), 
+    data[, "Mois" := factor(format(get(col_date), tz = tz, format = "%B"), 
                             levels = format(seq(as.Date("2020-01-15"), as.Date("2020-12-15"), length.out = 12), tz = "UTC", format = "%B"))]
   }
   if ("annee" %in% temp_vars) {
-    data[, "Annee" := format(get(col_date), tz = "UTC", format = "%Y")]
+    data[, "Annee" := format(get(col_date), tz = tz, format = "%Y")]
   }
   
   return(data)
@@ -277,7 +292,6 @@ add_by <- function(data,
 #' Plot method for idc_table objects
 #'
 #' @param data_idc \code{data.frame} / \code{data.table}. Table of indicators.
-#' @param instantToHour \code{boolean} (FALSE). ??
 #' @param main \code{character}. Title of the graphic.
 #' @param idc \code{character}. Indicators to be plotted.
 #' @param col \code{character}. Colors of the curve for each indicator.
@@ -287,7 +301,9 @@ add_by <- function(data,
 #' 
 #' @return a rAmCharts grpahic: amSerialChart of indicators.
 #' @import data.table rAmCharts pipeR
-#'
+#' 
+#' @export
+#' 
 #' @examples
 #' \dontrun{\donttest{
 #' 
@@ -298,13 +314,12 @@ add_by <- function(data,
 #' 
 #' data <- data.table(obs = obs, fit = fit, by_var = sample(rep(1:10, 10)))
 #' data <- shinymodules:::add_by(data = data, by_col = "by_var", nb_quantiles = 15)
-#' data <- shinymodules:::compute_idc(data = data, col_obs = "obs", col_fit = "fit", by = "by_var")
+#' data <- compute_model_idc(data = data, col_obs = "obs", col_fit = "fit", by = "by_var")
 #' 
-#' shinymodules:::plot.idc_table(data_idc = data)
+#' plot_idc_table(data_idc = data)
 #' 
 #' }}
-plot.idc_table <- function(data_idc, 
-                           instantToHour = FALSE,
+plot_idc_table <- function(data_idc, 
                            main = "Model's indicators", 
                            idc = c("mape", "rmse", "mae", "mape_e"),
                            col = c("black", "darkblue", "purple", "grey"), 
@@ -343,13 +358,6 @@ plot.idc_table <- function(data_idc,
     if ("mape_e" %in% idc) {
       data_idc$mape_e <- round(data_idc$mape_e * 100, 1)
     }
-    
-    # if (instantToHour) {
-    #   data_idc[, by] <- substring(
-    #              seq.POSIXt(as.POSIXct("2010-01-01 00:00:00", tz = "UTC"),
-    #                  as.POSIXct("2010-01-02 00:00:00", tz = "UTC"),
-    #                  length.out = nrow(data_idc)), 12, 19)
-    # }
     
     labelRotation <- ifelse(length(unique(data_idc[[by]])) > 5, 45, 0)
     
@@ -435,8 +443,9 @@ plot.idc_table <- function(data_idc,
 
 
 
-#' Shiny module server-like fun to display indicators on a data.table.
+#' Shiny module to display monitoring indicators on a data.table.
 #'
+#' @param id \code{character}. shiny id to allow multiple instanciation.
 #' @param input shiny input
 #' @param output shiny input
 #' @param session shiny input
@@ -446,6 +455,7 @@ plot.idc_table <- function(data_idc,
 #' @param col_obs \code{character}. Column name for observed values.
 #' @param col_fit \code{character}. Column name for fitted values.
 #' @param col_date \code{character} (NULL). Column name for date values.
+#' @param tz \code{character}. Timezone of new columns. Default to "UTC"
 #' @param indicators \code{characters}. Indicators to be computed, amongst: ("rmse", "mae", "mape", "mape_star").
 #' @param labels \code{character}. Labels to modify displayed texts. See default in examples.
 #'
@@ -474,12 +484,15 @@ plot.idc_table <- function(data_idc,
 #' col_date = "date"
 #' indicators <- c("rmse", "mae", "mape", "mape_e")
 #' 
-#' ui <- vis_indicators_UI("my_id")
+#' ui <- monitoring_data_UI(id = "my_id")
+#' 
 #' server <- function(input, output, session) {
-#'   callModule(vis_indicators, "my_id", data = reactive(data),
+#'   callModule(module = monitoring_data, id = "my_id", 
+#'              data = reactive(data),
 #'              col_obs = col_obs,
 #'              col_fit = col_fit,
 #'              col_date = col_date,
+<<<<<<< HEAD:R/vis_indicators.R
 #'              indicators = indicators,
 #'              labels = list(
 #'                "progress_data" = "Processing data",
@@ -512,17 +525,25 @@ plot.idc_table <- function(data_idc,
 #'                "tree_cp_modal_step" = "Slider step",
 #'                "tree_cp_modal_bouton" = "Validate update",
 #'                "warning_var" = "Select at least one explanatory variable."))
+=======
+#'              indicators = indicators
+#'   )
+>>>>>>> b86045cd489f07a4d1270f9c2d1bfc2a4e8aae5a:R/monitoring_data.R
 #' }
 #' shiny::shinyApp(ui = ui, server = server)
 #' 
 #' }}
-vis_indicators <- function(input, output, session, 
+#' 
+#' @rdname monitoring_data_module
+#' 
+monitoring_data <- function(input, output, session, 
                            data,
                            col_id = NULL,
                            keep_id = NULL,
                            col_obs, 
                            col_fit, 
                            col_date = NULL,
+                           tz = "UTC",
                            indicators = c("rmse", "mae", "mape", "mape_e"),
                            labels = list(
                              "progress_data" = "Processing data",
@@ -584,6 +605,11 @@ vis_indicators <- function(input, output, session,
   } else {
     get_col_date <- col_date
   }
+  if (! shiny::is.reactive(tz)) {
+    get_tz <- shiny::reactive(tz)
+  } else {
+    get_tz <- tz
+  }
   if (! shiny::is.reactive(indicators)) {
     get_indicators <- shiny::reactive(indicators)
   } else {
@@ -611,9 +637,9 @@ vis_indicators <- function(input, output, session,
   output$init_err_button <- renderUI({
     actionButton(ns("boxplot_go"), get_labels()$err_button, width = "100%")
   })
-  output$init_tree_y <- renderUI({
-    selectInput(ns("tree_y_var"), get_labels()$tree_y, choices = NULL, selected = NULL)
-  })
+  # output$init_tree_y <- renderUI({
+  #   selectInput(ns("tree_y_var"), get_labels()$tree_y, choices = NULL, selected = NULL)
+  # })
   output$init_tree_minsplit <- renderUI({
     numericInput(ns("tree_minsplit"), label = get_labels()$tree_minsplit, min = 2, max = Inf, value = 20)
   })
@@ -648,7 +674,7 @@ vis_indicators <- function(input, output, session,
           
           # add cols min, hour, week, month, year + keep only target vars indicators
           if (! is.null(get_col_date())) {
-            data <- add_temp_var(data = data,
+            data <- add_temp_var(data = data, tz = get_tz(), 
                                  col_date = get_col_date())
           }
         })
@@ -742,14 +768,14 @@ vis_indicators <- function(input, output, session,
                              nb_quantiles = nb_quantiles,
                              label_no_choice = get_labels()$no_choice)
           
-          data_idc <- compute_idc(data = data_idc, 
+          data_idc <- compute_model_idc(data = data_idc, 
                                   col_obs = get_col_obs(), 
                                   col_fit = get_col_fit(),
                                   by = by,
                                   label_no_choice = get_labels()$no_choice)
           
           
-          plot(data_idc, instantToHour = FALSE, idc = get_indicators(), main = get_labels()$idc_plot_title)
+          plot_idc_table(data_idc, idc = get_indicators(), main = get_labels()$idc_plot_title)
         })
       }
     })
@@ -773,7 +799,7 @@ vis_indicators <- function(input, output, session,
                            label_no_choice = get_labels()$no_choice)
         
         # compute indicators
-        data_idc <- compute_idc(data = data_idc, 
+        data_idc <- compute_model_idc(data = data_idc, 
                                 col_obs = get_col_obs(), 
                                 col_fit = get_col_fit(),
                                 by = by,
@@ -865,23 +891,28 @@ vis_indicators <- function(input, output, session,
     isolate({
       if (! is.null(data)) {
         y_var <- input$tree_y_var
-        
         if (is.null(y_var)) {
           allowed_y_vars <- c(get_col_fit(), get_col_obs())
           
-          updateSelectInput(session = session, "tree_x_var", label = get_labels()$tree_x,
+          updateSelectInput(session = session, "tree_x_var", 
+                            label = get_labels()$tree_x,
                             choices = setdiff(names(data), c(allowed_y_vars, "date")), 
-                            selected = setdiff(names(data), c(allowed_y_vars[1], "date")))
-          updateSelectInput(session = session, "tree_y_var", choices = allowed_y_vars, 
+                            selected = setdiff(names(data), c(allowed_y_vars, "date")))
+          updateSelectInput(session = session, "tree_y_var", 
+                            label = get_labels()$tree_y,
+                            choices = allowed_y_vars, 
                             selected = allowed_y_vars[1])
         } else {
           allowed_y_vars <- c(get_col_fit(), get_col_obs())
           
-          updateSelectInput(session = session, "tree_y_var", label = get_labels()$tree_y,
+          updateSelectInput(session = session, "tree_y_var",
+                            label = get_labels()$tree_y,
                             choices = allowed_y_vars, 
                             selected = ifelse(input$tree_y_var %in% allowed_y_vars, input$tree_y_var, allowed_y_vars[1]))
-          updateSelectInput(session = session, "tree_x_var", choices = setdiff(names(data), c(allowed_y_vars, "date")), 
-                            selected = setdiff(input$tree_x_var, y_var)) 
+          updateSelectInput(session = session, "tree_x_var", 
+                            label = get_labels()$tree_x,
+                            choices = setdiff(names(data), c(allowed_y_vars, "date")), 
+                            selected = setdiff(names(data), c(allowed_y_vars, "date"))) 
         } 
       }
     })
@@ -891,9 +922,16 @@ vis_indicators <- function(input, output, session,
     
     isolate({
       if (! is.null(get_data())) {
-        updateSelectInput(session = session, "tree_x_var", label = get_labels()$tree_x,
-                          choices = setdiff(names(data), c(y_var, "date")), 
-                          selected = setdiff(input$tree_x_var, y_var)) 
+        choices = setdiff(names(data), c(y_var, "date"))
+        if(is.null(input$tree_x_var)){
+          selected <- choices
+        } else {
+          selected <- intersect(input$tree_x_var, choices)
+        }
+        updateSelectInput(session = session, "tree_x_var", 
+                          label = get_labels()$tree_x,
+                          choices = choices, 
+                          selected = selected) 
       }
     })
   })
@@ -930,7 +968,7 @@ vis_indicators <- function(input, output, session,
     
     isolate({
       if (! is.null(cpt) && cpt > 0) {
-        if (! is.null(input$tree_x_var)) {
+        if (! is.null(input$tree_x_var) && !is.null(input$tree_y_var)) {
           withProgress(message = get_labels()$tree_title, value = 0.5, {
             data <- copy(get_data())
             
@@ -967,44 +1005,14 @@ vis_indicators <- function(input, output, session,
 
 
 
-#' Shiny module ui-like fun to display indicators on a data.table.
-#'
-#' @param id \code{character}. shiny id to allow multiple instanciation.
-#
-#' @return shiny module.
 #' @import shiny rAmCharts visNetwork
 #' @importFrom DT DTOutput renderDT
+#' 
 #' @export
 #'
-#' @examples
-#' \dontrun{\donttest{
+#' @rdname monitoring_data_module
 #' 
-#' library(data.table)
-#' 
-#' data <- data.table(obs = runif(100, 1, 10))
-#' data[, fit := obs + rnorm(100, 0, 10)]
-#' data[, date := seq(as.POSIXct("2019-10-07 00:00:00 UTC", tz = "UTC"),
-#'                    as.POSIXct("2019-10-11 03:00:00 UTC", tz = "UTC"), by = 60*60)]
-#' data[, by_quali := factor(sample(rep(1:10, 10)))]
-#' data[, by_quanti := runif(100, 1, 20)]
-#' 
-#' col_obs <- "obs"
-#' col_fit <- "fit"
-#' col_date = "date"
-#' indicators <- c("rmse", "mae", "mape", "mape_e")
-#' 
-#' ui <- vis_indicators_UI("my_id")
-#' server <- function(input, output, session) {
-#'   callModule(vis_indicators, "my_id", data = reactive(data), 
-#'              col_obs = col_obs, 
-#'              col_fit = col_fit, 
-#'              col_date = col_date,
-#'              indicators = indicators)
-#' }
-#' shiny::shinyApp(ui = ui, server = server)
-#' 
-#' }}
-vis_indicators_UI <- function(id) {
+monitoring_data_UI <- function(id) {
   ns <- shiny::NS(id)
   
   fluidPage(
@@ -1078,7 +1086,7 @@ vis_indicators_UI <- function(id) {
                        div(h3(textOutput(ns("tree_title"))), align = "center", style = "color: #3c8dbc"), 
                        # parameters
                        column(2,
-                              uiOutput(ns("init_tree_y"))
+                              selectInput(ns("tree_y_var"), "Y : ", choices = NULL, selected = NULL)
                        ),
                        column(5,
                               selectInput(ns("tree_x_var"), "X :", choices = NULL,  multiple = TRUE, selected = NULL, width = "100%")

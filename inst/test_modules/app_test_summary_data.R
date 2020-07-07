@@ -1,9 +1,6 @@
 library(shiny)
 library(DT)
 library(data.table)
-library(sparkline)
-library(magrittr)
-library(PerformanceAnalytics)
 library(htmlwidgets)
 library(nycflights13)
 
@@ -20,14 +17,6 @@ ui <- fluidPage(
 )
 
 server <- function(input, output, session) {
-  # optional_stats <- c("min", "max")
-  
-  if (!exists("optional_stats")) {
-    optional_stats <- "all"
-  }
-  if (!exists("nb_modal2show")) {
-    nb_modal2show <- 6
-  }
   
   # Create & update reactiveValues
   reactive_data <- shiny::reactiveValues(data = NULL)
@@ -42,13 +31,14 @@ server <- function(input, output, session) {
       reactive_data$data <- data.table::data.table(data)
     }
   })
+  
   callModule(module = summary_data, id = "id",
              data = shiny::reactive(reactive_data$data), 
-             optional_stats = optional_stats, show_warnings = FALSE,
-             nb_modal2show = nb_modal2show, 
+             optional_stats = "all", 
+             show_warnings = FALSE,
+             nb_modal2show = 6, 
              columns_to_show = reactive(c(colnames(reactive_data$data), "invalid")))
 }
 
 # Run the application
-shinyApp(ui = ui, server = server, options = list(display.mode = "showcase"))
-# shinyApp(ui = ui, server = server)
+shinyApp(ui = ui, server = server)

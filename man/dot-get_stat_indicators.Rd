@@ -4,8 +4,14 @@
 \alias{.get_stat_indicators}
 \title{get stats indicator on numeric data}
 \usage{
-.get_stat_indicators(data, vars, optional_stats, keep_dataframe = TRUE,
-  keep_datatable = TRUE, progress = NULL)
+.get_stat_indicators(
+  data,
+  vars,
+  optional_stats,
+  keep_dataframe = TRUE,
+  keep_datatable = TRUE,
+  progress = NULL
+)
 }
 \arguments{
 \item{data}{\code{data.frame}, \code{data.table}}
@@ -26,5 +32,5 @@ DT with statistics on numeric data
 }
 \description{
 return statistics from numeric data, is called by 
-\link{get_dt_num_dt_fac}
+\link{get_summary_data_dt}
 }

@@ -20,7 +20,7 @@
 #' \itemize{
 #'  \item{"title"}{ : Module title.}
 #'  \item{"no_data "}{ : Printed message if no data.}
-#'  \item{"filter"}{ : Seleciton filters.}
+#'  \item{"filter"}{ : Selection filters.}
 #'  \item{"reinitialize"}{ : Reinit button.}
 #'  \item{"validate"}{ :  Validate button.}
 #'}
@@ -33,10 +33,13 @@
 #' \dontrun{
 #' 
 #' ui = shiny::fluidPage(filter_data_UI(id = "id", titles = TRUE))
+#' 
 #' server = function(input, output, session) {
 #'   data <- reactiveValues(data = iris)
-#'   shiny::callModule(module = filter_data, id = "id", data = reactive(data$data), 
-#'   columns_to_filter = c("Sepal.Length", "Sepal.Width"))
+#'   shiny::callModule(module = filter_data, id = "id", 
+#'     data = reactive(data$data), 
+#'     columns_to_filter = c("Sepal.Length", "Sepal.Width")
+#'   )
 #' }
 #' 
 #' shiny::shinyApp(ui = ui, server = server)
@@ -275,8 +278,8 @@ filter_data <- function(input, output, session, data = NULL,
               choices <- c("single slider", "range slider", "less than", "less than or equal to", "greater than", "greater than or equal to")
               
             } else if (any(ctrlclass %in% c("POSIXct", "POSIXlt"))) {
-              selectedtype <- "range slider"
-              choices <- c("single slider", "range slider")
+              selectedtype <-  "range date"
+              choices <- c("single date", "range date", "single slider", "range slider")
               
             } else if (any(ctrlclass %in% c("IDate", "Date"))) {
               selectedtype <- "range date"
@@ -353,6 +356,12 @@ filter_data <- function(input, output, session, data = NULL,
                 
               } else if (selectedtype %in% c("greater than", "greater than or equal to")) {
                 values <- min(data[, get(filter)], na.rm = TRUE)
+                
+              } else if (selectedtype %in% c("single date", "range date")) {
+                values <- c(
+                  as.Date(min(data[, get(filter)], na.rm = TRUE)), 
+                  as.Date(max(data[, get(filter)], na.rm = TRUE))
+                )
               }
               
             } else if (any(ctrlclass %in% c("IDate", "Date"))) {
@@ -443,6 +452,11 @@ filter_data <- function(input, output, session, data = NULL,
                 
               } else if (selectedtype %in% c("greater than", "greater than or equal to")) {
                 values <- min(data[, get(colname)], na.rm = TRUE)
+              } else if (selectedtype %in% c("single date", "range date")) {
+                values <- c(
+                  as.Date(min(data[, get(colname)], na.rm = TRUE)), 
+                  as.Date(max(data[, get(colname)], na.rm = TRUE))
+                )
               }
               
             } else if (any(ctrlclass %in% c("IDate", "Date"))) {
@@ -518,7 +532,9 @@ filter_data <- function(input, output, session, data = NULL,
           name <- x
           selectedtype <- input[[paste0("typefilter", x)]]
           filter <-  input[[paste0("filter", x)]]
-          
+          if("Date" %in% class(filter)){
+            filter <- as.character(filter)
+          }
           if (selectedtype %in% c("range slider", "range date")) {
             colname <- c(name, name)
             fun <- c(">=", "<=")
@@ -563,7 +579,6 @@ filter_data <- function(input, output, session, data = NULL,
       }))
       
       if (nrow(ctrl) > 0 & nrow(data_to_filter()) > 0) {
-        
         res <- lapply(1:nrow(ctrl), function(x) {
           list(column = ctrl[x, column], fun = ctrl[x, "fun"], values = ctrl[x, unlist(values)])
         })

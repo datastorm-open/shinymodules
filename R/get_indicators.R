@@ -1,6 +1,8 @@
-#' @title  preprocessing on data 
-#' @description preprocessing of input data, return two DT, one with
-#' statistics on numeric variables and another one with statistics on factor variables
+#' @title  Compute summary table(s)
+#' 
+#' @description preprocessing of input data, return one or more DT, one with
+#' statistics on numeric variables, another one with statistics on factor variables
+#' and one with date variables
 #' 
 #' @param data \code{data.frame}, \code{data.table} input data which will be preprocessed
 #' @param optional_stats \code{character} optional statistics computed on data,
@@ -18,13 +20,14 @@
 #' @export
 #' @examples 
 #' \dontrun{
-#' get_dt_num_dt_fac(mtcars, optional_stats = c("min", "max", "boxplot", "density"))
 #' 
-#' get_dt_num_dt_fac(airquality, optional_stats = "all")
+#' get_summary_data_dt(mtcars, optional_stats = c("min", "max", "boxplot", "density"))
+#' 
+#' get_summary_data_dt(airquality, optional_stats = "all")
 #' 
 #' }
 #' 
-get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show, 
+get_summary_data_dt <- function(data, optional_stats, nb_modal2show, 
                               show_warnings = FALSE, keep_dataframe = TRUE, 
                               keep_datatable = TRUE, session = NULL, 
                               message = "Calculation in progress...") {
@@ -211,7 +214,7 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
 
 #' @title  get stats indicator on numeric data
 #' @description return statistics from numeric data, is called by 
-#' \link{get_dt_num_dt_fac}
+#' \link{get_summary_data_dt}
 #' @param data \code{data.frame}, \code{data.table}
 #' @param vars \code{character}
 #' @param optional_stats \code{character} optional statistics computed on data,
@@ -271,8 +274,7 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
                           c('pct_NA', "pct_zero"), 2
                         ) 
     names_num <- attr(dt$x, "colnames")[which(
-      !(attr(dt$x, "colnames") %in% c(
-        "pct_NA", "pct_zero", "boxplot", "density")))]
+      !(attr(dt$x, "colnames") %in% c("variable", "pct_NA", "pct_zero", "boxplot", "density")))]
     
     dt <- dt %>% DT::formatCurrency(
       names_num, currency = "", interval = 3, mark = " ")
@@ -299,7 +301,7 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
 
 #' @title  get stats indicator on dates data
 #' @description return statistics from dates data, is called by 
-#' \link{get_dt_num_dt_fac}
+#' \link{get_summary_data_dt}
 #' @param data \code{data.frame}, \code{data.table}
 #' @param dates_vars \code{character}
 #' @param optional_stats \code{character} optional statistics computed on data,
@@ -392,7 +394,7 @@ get_dt_num_dt_fac <- function(data, optional_stats, nb_modal2show,
 #' 
 #' @description return statistics from factor data, is called by 
 #' 
-#' \link{get_dt_num_dt_fac}
+#' \link{get_summary_data_dt}
 #' 
 #' @param data \code{data.frame}, \code{data.table}
 #' @param fact_vars \code{character}

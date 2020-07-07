@@ -7,12 +7,19 @@
 \usage{
 summary_data_UI(id, titles = TRUE, subtitles = TRUE)
 
-summary_data(input, output, session, data = NULL,
-  optional_stats = "all", nb_modal2show = 3, columns_to_show = "all",
-  show_warnings = FALSE, labels = list(title =
-  "Descriptive statistics", num_var = "Numeric variables", date_var =
-  "Date variables", factor_var = "Factor variables", message =
-  "Calculation in progress..."))
+summary_data(
+  input,
+  output,
+  session,
+  data = NULL,
+  optional_stats = "all",
+  nb_modal2show = 3,
+  columns_to_show = "all",
+  show_warnings = FALSE,
+  labels = list(title = "Descriptive statistics", num_var = "Numeric variables",
+    date_var = "Date variables", factor_var = "Factor variables", message =
+    "Calculation in progress...")
+)
 }
 \arguments{
 \item{id}{\code{character} An id that will be used to create a namespace
@@ -67,10 +74,13 @@ Shiny module to show descripive statistics on data
 \dontrun{
 
 ui = shiny::fluidPage(summary_data_UI(id = "id", titles = TRUE))
+
 server = function(input, output, session) {
   data <- reactiveValues(data = iris)
-  shiny::callModule(module = summary_data, id = "id", data = reactive(data$data),
-    optional_stats = "all")
+  shiny::callModule(module = summary_data, id = "id", 
+    data = reactive(data$data),
+    optional_stats = "all"
+   )
 }
 
 shiny::shinyApp(ui = ui, server = server)
@@ -90,7 +100,7 @@ ui = shiny::fluidPage(summary_data_UI(id = "id", titles = FALSE))
 server = function(input, output, session) {
   shiny::callModule(module = summary_data, id = "id", data = iris,
     labels = list(title = "Statistiques descriptives", 
-                  num_var = "Variables num\\u00e9riques",
+                  num_var = "Variables num\u00e9riques",
                   date_var = "Variables dates",
                   factor_var = "Variables Facteurs",
                   message = "Calcul en cours..."

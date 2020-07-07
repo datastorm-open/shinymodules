@@ -65,22 +65,22 @@ shiny::callModule(module = shinymodules::summary_data,
 				message = "Calcul des indicateurs en cours..."))
 ```
 
-## `vis_indicators`
+## `monitoring_data`
 
-This module provides tools to monitor models.
+This module provides tools to monitor models. (Only quantitative regression at moment)
 
-![img1](inst/doc_img/vis_indicator_1.png)
+![img1](inst/doc_img/monitoring_data_1.png)
 
-![img2](inst/doc_img/vis_indicator_2.png)
+![img2](inst/doc_img/monitoring_data_2.png)
 
-![img3](inst/doc_img/vis_indicator_3.png)
+![img3](inst/doc_img/monitoring_data_3.png)
 
 ```r
 ## UI
-shinymodules::vis_indicators_UI("my_id")
+shinymodules::monitoring_data_UI("my_id")
 
 ## SERVER
-shiny::callModule(shinymodules::vis_indicators, "my_id", data = reactive(data), 
+shiny::callModule(shinymodules::monitoring_data, "my_id", data = reactive(data), 
                   col_obs = col_obs,
                   col_fit = col_fit,
                   col_date = col_date,

@@ -63,11 +63,18 @@ show_DT_UI <- function(id, export = c("csv", "excel", "html")) {
 #' 
 #' \dontrun{
 #' # ui
-#' ui = shiny::fluidPage(show_DT_UI("iris_module", export = c("csv", "html")))
+#' ui = shiny::fluidPage(
+#'    show_DT_UI(
+#'      id = "iris_module", 
+#'      export = c("csv", "html")
+#'    )
+#'  )
 #' 
 #' server = function(input, output, session) {
-#'   callModule(show_DT, "iris_module", reactive(iris), reactive(DT::datatable(iris)), 
-#'    paste0("Iris_export", format(Sys.time(), format = "%d%m%Y_%H%M%S")))
+#'   callModule(module = show_DT, id = "iris_module", 
+#'    data = reactive(iris), 
+#'    dt = reactive(DT::datatable(iris)), 
+#'    file_name = paste0("Iris_export", format(Sys.time(), format = "%d%m%Y_%H%M%S")))
 #' }
 #' shiny::shinyApp(ui = ui, server = server)
 #'   

@@ -66,9 +66,9 @@ test_that(".get_factor_indicators", {
   
 })
 
-test_that("get_dt_num_dt_fac", {
+test_that("get_summary_data_dt", {
   dt_num_fact <- suppressWarnings(
-    get_dt_num_dt_fac(airquality, optional_stats = "all", nb_modal2show = 3, keep_dataframe = FALSE))
+    get_summary_data_dt(airquality, optional_stats = "all", nb_modal2show = 3, keep_dataframe = FALSE))
   expect_true("list" %in% class(dt_num_fact))
   expect_true("datatables" %in% class(dt_num_fact$dt_num))
   expect_true("htmlwidget" %in% class(dt_num_fact$dt_num))
