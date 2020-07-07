@@ -492,43 +492,8 @@ plot_idc_table <- function(data_idc,
 #'              col_obs = col_obs,
 #'              col_fit = col_fit,
 #'              col_date = col_date,
-<<<<<<< HEAD:R/vis_indicators.R
-#'              indicators = indicators,
-#'              labels = list(
-#'                "progress_data" = "Processing data",
-#'                "no_data" = "No data",
-#'                "no_choice" = "None",
-#'                "idc_title" = "Distribution of indicators",
-#'                "idc_aggr" = "Aggregation column",
-#'                "idv_opt_discretiser" = "Discretise ?",
-#'                "idv_choice_quantiles" = "Quantiles choice",
-#'                "idc_button" = "Display graphic",
-#'                "idc_progress" = "Processing indicators",
-#'                "idc_plot_title" = "Model's indicators",
-#'                "err_title" = "Distribution of errors", 
-#'                "err_aggr" = "Aggregation column",
-#'                "err_type" = "Error type choice",
-#'                "err_button" = "Display graphic",
-#'                "err_progress" = "Processing boxplots",
-#'                "err_ylab" = "Values",
-#'                "error_xlab" = "error : ",
-#'                "tree_title" = "Decision tree",
-#'                "tree_y" = "Y",
-#'                "tree_x" = "X",
-#'                "tree_minsplit" = "Minsplit",
-#'                "tree_cp" = "Complexity (cp)",
-#'                "tree_maj_cp" = "Update cp",
-#'                "tree_maj_params" = "Update parameters",
-#'                "tree_cp_modal_titre" = "Update cp",
-#'                "tree_cp_modal_min" = "Slider min",
-#'                "tree_cp_modal_max" = "Slider max",
-#'                "tree_cp_modal_step" = "Slider step",
-#'                "tree_cp_modal_bouton" = "Validate update",
-#'                "warning_var" = "Select at least one explanatory variable."))
-=======
 #'              indicators = indicators
 #'   )
->>>>>>> b86045cd489f07a4d1270f9c2d1bfc2a4e8aae5a:R/monitoring_data.R
 #' }
 #' shiny::shinyApp(ui = ui, server = server)
 #' 
