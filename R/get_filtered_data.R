@@ -2,7 +2,7 @@
   
   expr <- paste0(unlist(lapply(filters, function(x){
     values <- x$values
-    if(!is.vector(values)){
+    if(!is.vector(values) && ! is.null(values)){
       if(any(class(values) %in% c("character", "factor", "IDate", "Date"))){
         values = paste0('"', values, '"')
       }else if(class(values) %in% "POSIXct"){
