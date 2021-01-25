@@ -3,7 +3,7 @@
 \name{monitoring_data}
 \alias{monitoring_data}
 \alias{monitoring_data_UI}
-\title{Shiny module server-like fun to display monitoring indicators on a data.table.}
+\title{Shiny module to display monitoring indicators on a data.table.}
 \usage{
 monitoring_data(
   input,
@@ -26,8 +26,8 @@ monitoring_data(
     "Display graphic", err_progress = "Processing boxplots",      err_ylab = "Values",
     error_xlab = "error : ", tree_title = "Decision tree", tree_y = "Y", tree_x = "X",
     tree_minsplit = "Minsplit", tree_cp = "Complexity (cp)", tree_maj_cp = "Update cp",
-    tree_maj_params = "Update parameters", tree_run = "Update tree", tree_cp_modal_titre
-    = "Update cp", tree_cp_modal_min = "Slider min", tree_cp_modal_max = "Slider max",
+    tree_maj_params = "Update parameters", tree_cp_modal_titre = "Update cp",
+    tree_cp_modal_min = "Slider min", tree_cp_modal_max = "Slider max",
     tree_cp_modal_step = "Slider step", tree_cp_modal_bouton = "Validate update",
     warning_var = "Select at least one explanatory variable.")
 )
@@ -63,11 +63,9 @@ monitoring_data_UI(id)
 }
 \value{
 shiny module.
-
-shiny module.
 }
 \description{
-Shiny module server-like fun to display monitoring indicators on a data.table.
+Shiny module to display monitoring indicators on a data.table.
 }
 \examples{
 \dontrun{\donttest{

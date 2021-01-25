@@ -22,7 +22,8 @@
 #'  \item{"no_data "}{ : Printed message if no data.}
 #'  \item{"filter"}{ : Selection filters.}
 #'  \item{"reinitialize"}{ : Reinit button.}
-#'  \item{"validate"}{ :  Validate button.}
+#'  \item{"validate"}{ :  Validate filter button.}
+#'  \item{"complete_data"}{ :  Complete data button.}
 #'}
 #'
 #' @return UI page
@@ -104,6 +105,16 @@ filter_data_UI <- function(id, titles = TRUE) {
                               shiny::div(shiny::actionButton(
                                 ns("validateFilter"), "Apply filtering on data"), 
                                 align = "center")
+      ),
+      # display only if there is no filter
+      shiny::conditionalPanel(condition = paste0('input["', ns("chosenfilters"), '"] && input["', ns("chosenfilters"), '"].length === 0'),
+                              shiny::fluidRow(
+                                column(1),
+                                column(10, hr())
+                              ),
+                              shiny::div(shiny::actionButton(
+                                ns("getAlldata"), "Get complete dataset"), 
+                                align = "center")
       )
     )
   )
@@ -121,7 +132,8 @@ filter_data <- function(input, output, session, data = NULL,
                                       no_data = "No data available", 
                                       filter = "Filter on :", 
                                       reinitialize = "Reinitialize filters", 
-                                      validate = "Apply filtering on data")) {
+                                      validate = "Apply filtering on data", 
+                                      complete_data = "Get complete dataset")) {
   
   ns <- session$ns
   
@@ -170,6 +182,13 @@ filter_data <- function(input, output, session, data = NULL,
     button_validate_label <- get_labels()$validate
     if(!is.null(button_validate_label)){
       updateActionButton(session, "validateFilter", label = button_validate_label)
+    }
+  })
+  
+  observe({
+    button_complete_label <- get_labels()$complete_data
+    if(!is.null(button_complete_label)){
+      updateActionButton(session, "getAlldata", label = button_complete_label)
     }
   })
   
@@ -594,7 +613,7 @@ filter_data <- function(input, output, session, data = NULL,
   })
   
   filterdata <- reactiveValues(data = NULL)
-  observeEvent(c(data_to_filter(), input$validateFilter), {
+  observeEvent(c(data_to_filter(), input$validateFilter, input$getAlldata), {
     
     data <- data_to_filter()
     if (is.null(listfilters())) {

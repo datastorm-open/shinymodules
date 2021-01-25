@@ -17,7 +17,7 @@ filter_data(
   default_multisel_n = 10,
   labels = list(title = "Filters", no_data = "No data available", filter =
     "Filter on :", reinitialize = "Reinitialize filters", validate =
-    "Apply filtering on data")
+    "Apply filtering on data", complete_data = "Get complete dataset")
 )
 }
 \arguments{
@@ -49,7 +49,8 @@ allow the user to filter (default is all)}
  \item{"no_data "}{ : Printed message if no data.}
  \item{"filter"}{ : Selection filters.}
  \item{"reinitialize"}{ : Reinit button.}
- \item{"validate"}{ :  Validate button.}
+ \item{"validate"}{ :  Validate filter button.}
+ \item{"complete_data"}{ :  Complete data button.}
 }}
 }
 \value{

@@ -1,5 +1,5 @@
 Package: shinymodules
-Title: Shiny module tools
+Title: Shiny Module Tools for Exploring Data
 Version: 0.1.0.0
 Authors@R: 
     person(given = "Datastorm",
@@ -7,7 +7,7 @@ Authors@R:
            role = c("aut", "cre"),
            email = "datastorm@datastorm.fr",
            comment = c())
-Description: Shiny module tools.
+Description: Shiny module tools for filtering data.
 License: GPL-3 
 Encoding: UTF-8
 Depends: R (>= 3.4)
@@ -15,7 +15,7 @@ LazyData: true
 Suggests: 
     testthat (>= 2.1.0),
     nycflights13
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1
 Imports: 
     shiny,
     data.table,
