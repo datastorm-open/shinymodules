@@ -107,7 +107,7 @@ filter_data_UI <- function(id, titles = TRUE) {
                                 align = "center")
       ),
       # display only if there is no filter
-      shiny::conditionalPanel(condition = paste0('input["', ns("chosenfilters"), '"] && input["', ns("chosenfilters"), '"].length === 0'),
+      shiny::conditionalPanel(condition = paste0('!(input["', ns("chosenfilters"), '"] && input["', ns("chosenfilters"), '"].length > 0)'),
                               shiny::fluidRow(
                                 column(1),
                                 column(10, hr())
