@@ -54,7 +54,7 @@ allow the user to filter (default is all)}
 }}
 }
 \value{
-UI page
+\code{reactiveValues} with filtered data
 }
 \description{
 This function has to be set in the UI part of a shiny 
@@ -81,15 +81,22 @@ shiny::shinyApp(ui = ui, server = server)
 ui = shiny::fluidPage(filter_data_UI(id = "id"))
 
 server = function(input, output, session) {
-  shiny::callModule(module = filter_data, id = "id", data = iris, 
+  filtered_data <- shiny::callModule(module = filter_data, id = "id", 
+  data = iris,
+  columns_to_filter = c("Width" = "Petal.Width", "Length" = "Petal.Length"),
   labels = list(
       title = "Filtres",
       no_data = "Pas de donnÃ©es disponibles", 
       filter = "Filtrer sur les colonnes :", 
       reinitialize = "RÃ©initialisation des filtres", 
-      validate = "Filtrer les donnÃ©es"
-   )
-)}
+      validate = "Filtrer les donnÃ©es",
+      complete_data = "Jeu de donnÃ©es total"
+   ))
+   
+   shiny::observe({
+       print(filtered_data$data)
+   })
+}
 
 shiny::shinyApp(ui = ui, server = server)
 

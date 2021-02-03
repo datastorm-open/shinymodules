@@ -26,7 +26,7 @@
 #'  \item{"complete_data"}{ :  Complete data button.}
 #'}
 #'
-#' @return UI page
+#' @return \code{reactiveValues} with filtered data
 #' @export
 #' @import shiny
 #'
@@ -49,15 +49,22 @@
 #' ui = shiny::fluidPage(filter_data_UI(id = "id"))
 #' 
 #' server = function(input, output, session) {
-#'   shiny::callModule(module = filter_data, id = "id", data = iris, 
+#'   filtered_data <- shiny::callModule(module = filter_data, id = "id", 
+#'   data = iris,
+#'   columns_to_filter = c("Width" = "Petal.Width", "Length" = "Petal.Length"),
 #'   labels = list(
 #'       title = "Filtres",
 #'       no_data = "Pas de données disponibles", 
 #'       filter = "Filtrer sur les colonnes :", 
 #'       reinitialize = "Réinitialisation des filtres", 
-#'       validate = "Filtrer les données"
-#'    )
-#' )}
+#'       validate = "Filtrer les données",
+#'       complete_data = "Jeu de données total"
+#'    ))
+#'    
+#'    shiny::observe({
+#'        print(filtered_data$data)
+#'    })
+#' }
 #' 
 #' shiny::shinyApp(ui = ui, server = server)
 #' 
@@ -252,6 +259,11 @@ filter_data <- function(input, output, session, data = NULL,
       setcolorder(data, colnames(data)[order(colnames(data))])
       values <- colnames(data)
       
+      init_columns_to_filter <- get_columns_to_filter()
+      if(length(init_columns_to_filter) > 0 && !"all" %in% init_columns_to_filter && !is.null(names(init_columns_to_filter))){
+        names(values) <- names(init_columns_to_filter)[match(values, unname(init_columns_to_filter))]
+      }
+
       selectInput(ns("chosenfilters"), "", 
                   choices = values, selected = NULL, multiple = TRUE, width = "100%")
     }
@@ -261,6 +273,8 @@ filter_data <- function(input, output, session, data = NULL,
   output$uifilter <- renderUI({
     data <- data_to_filter()
     columns_to_filter <- get_columns_to_filter()
+    init_columns_to_filter <- get_columns_to_filter()
+    
     isolate({
       if (! is.null(data)) {
         
@@ -311,11 +325,16 @@ filter_data <- function(input, output, session, data = NULL,
               
             }
             
+            label_colname <- colname
+            if(length(init_columns_to_filter) > 0 && !"all" %in% init_columns_to_filter && !is.null(names(init_columns_to_filter))){
+              label_colname <- names(init_columns_to_filter)[match(label_colname, unname(init_columns_to_filter))]
+            }
+            
             # check that the column is selected to display it (a little artificial, using its position in the input vector)
             conditionalPanel(condition = paste0('input["', ns("chosenfilters"), '"] && input["', ns("chosenfilters"), '"].indexOf("', colname, '") > -1'),
                              fluidRow(
                                column(width = 2, offset = 1,  
-                                      h5(colname, style = "font-weight: bold;")
+                                      h5(label_colname, style = "font-weight: bold;")
                                ),
                                column(2,
                                       selectInput(ns(paste0("typefilter", colname)), NULL,
