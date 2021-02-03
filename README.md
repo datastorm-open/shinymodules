@@ -11,12 +11,13 @@ filter_data is a module used to filter a given data.table on chosen columns by t
 
 ```r
 ## UI
-shinymodules::filter_dataUI(id = "filter_id",
+shinymodules::filter_data_UI(id = "filter_id",
 			    labels = list(title = "Filtres",
 					  no_data = "Pas de données disponibles",
 					  filter = "Filter sur les colonnes",
 					  reinitialize = "Réinitialisation des filtres",
-					  validate = "Filtrer les données"))
+					  validate = "Filtrer les données",
+            complete_data = "Jeu de données total"))
 
 ## SERVER
 input_filter <- reactive({...})
@@ -50,7 +51,7 @@ Display an automatically generate dashboard that shows descriptive statistics wi
 
 ```r
 ## UI
-shinymodules::summary_dataUI(id = "stat_desc_id", titles = FALSE)
+shinymodules::summary_data_UI(id = "stat_desc_id", titles = FALSE)
 
 ## SERVER
 input_show <- shiny::reactiveValues(data = NULL)
