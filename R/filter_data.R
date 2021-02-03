@@ -591,22 +591,22 @@ filter_data <- function(input, output, session, data = NULL,
           } else if(selectedtype %in% c("less than")) {
             colname <- c(name)
             fun <- c("<")
-            values <- c(list(gsub(",", ".", filter, fixed = TRUE)))
+            values <- c(list(as.numeric(gsub(",", ".", filter, fixed = TRUE))))
             
           } else if(selectedtype %in% c("less than or equal to")) {
             colname <- c(name)
             fun <- c("<=")
-            values <- c(list(gsub(",", ".", filter, fixed = TRUE)))
+            values <- c(list(as.numeric(gsub(",", ".", filter, fixed = TRUE))))
             
           } else if(selectedtype %in% c("greater than")) {
             colname <- c(name)
             fun <- c(">")
-            values <- c(list(gsub(",", ".", filter, fixed = TRUE)))
+            values <- c(list(as.numeric(gsub(",", ".", filter, fixed = TRUE))))
             
           } else if(selectedtype %in% c("greater than or equal to")) {
             colname <- c(name)
             fun <- c(">=")
-            values <- c(list(gsub(",", ".", filter, fixed = TRUE)))
+            values <- c(list(as.numeric(gsub(",", ".", filter, fixed = TRUE))))
             
           }
           

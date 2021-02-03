@@ -4,17 +4,19 @@
     values <- x$values
     if(!is.vector(values) && ! is.null(values)){
       if(any(class(values) %in% c("character", "factor", "IDate", "Date"))){
-        values = paste0('"', values, '"')
+        values <- paste0('"', values, '"')
+        values <- gsub('"NA"', "NA", values, fixed = TRUE)
       }else if(class(values) %in% "POSIXct"){
-        values = paste0("as.POSIXct('", paste(values, collapse = ","), "')")
+        values <- paste0("as.POSIXct('", paste(values, collapse = ","), "')")
       }else if(class(values) %in% "POSIXlt"){
-        values = paste0("as.POSIXlt('", paste(values, collapse = ","), "')")
+        values <- paste0("as.POSIXlt('", paste(values, collapse = ","), "')")
       }
     }else{
       if(any(class(values) %in% c("character", "factor"))){
-        values = paste0('c("', paste(values, collapse = '","'), '")')
+        values <- paste0('c("', paste(values, collapse = '","'), '")')
+        values <- gsub('"NA"', "NA", values, fixed = TRUE)
       }else {
-        values = paste0("c(", paste(values, collapse = ","), ")")
+        values <- paste0("c(", paste(values, collapse = ","), ")")
       }
     }
     paste0("`", x$column, "`", x$fun, values)
