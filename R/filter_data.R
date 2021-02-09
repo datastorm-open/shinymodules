@@ -99,7 +99,7 @@ filter_data_UI <- function(id, titles = TRUE) {
       ),
       
       # display only if there is at least one selected filter
-      shiny::conditionalPanel(condition = paste0('input["', ns("chosenfilters"), '"] && input["', ns("chosenfilters"), '"].length > 0'),
+      shiny::conditionalPanel(condition = paste0("output['", ns("have_selected_filter"), "'] === true"),
                               shiny::fluidRow(
                                 column(1),
                                 column(10, hr())
@@ -114,7 +114,7 @@ filter_data_UI <- function(id, titles = TRUE) {
                                 align = "center")
       ),
       # display only if there is no filter
-      shiny::conditionalPanel(condition = paste0('!(input["', ns("chosenfilters"), '"] && input["', ns("chosenfilters"), '"].length > 0)'),
+      shiny::conditionalPanel(condition = paste0("output['", ns("have_selected_filter"), "'] !== true"),
                               shiny::fluidRow(
                                 column(1),
                                 column(10, hr())
@@ -224,6 +224,11 @@ filter_data <- function(input, output, session, data = NULL,
   })
   shiny::outputOptions(output, "have_data_filter", suspendWhenHidden = FALSE)
   
+  output$have_selected_filter <- shiny::reactive({
+    !is.null(input$chosenfilters) && length(input$chosenfilters) > 0
+  })
+  shiny::outputOptions(output, "have_selected_filter", suspendWhenHidden = FALSE)
+  
   filternames <- reactiveValues(filter = NULL)
   
   output$choicefilter <- renderUI({
@@ -331,7 +336,8 @@ filter_data <- function(input, output, session, data = NULL,
             }
             
             # check that the column is selected to display it (a little artificial, using its position in the input vector)
-            conditionalPanel(condition = paste0('input["', ns("chosenfilters"), '"] && input["', ns("chosenfilters"), '"].indexOf("', colname, '") > -1'),
+            conditionalPanel(condition = paste0('output[["', ns(paste0("have_uifilter", colname)), '"]]'), 
+              # condition = paste0('input["', ns("chosenfilters"), '"] && input["', ns("chosenfilters"), '"].indexOf("', colname, '") > -1'),
                              fluidRow(
                                column(width = 2, offset = 1,  
                                       h5(label_colname, style = "font-weight: bold;")
@@ -461,6 +467,11 @@ filter_data <- function(input, output, session, data = NULL,
       
       # if (paste0("typefilter", colname) %in% names(input)) {
       if (colname %in% filters) {
+        output[[paste0("have_uifilter", colname)]] <- shiny::reactive({
+          !is.null(input$chosenfilters) && colname %in% input$chosenfilters
+        })
+        shiny::outputOptions(output, paste0("have_uifilter", colname), suspendWhenHidden = FALSE)
+        
         output[[paste0("uifilter", colname)]] <- renderUI({
           
           selectedtype <- input[[paste0("typefilter", colname)]]
@@ -633,7 +644,6 @@ filter_data <- function(input, output, session, data = NULL,
   
   filterdata <- reactiveValues(data = NULL)
   observeEvent(c(data_to_filter(), input$validateFilter, input$getAlldata), {
-    
     data <- data_to_filter()
     if (is.null(listfilters())) {
       filterdata$data <- data
