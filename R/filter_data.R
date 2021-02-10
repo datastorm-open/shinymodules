@@ -336,7 +336,7 @@ filter_data <- function(input, output, session, data = NULL,
             }
             
             # check that the column is selected to display it (a little artificial, using its position in the input vector)
-            conditionalPanel(condition = paste0('input["', ns("chosenfilters"), '"] !== undefined && input["', ns("chosenfilters"), '"].includes("', colname, '")'),
+            conditionalPanel(condition = paste0('input["', ns("chosenfilters"), '"] !== null && input["', ns("chosenfilters"), '"] !== undefined && input["', ns("chosenfilters"), '"].includes("', colname, '")'),
               # condition = paste0('output[["', ns(paste0("have_uifilter", colname)), '"]]'), 
                              fluidRow(
                                column(width = 2, offset = 1,  
