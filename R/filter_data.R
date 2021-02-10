@@ -336,8 +336,8 @@ filter_data <- function(input, output, session, data = NULL,
             }
             
             # check that the column is selected to display it (a little artificial, using its position in the input vector)
-            conditionalPanel(condition = paste0('output[["', ns(paste0("have_uifilter", colname)), '"]]'), 
-              # condition = paste0('input["', ns("chosenfilters"), '"] && input["', ns("chosenfilters"), '"].indexOf("', colname, '") > -1'),
+            conditionalPanel(condition = paste0('input["', ns("chosenfilters"), '"] !== undefined && input["', ns("chosenfilters"), '"].includes("', colname, '")'),
+              # condition = paste0('output[["', ns(paste0("have_uifilter", colname)), '"]]'), 
                              fluidRow(
                                column(width = 2, offset = 1,  
                                       h5(label_colname, style = "font-weight: bold;")
@@ -467,10 +467,10 @@ filter_data <- function(input, output, session, data = NULL,
       
       # if (paste0("typefilter", colname) %in% names(input)) {
       if (colname %in% filters) {
-        output[[paste0("have_uifilter", colname)]] <- shiny::reactive({
-          !is.null(input$chosenfilters) && colname %in% input$chosenfilters
-        })
-        shiny::outputOptions(output, paste0("have_uifilter", colname), suspendWhenHidden = FALSE)
+        # output[[paste0("have_uifilter", colname)]] <- shiny::reactive({
+        #   !is.null(input$chosenfilters) && colname %in% input$chosenfilters
+        # })
+        # shiny::outputOptions(output, paste0("have_uifilter", colname), suspendWhenHidden = FALSE)
         
         output[[paste0("uifilter", colname)]] <- renderUI({
           
