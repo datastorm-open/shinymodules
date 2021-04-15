@@ -3,6 +3,7 @@ library(shinymodules)
 library(data.table)
 library(nycflights13)
 library(esquisse)
+library(colourpicker)
 
 data_flights <- data.table::data.table(copy(nycflights13::flights))
 

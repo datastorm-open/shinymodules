@@ -32,4 +32,5 @@ Imports:
     htmltools,
     visNetwork,
     shinyWidgets,
+    colourpicker,
     rpart
