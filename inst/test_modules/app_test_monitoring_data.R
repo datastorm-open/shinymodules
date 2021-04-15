@@ -18,19 +18,12 @@ indicators <- c("rmse", "mae", "mape", "mape_e")
 
 # ui
 ui <- fluidPage(
-  monitoring_data_UI("my_id_1"),
-  monitoring_data_UI("my_id_2")
+  monitoring_data_UI("my_id_1")
 )
 # server
 server <- function(input, output, session) {
   callModule(monitoring_data, "my_id_1", 
              data = reactive(data), 
-             col_obs = col_obs, 
-             col_fit = col_fit, 
-             col_date = col_date, 
-             indicators = indicators
-  )
-  callModule(monitoring_data, "my_id_2", data = reactive(data), 
              col_obs = col_obs, 
              col_fit = col_fit, 
              col_date = col_date, 

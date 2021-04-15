@@ -30,4 +30,5 @@ Imports:
     openxlsx,
     htmltools,
     visNetwork,
+    shinyWidgets,
     rpart

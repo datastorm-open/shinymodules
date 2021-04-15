@@ -461,7 +461,7 @@ plot_idc_table <- function(data_idc,
 #'
 #' @return shiny module.
 #' 
-#' @import shiny data.table rAmCharts visNetwork rpart stats
+#' @import shiny data.table rAmCharts visNetwork rpart stats shinyWidgets
 #' 
 #' @importFrom DT datatable 
 #' 

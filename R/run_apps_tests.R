@@ -28,6 +28,9 @@
 #' @export
 run_example_app_summary_data <- function(optional_stats = "all", nb_modal2show = 5){
   
+  if(!requireNamespace("nycflights13", quietly = T)){
+    stop("'nycflights13' package required for demo app")
+  }
   G <- .GlobalEnv
   assign("optional_stats", optional_stats, envir = G)
   assign("nb_modal2show", nb_modal2show, envir = G)
@@ -92,6 +95,10 @@ run_example_app_filter_data <- function(){
 run_example_app_filter_and_summary_data <- function(
   optional_stats = "all", nb_modal2show = 5){
   
+  if(!requireNamespace("nycflights13", quietly = T)){
+    stop("'nycflights13' package required for demo app")
+  }
+  
   G <- .GlobalEnv
   assign("optional_stats", optional_stats, envir = G)
   assign("nb_modal2show", nb_modal2show, envir = G)
@@ -101,25 +108,23 @@ run_example_app_filter_and_summary_data <- function(
 }
 
 
-#' @title Run a shiny example application to visualize graphics on data
-#'  
-#' @description
-#' Run a shiny application calling the module visualize_data, 
-#' allowing the user to visualize his data with diffrent type of graphics 
+#' @title Run a shiny example application to display monitoring indicators
 #' 
-#' @examples 
+#' @description
+#' Run a shiny application calling the module monitoring_data
+#' 
+#' @examples
+#'
 #' \dontrun{
 #' 
-#' run_example_app_visualize_data()
+#' run_example_app_monitoring_data()
 #' }
 #'
 #' @import shiny
 #'
 #' @export
-run_example_app_visualize_data <- function() {
+run_example_app_monitoring_data <- function(){
   
-  G <- .GlobalEnv
-  shiny::runApp(system.file("test_modules/app_test_visualize_data.R", 
+  shiny::runApp(system.file("test_modules/app_test_monitoring_data.R", 
                             package = "shinymodules"), launch.browser = TRUE)
-  
 }
