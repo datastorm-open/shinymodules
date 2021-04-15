@@ -1,0 +1,10 @@
+name: shinypivottabler
+title: shinypivottabler
+username:
+account: datastorm-demo
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3539239
+bundleId: 4153579
+url: https://datastorm-demo.shinyapps.io/shinypivottabler/
+when: 1611840153.14266

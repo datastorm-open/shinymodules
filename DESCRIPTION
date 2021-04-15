@@ -14,7 +14,8 @@ Depends: R (>= 3.4)
 LazyData: true
 Suggests: 
     testthat (>= 2.1.0),
-    nycflights13
+    nycflights13,
+    esquisse (>= 1.0.0)
 RoxygenNote: 7.1.1
 Imports: 
     shiny,

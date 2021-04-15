@@ -1,13 +1,38 @@
 # shinymodules
 
-This package provides shiny modules to build quickly an ergonomic tool to explore a table.
+This package provides some useful shiny modules to build quickly an ergonomic tool to explore a table.
 
+### Installation
 
-## `filter_data`
+You can install:
 
-filter_data is a module used to filter a given data.table on chosen columns by the user. The server part returns a reactive value containing the filtered data.table.
+-   the latest development version from GitHub with :
 
-![img1](inst/doc_img/filter_data.png)
+``` r
+devtools::install_github("datastorm-open/shinymodules")
+```
+
+### Demo application
+
+*online*
+
+https://datastorm-demo.shinyapps.io/shinymodules/
+
+*local*
+
+``` r
+if(!require(nycflights13)) install.packages("nycflights13")
+if(!require(data.table)) install.packages("data.table")
+if(!require(esquisse)) install.packages("esquisse")
+
+runApp(system.file("demo_app", package = "shinymodules"))
+```
+
+## filter_data
+
+``filter_data`` is a module used to filter a given data.table on chosen columns by the user. The server part returns a reactive value containing the filtered data.table.
+
+![img1](inst/demo_app/www/img/filter_data.png)
 
 ```r
 ## UI
@@ -28,26 +53,11 @@ output_filter <- shiny::callModule(module = shinymodules::filter_data,
 your_filtered_table <- output_filter$data
 ```
 
-## `show_DT`
-
-Show & export table using DT
-
-![img1](inst/doc_img/show_dt.png)
-
-```r
-## UI
-shinymodules::show_DT_UI("iris_module")
-
-## SERVER
-shiny::callModule(show_DT, "iris_module", reactive(iris), reactive(DT::datatable(iris)), 
-   paste0("Iris_export", format(Sys.time(), format = "...")))
-```
-
-## `summary_data`
+## summary_data
 
 Display an automatically generate dashboard that shows descriptive statistics with `shinymodules::summary_data` : for every columns from the table you selected. The statistics chosen depend on the column's type (character, factor, numeric, date).
 
-![img1](inst/doc_img/summary_data.png)
+![img1](inst/demo_app/www/img/summary_data.png)
 
 ```r
 ## UI
@@ -66,15 +76,31 @@ shiny::callModule(module = shinymodules::summary_data,
 				message = "Calcul des indicateurs en cours..."))
 ```
 
-## `monitoring_data`
+## show_DT
+
+Show & export table using **DT** package
+
+![img1](inst/demo_app/www/img/show_dt.png)
+
+```r
+## UI
+shinymodules::show_DT_UI("iris_module")
+
+## SERVER
+shiny::callModule(show_DT, "iris_module", reactive(iris), reactive(DT::datatable(iris)), 
+   paste0("Iris_export", format(Sys.time(), format = "...")))
+```
+
+
+## monitoring_data
 
 This module provides tools to monitor models. (Only quantitative regression at moment)
 
-![img1](inst/doc_img/monitoring_data_1.png)
+![img1](inst/demo_app/www/img/monitoring_data_1.png)
 
-![img2](inst/doc_img/monitoring_data_2.png)
+![img2](inst/demo_app/www/img/monitoring_data_2.png)
 
-![img3](inst/doc_img/monitoring_data_3.png)
+![img3](inst/demo_app/www/img/monitoring_data_3.png)
 
 ```r
 ## UI
@@ -87,6 +113,3 @@ shiny::callModule(shinymodules::monitoring_data, "my_id", data = reactive(data),
                   col_date = col_date,
                   indicators = indicators)
 ```
-
-
-
