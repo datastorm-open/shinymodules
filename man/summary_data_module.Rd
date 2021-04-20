@@ -76,9 +76,9 @@ Shiny module to show descripive statistics on data
 ui = shiny::fluidPage(summary_data_UI(id = "id", titles = TRUE))
 
 server = function(input, output, session) {
-  data <- reactiveValues(data = iris)
+  data <- reactive({data})
   shiny::callModule(module = summary_data, id = "id", 
-    data = reactive(data$data),
+    data = data,
     optional_stats = "all"
    )
 }

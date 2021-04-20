@@ -1,37 +1,20 @@
-# shinypivottabler
+# shinymodules
 
-Dans la famille des packages **shiny** chez **Datastorm**, je demande maintenant la grande sœur, à savoir **shinypivottabler**, qui propose un module **shiny** permettant aux utilisateurs de construire, visualiser, et télécharger le tableau croisé de leurs rêves (rien que ça...!)
+On continue notre série sur les packages **shiny** chez **Datastorm** avec aujourd'hui **shinymodules**, dans lequel on va retrouver 4 modules permettant d'explorer rapidement nos données.
 
-Il est basé sur le package **pivottabler** (http://www.pivottabler.org.uk/), en amenant une surcouche pour son intégration et son utilisation en *clique-bouton* depuis une application **shiny**.
-
-### shinypivottabler vs rpivotTable ?
-
-Le package **rpivotTable** (https://github.com/smartinsightsfromdata/rpivotTable) permet déjà de construire un tableau croisé *via* une application **shiny** en proposant un *wrapper* autour de la librairie *javascript* **PivotTable.js**. Le tout avec des fonctionnalités plutôt sympathiques comme : 
-
-- la définition de notre table en *drag'n'drop*
-- la mise à disposition de nombreuses fonctions d'agrégation
-- la possibilité de visualiser la table et les graphiques intéractifs correspondants
-
-![img](../demo_app/www/figures/rpivot.PNG)
-
-Cependant, avec l'utilisation d'une librairie *javascript*, toutes les données sont envoyées côté client, c'est à dire à la page web, et les calculs y sont également effectués. Quand on souhaite traiter un gros volume de données, ce n'est donc pas forcément l'outil le plus adapté car on risque de surcharger le navigateur et l'ordinateur de l'utilisateur.
-
-Avec **rpivotTable**, et donc **shinypivottabler**, les données et les calculs restent côté serveur, ce qui permet de traiter des tables plus volumineuses, et cela sans mettre à mal les ressources de nos utilisateurs, avec en bonus quelques fonctionnalités intéressantes : 
-
-- la définition de nouvelles fonctions d'agrégation
-- le calcul d'indicateurs combinés
-- la customisation de la table générée et son exportation directement en **excel**
-
-![img](../demo_app/www/figures/ex.PNG)
+C'est un package qui peut paraître certes un peu *fourre-tout*, car il résulte de la nécessité de mutualiser les différents développements réalisés au-sein des nos projets chez Datastorm afin de ne pas *réinventer la roue* en permanence, mais dans lequel on retrouve néanmoins des fonctionnalités très utiles que nous utilisons au quotidien pour nos applications développeés pour les équipes *métier* de nos clients.
 
 ### Installation
 
-Le package est actuellement en phase de test et de validation. Il devrait donc arriver dans les prochaines semaines sur le **CRAN**. En attendant, vous pouvez l'installer directement depuis notre github https://github.com/datastorm-open : 
+Le package ne sera donc à priori pas mis sur le **CRAN** dans sa structure actuelle. En revanche, vous pouvez l'installer directement depuis notre github https://github.com/datastorm-open : 
 
 ``` r
 if(!require(devtools)) install.packages("devtools")
-devtools::install_github("datastorm-open/shinypivottabler")
+devtools::install_github("datastorm-open/shinymodules")
 ```
+
+Et bien évidemment, le code source est accessible à la même adresse.
+
 
 ### Application de démonstration
 
@@ -40,129 +23,121 @@ Une application de démonstration est disponible
 - directement dans le package : 
 
 ``` r
-runApp(system.file("demo_app", package = "shinypivottabler"))
+if(!require(nycflights13)) install.packages("nycflights13")
+if(!require(data.table)) install.packages("data.table")
+if(!require(esquisse)) install.packages("esquisse")
+if(!require(colourpicker)) install.packages("colourpicker")
+
+shiny::runApp(system.file("demo_app", package = "shinymodules"))
 ```
 
-- en ligne à l'adresse suivante : https://datastorm-demo.shinyapps.io/shinypivottabler/
+- et en ligne à l'adresse suivante : https://datastorm-demo.shinyapps.io/shinymodules/
 
-- et dans la vidéo ci-dessous
 
-### Utilisation
+### Fonctionnalités
 
-Le package se compose uniquement de deux fonctions définissant le module à insérer dans votre application **shiny** : 
+#### 1. Filtrer les données
 
-- ``shinypivottablerUI`` : dans le script *ui.R*, avec l'identifiant du module à renseigner, et optionnellement deux paramètres permettant de définir les couleurs et la largeur des traits de l'interface utilisateur
-- ``shinypivottabler`` : dans la partie du *server.R* avec à minima :
-    + l'identifiant du module (id)
-    + ainsi que les données sur lesquels on souhaite construire des tableaux croisés (data)
-    
-``` r
-# minimal example
-require(shinypivottabler)
-require(shiny)
+Le premier module ``filter_data`` permet de filtrer dynamiquement les données. Branché à une table, l'utilisateur pourra alors définir la sous-table qu'il souhaite ensuite analyser. Avec des possibilités de filtres multiples et fonction du type des colonnes sélectionnées : 
 
-# create artificial dataset
-n <- 1000000
-data <- data.frame("gr1" = sample(c("A", "B", "C", "D"), size = n,
-                                 prob = rep(1, 4), replace = T),
-                   "gr2" = sample(c("E", "F", "G", "H"), size = n,
-                                 prob = rep(1, 4), replace = T),
-                   "value1" = 1:n,
-                   "value2" = n:1)
+- Valeur unique, plages définies en fonction de seuils ou avec des bornes pour les variables quantitatives
+- Choix simple ou multiple pour les variables qualitatives
+- Jour ou période pour les variables de dates
 
-ui = shiny::fluidPage(
-  shinypivottablerUI(id = "id")
-)
 
-server = function(input, output, session) {
-  shiny::callModule(module = shinypivottabler,
-                    id = "id",
-                    data = data)
-}
+![img1](../demo_app/www/img/filter_data.png)
 
-shiny::shinyApp(ui = ui, server = server)
+```r
+?shinymodules::filter_data
+# ui.R
+shinymodules::filter_data_UI(id = "filter_id"))
+
+# server.R
+full_data <- shiny::reactive({my_data})
+output_filter <- shiny::callModule(module = shinymodules::filter_data, 
+          id = "filter_id",
+          data = full_data,
+          columns_to_filter = "all")
+
+# then, hafe fun with filter data !
+your_filtered_table <- output_filter$data
 ```
 
-#### Charte graphique
+#### 2. Résumer les données
 
-En complément de la paramétrisation possible des deux couleurs et de la largeur des traits de l'interface utilisateur dans ``shinypivottablerUI``, vous pouvez modifier le thème présent par défaut pour le tableau croisé avec l'argument ``theme``. Et dans tous les cas, l'utilisateur pourra modifier l'ensemble de ces options depuis le module avec le bouton ``Update theme``.
+Une fois notre jeu de données défini, on souhaite avoir une vue synthétique de nos variables. C'est ce que propose ``summary_data`` avec le calcul et l'affichage d'un ensemble de statistiques descriptives (données manquantes & distributions).
 
-``` r
-# new default theme
-theme <- list(
-  fontName="arial",
-  fontSize="1em",
-  headerBackgroundColor = "#430838",
-  headerColor = "rgb(255, 255, 255)",
-  cellBackgroundColor = "rgb(255, 255, 255)",
-  cellColor = "rgb(0, 0, 0)",
-  outlineCellBackgroundColor = "rgb(192, 192, 192)",
-  outlineCellColor = "rgb(0, 0, 0)",
-  totalBackgroundColor = "#e6e6e6",
-  totalColor = "rgb(0, 0, 0)",
-  borderColor = "#000000"
-)
 
-# ui
-ui = shiny::fluidPage(
-  shinypivottablerUI(id = "id", 
-    app_colors = c("#e6e6e6", "#430838"),
-    app_linewidth = 3
-  )
-)
 
-# server
-server = function(input, output, session) {
-  shiny::callModule(module = shinypivottabler,
-                    id = "id",
-                    show_title = FALSE,
-                    theme = theme,
-                    data = data)
-}
+![img1](../demo_app/www/img/summary_data.png)
+
+```r
+?shinymodules::summary_data
+# ui.R
+shinymodules::summary_data_UI(id = "stat_desc_id", titles = FALSE)
+
+# server.R
+data <- shiny::reactive({my_data})
+shiny::callModule(module = shinymodules::summary_data, 
+		  data = shiny::reactive(data))
 ```
 
-![img](../demo_app/www/figures/ex_theme.PNG)
+Les indicateurs affichés sont paramétrables et les tableaux sont téléchargeables sous différents formats (*.csv*, *.xlsx* ou *.html*), ce qui nous amène  au 3ième module disponible.
 
-![img](../demo_app/www/figures/popup_theme.PNG)
+#### 3. Télécharger les données
 
-#### Définition de nouveaux indicateurs
+Le 3ième module ``show_DT`` permet quand à lui simplement d'afficher une table avec le package **DT** en proposant à l'utilisateur de la télécharger. Il est donc relativement *basique* mais néanmoins très utile !
 
-Par défaut,  les fonctions suivantes sont disponibles dans le module :  ``Sum``, ``Mean``, ``Min``, ``Max``, ``Standard Deviation``, ``Count`` et ``Count Distinct`` pour les variables quantitavies, et seulement ``Count`` et ``Count Distinct`` pour les variables qualitatives. Et l'interface permet de combiner deux indicateurs (``+``, ``-``, ``*``, et ``/``).
+![img1](../demo_app/www/img/summary_data.png)
 
-Vous pouvez si vous le souhaitez définir des nouvelles fonctions d'agrégation avec les arguments ``additional_expr_num`` (quantitative), ``additional_expr_char`` (qualitative) & ``additional_combine``.
-
-``` r
-additional_expr_num = list(
-  "Median" = "paste0('median(', target, ', na.rm = TRUE)')"
+```r
+?shinymodules::show_DT
+# ui.R
+shinymodules::show_DT_UI(
+     id = "iris_module", 
+     export = c("csv", "html")
 )
 
-getmode <- function(v) {
-   uniqv <- unique(v)
-   uniqv[which.max(tabulate(match(v, uniqv)))]
-}
+# server.R
+shiny::callModule(module = show_DT, 
+    id = "iris_module", 
+    data = reactive(iris), 
+    dt = reactive(DT::datatable(iris)), 
+    file_name = paste0("Iris_export", format(Sys.time(), format = "%d%m%Y_%H%M%S"))
+)
+```
 
-additional_expr_char = list(
-"Mode" = "paste0('getmode(', target, ')')"
+#### 4. Analyser les performances d'un modèle de régression / Monitorer
+
+Pour terminer, le dernier module propose un ensemble de fonctionnalités pour analyser les performances d'un modèle de régression.
+
+Dans le cas de données temporelles, des variables complémentaires sont automatiquement créées (heure, jour de la semaine, ...)
+
+- Calcul d'indicateurs de performance (*RMSE*, *MAE*, *MAPE*) au global ou sur des sous-populations définies par une variable sélectionnée
+
+![img1](../demo_app/www/img/monitoring_data_1.png)
+
+- Distributions des erreurs (relatives, absolues ou quadratiques)
+
+![img1](../demo_app/www/img/monitoring_data_2.png)
+
+- Arbres de régression avec le package **visNetwork**
+
+![img1](../demo_app/www/img/monitoring_data_3.png)
+
+```r
+?shinymodules::monitoring_data
+# ui.R
+shinymodules::monitoring_data_UI(
+     id = "monitoring", 
 )
 
-additional_combine = c("Modulo" = "%%")
-
-# ui
-# server
-server = function(input, output, session) {
-  shiny::callModule(module = shinypivottabler,
-                    id = "id",
-                    additional_expr_num = additional_expr_num,
-                    additional_expr_char = additional_expr_char,
-                    additional_combine = additional_combine,
-                    data = data)
-}
-````
-
-### Next steps
-
-Plusieurs axes d'améliorations sont déjà dans notre *TO DO* : 
-
-- pouvoir sauvegarder et recharger une définition d'un tableau croisé
-- proposer des fonctionnalités graphiques
-- permettre l'affichage de nos indicateurs en %
+# server.R
+shiny::callModule(module = monitoring_data, id = "my_id", 
+             data = reactive(data),
+             col_obs = col_obs,
+             col_fit = col_fit,
+             col_date = col_date,
+             indicators = indicators
+)
+```

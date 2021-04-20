@@ -24,6 +24,7 @@ https://datastorm-demo.shinyapps.io/shinymodules/
 if(!require(nycflights13)) install.packages("nycflights13")
 if(!require(data.table)) install.packages("data.table")
 if(!require(esquisse)) install.packages("esquisse")
+if(!require(colourpicker)) install.packages("colourpicker")
 
 runApp(system.file("demo_app", package = "shinymodules"))
 ```
@@ -35,21 +36,18 @@ runApp(system.file("demo_app", package = "shinymodules"))
 ![img1](inst/demo_app/www/img/filter_data.png)
 
 ```r
-## UI
-shinymodules::filter_data_UI(id = "filter_id",
-			    labels = list(title = "Filtres",
-					  no_data = "Pas de données disponibles",
-					  filter = "Filter sur les colonnes",
-					  reinitialize = "Réinitialisation des filtres",
-					  validate = "Filtrer les données",
-            complete_data = "Jeu de données total"))
+?shinymodules::filter_data
+# ui.R
+shinymodules::filter_data_UI(id = "filter_id"))
 
-## SERVER
-input_filter <- reactive({...})
+# server.R
+full_data <- reactive({...})
 output_filter <- shiny::callModule(module = shinymodules::filter_data, 
 				   id = "filter_id",
-			           data = input_filter,
+			     data = full_data,
 				   columns_to_filter = "all")
+
+# then, hafe fun with filter data !
 your_filtered_table <- output_filter$data
 ```
 
@@ -60,13 +58,14 @@ Display an automatically generate dashboard that shows descriptive statistics wi
 ![img1](inst/demo_app/www/img/summary_data.png)
 
 ```r
-## UI
+?shinymodules::summary_data
+# ui.R
 shinymodules::summary_data_UI(id = "stat_desc_id", titles = FALSE)
 
-## SERVER
-input_show <- shiny::reactiveValues(data = NULL)
+# server.R
+data <- shiny::reactive({my_data})
 shiny::callModule(module = shinymodules::summary_data, 
-		  data = shiny::reactive(input_show$data),
+		  data = shiny::reactive(data))
 		  optional_stats = "all",
 		  nb_modal2show = 6, 
 	          labels = list(title = "Descriptive statistics",
@@ -83,12 +82,20 @@ Show & export table using **DT** package
 ![img1](inst/demo_app/www/img/show_dt.png)
 
 ```r
-## UI
-shinymodules::show_DT_UI("iris_module")
+?shinymodules::show_DT
+# ui.R
+shinymodules::show_DT_UI(
+     id = "iris_module", 
+     export = c("csv", "html")
+)
 
-## SERVER
-shiny::callModule(show_DT, "iris_module", reactive(iris), reactive(DT::datatable(iris)), 
-   paste0("Iris_export", format(Sys.time(), format = "...")))
+# server.R
+shiny::callModule(module = show_DT, 
+    id = "iris_module", 
+    data = reactive(iris), 
+    dt = reactive(DT::datatable(iris)), 
+    file_name = paste0("Iris_export", format(Sys.time(), format = "%d%m%Y_%H%M%S"))
+)
 ```
 
 

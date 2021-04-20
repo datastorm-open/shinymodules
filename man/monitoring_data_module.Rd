@@ -15,10 +15,11 @@ monitoring_data(
   col_obs,
   col_fit,
   col_date = NULL,
+  add_temp_var = TRUE,
   tz = "UTC",
   indicators = c("rmse", "mae", "mape", "mape_e"),
   labels = list(progress_data = "Processing data", no_data = "No data", no_choice =
-    "None", idc_title = "Distribution of indicators", idc_aggr = "Aggregation column",
+    "None", idc_title = "Performance indicators", idc_aggr = "Aggregation column",
     idv_opt_discretiser = "Discretise ?", idv_choice_quantiles = "Quantiles choice",
     idc_button = "Display graphic", idc_progress = "Processing indicators",
     idc_plot_title = "Model's indicators", err_title = "Distribution of errors", err_aggr
@@ -52,6 +53,8 @@ monitoring_data_UI(id)
 \item{col_fit}{\code{character}. Column name for fitted values.}
 
 \item{col_date}{\code{character} (NULL). Column name for date values.}
+
+\item{add_temp_var}{\code{logical} (FALSE). If \code{col_date}, add temporal variables ?}
 
 \item{tz}{\code{character}. Timezone of new columns. Default to "UTC"}
 

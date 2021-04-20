@@ -164,7 +164,7 @@ compute_model_idc <- function(object = NULL,
 #' @param data \code{data.table}. Table containing a date colummn.
 #' @param col_date \code{character}. Name of the date column.
 #' @param tz \code{character}. Timezone of new columns. Default to "UTC"
-#' @param temp_vars \code{character} (c("min", "heure", "jour_semaine", "semaine_annee", "mois_annee", "annee")). Variables to be added to the table.
+#' @param temp_vars \code{character} (c("Minute", "Hour", "DayOfWeek", "WeekOfYear", "Month", "Year")). Variables to be added to the table.
 #'
 #' @return a data.table with new columns.
 #' @export
@@ -179,46 +179,46 @@ compute_model_idc <- function(object = NULL,
 #' data <- add_temp_var(data = data,
 #'                      col_date = "date",
 #'                      tz = "CET",
-#'                      temp_vars = c("heure", "semaine_annee", "annee"))
+#'                      temp_vars = c("Hour", "WeekOfYear", "Year"))
 #'                  
 #' data_utc <- add_temp_var(data = data,
 #'                      col_date = "date",
 #'                      tz = "UTC",
-#'                      temp_vars = c("heure", "semaine_annee", "annee"))
+#'                      temp_vars = c("Hour", "WeekOfYear", "Year"))
 #'                      
 #' }}
 add_temp_var <- function(data,
                          col_date,
                          tz = "UTC",
-                         temp_vars = c("min", "heure", "jour_semaine", "semaine_annee", "mois_annee", "annee")) {
+                         temp_vars = c("Minute", "Hour", "DayOfWeek", "WeekOfYear", "Month", "Year")) {
   data <- copy(data)
   
   if (! col_date %in% names(data)) {
     stop(paste0("Column '", col_date, "' must be present in 'data'."))
   } 
-  if (is.null(temp_vars) || ! all(temp_vars %in% c("min", "heure", "jour_semaine", "semaine_annee", "mois_annee", "annee"))) {
-    stop("'temp_vars' must be one of : ('min', 'heure', 'jour_semaine', 'semaine_annee', 'mois_annee', 'annee').")
+  if (is.null(temp_vars) || ! all(temp_vars %in% c("Minute", "Hour", "DayOfWeek", "WeekOfYear", "Month", "Year"))) {
+    stop("'temp_vars' must be one of : ('Minute', 'Hour', 'DayOfWeek', 'WeekOfYear', 'Month', 'Year').")
   }
   
-  if ("min" %in% temp_vars) {
+  if ("Minute" %in% temp_vars) {
     data[, "Minute" := format(get(col_date), tz = tz, format = "%M")]
   }
-  if ("heure" %in% temp_vars) {
-    data[, "Heure" := format(get(col_date), tz = tz, format = "%H")]
+  if ("Hour" %in% temp_vars) {
+    data[, "Hour" := format(get(col_date), tz = tz, format = "%H")]
   }
-  if ("jour_semaine" %in% temp_vars) {
-    data[, "Jour" := factor(format(get(col_date), tz = tz, format = "%A"), 
+  if ("DayOfWeek" %in% temp_vars) {
+    data[, "DayOfWeek" := factor(format(get(col_date), tz = tz, format = "%A"), 
                             levels = format(seq(as.Date("2020-01-06"), as.Date("2020-01-12"), length.out = 7), tz = tz, format = "%A"))]
   }
-  if ("semaine_annee" %in% temp_vars) {
-    data[, "Semaine" := format(get(col_date), tz = tz, format = "%V")]
+  if ("WeekOfYear" %in% temp_vars) {
+    data[, "WeekOfYear" := format(get(col_date), tz = tz, format = "%V")]
   }
-  if ("mois_annee" %in% temp_vars) {
-    data[, "Mois" := factor(format(get(col_date), tz = tz, format = "%B"), 
+  if ("Month" %in% temp_vars) {
+    data[, "Month" := factor(format(get(col_date), tz = tz, format = "%B"), 
                             levels = format(seq(as.Date("2020-01-15"), as.Date("2020-12-15"), length.out = 12), tz = "UTC", format = "%B"))]
   }
-  if ("annee" %in% temp_vars) {
-    data[, "Annee" := format(get(col_date), tz = tz, format = "%Y")]
+  if ("Year" %in% temp_vars) {
+    data[, "Year" := format(get(col_date), tz = tz, format = "%Y")]
   }
   
   return(data)
@@ -455,6 +455,7 @@ plot_idc_table <- function(data_idc,
 #' @param col_obs \code{character}. Column name for observed values.
 #' @param col_fit \code{character}. Column name for fitted values.
 #' @param col_date \code{character} (NULL). Column name for date values.
+#' @param add_temp_var \code{logical} (FALSE). If \code{col_date}, add temporal variables ?
 #' @param tz \code{character}. Timezone of new columns. Default to "UTC"
 #' @param indicators \code{characters}. Indicators to be computed, amongst: ("rmse", "mae", "mape", "mape_star").
 #' @param labels \code{character}. Labels to modify displayed texts. See default in examples.
@@ -508,13 +509,14 @@ monitoring_data <- function(input, output, session,
                            col_obs, 
                            col_fit, 
                            col_date = NULL,
+                           add_temp_var = TRUE, 
                            tz = "UTC",
                            indicators = c("rmse", "mae", "mape", "mape_e"),
                            labels = list(
                              "progress_data" = "Processing data",
                              "no_data" = "No data",
                              "no_choice" = "None",
-                             "idc_title" = "Distribution of indicators",
+                             "idc_title" = "Performance indicators",
                              "idc_aggr" = "Aggregation column",
                              "idv_opt_discretiser" = "Discretise ?",
                              "idv_choice_quantiles" = "Quantiles choice",
@@ -569,6 +571,11 @@ monitoring_data <- function(input, output, session,
     get_col_date <- shiny::reactive(col_date)
   } else {
     get_col_date <- col_date
+  }
+  if (! shiny::is.reactive(add_temp_var)) {
+    get_add_temp_var <- shiny::reactive(add_temp_var)
+  } else {
+    get_add_temp_var <- add_temp_var
   }
   if (! shiny::is.reactive(tz)) {
     get_tz <- shiny::reactive(tz)
@@ -638,7 +645,7 @@ monitoring_data <- function(input, output, session,
           }
           
           # add cols min, hour, week, month, year + keep only target vars indicators
-          if (! is.null(get_col_date())) {
+          if (! is.null(get_col_date()) && get_add_temp_var()) {
             data <- add_temp_var(data = data, tz = get_tz(), 
                                  col_date = get_col_date())
           }
