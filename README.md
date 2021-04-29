@@ -47,7 +47,7 @@ output_filter <- shiny::callModule(module = shinymodules::filter_data,
 			     data = full_data,
 				   columns_to_filter = "all")
 
-# then, hafe fun with filter data !
+# then, have fun with filter data !
 your_filtered_table <- output_filter$data
 ```
 
