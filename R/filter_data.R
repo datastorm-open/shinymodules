@@ -184,7 +184,7 @@ filter_data <- function(input, output, session, data = NULL,
   output$ui_filter <- renderUI({
     shiny::h5(get_labels()$filter)
   })
-
+  
   observe({
     button_validate_label <- get_labels()$validate
     if(!is.null(button_validate_label)){
@@ -268,7 +268,7 @@ filter_data <- function(input, output, session, data = NULL,
       if(length(init_columns_to_filter) > 0 && !"all" %in% init_columns_to_filter && !is.null(names(init_columns_to_filter))){
         names(values) <- names(init_columns_to_filter)[match(values, unname(init_columns_to_filter))]
       }
-
+      
       selectInput(ns("chosenfilters"), "", 
                   choices = values, selected = NULL, multiple = TRUE, width = "100%")
     }
@@ -313,7 +313,14 @@ filter_data <- function(input, output, session, data = NULL,
               
             } else if (any(ctrlclass %in% c("numeric", "integer"))) {
               selectedtype <- "range slider"
-              choices <- c("single slider", "range slider", "less than", "less than or equal to", "greater than", "greater than or equal to")
+              
+              nb_unique_values <- length(unique(data[[colname]]))
+              
+              if (nb_unique_values > isolate(get_max_char_values())) {
+                choices <- c("single slider", "range slider", "less than", "less than or equal to", "greater than", "greater than or equal to") 
+              } else {
+                choices <- c("single slider", "range slider", "less than", "less than or equal to", "greater than", "greater than or equal to", "single select", "multiple select") 
+              }
               
             } else if (any(ctrlclass %in% c("POSIXct", "POSIXlt"))) {
               selectedtype <-  "range date"
@@ -381,7 +388,7 @@ filter_data <- function(input, output, session, data = NULL,
             
             if (any(ctrlclass %in% c("factor", "character", "logical"))) {
               if (selectedtype %in% c("single select", "multiple select")) {
-                values <- unique(as.character(data[, get(filter)]))
+                values <- sort(unique(as.character(data[, get(filter)])))
                 
               } else if (selectedtype %in% c("single slider", "range slider")) {
                 values <- range(as.numeric(as.character(data[, get(filter)])),
@@ -390,7 +397,7 @@ filter_data <- function(input, output, session, data = NULL,
               
             } else if (any(ctrlclass %in% c("integer", "numeric", "POSIXct", "POSIXlt"))) {
               if (selectedtype %in% c("single select", "multiple select")) {
-                values <- unique(as.character(data[, get(filter)]))
+                values <- sort(unique(as.character(data[, get(filter)])))
                 
               } else if (selectedtype %in% c("single slider", "range slider")) {
                 values <- range(data[, get(filter)], na.rm = TRUE)
@@ -482,7 +489,7 @@ filter_data <- function(input, output, session, data = NULL,
             
             if (any(ctrlclass %in% c("factor", "character", "logical"))) {
               if (selectedtype %in% c("single select", "multiple select")) {
-                values <- unique(as.character(data[, get(colname)]))
+                values <- sort(unique(as.character(data[, get(colname)])))
                 
               } else if (selectedtype %in% c("single slider", "range slider")) {
                 values <- range(as.numeric(as.character(data[, get(colname)])), 
@@ -491,7 +498,7 @@ filter_data <- function(input, output, session, data = NULL,
               
             } else if (any(ctrlclass %in% c("integer", "numeric", "POSIXct", "POSIXlt"))) {
               if (selectedtype %in% c("single select", "multiple select")) {
-                values <- unique(as.character(data[, get(colname)]))
+                values <- sort(unique(as.character(data[, get(colname)])))
                 
               } else if (selectedtype %in% c("single slider", "range slider")) {
                 values <- range(data[, get(colname)], na.rm = TRUE)
