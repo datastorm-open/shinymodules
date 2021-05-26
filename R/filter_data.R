@@ -316,7 +316,7 @@ filter_data <- function(input, output, session, data = NULL,
               
               nb_unique_values <- length(unique(data[[colname]]))
               
-              if (nb_unique_values > max_char_values) {
+              if (nb_unique_values > isolate(get_max_char_values())) {
                 choices <- c("single slider", "range slider", "less than", "less than or equal to", "greater than", "greater than or equal to") 
               } else {
                 choices <- c("single slider", "range slider", "less than", "less than or equal to", "greater than", "greater than or equal to", "single select", "multiple select") 
