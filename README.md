@@ -65,14 +65,15 @@ shinymodules::summary_data_UI(id = "stat_desc_id", titles = FALSE)
 # server.R
 data <- shiny::reactive({my_data})
 shiny::callModule(module = shinymodules::summary_data, 
-		  data = shiny::reactive(data))
-		  optional_stats = "all",
-		  nb_modal2show = 6, 
-	          labels = list(title = "Descriptive statistics",
-				num_var = "Variables numériques",
-				date_var = "Variables dates",
-				factor_var = "Variables facteurs",
-				message = "Calcul des indicateurs en cours..."))
+				  id = "stat_desc_id",
+   				  data = shiny::reactive(data),
+				  optional_stats = "all",
+				  nb_modal2show = 6, 
+				  labels = list(title = "Descriptive statistics",
+				     			num_var = "Variables numériques",
+								date_var = "Variables dates",
+								factor_var = "Variables facteurs",
+								message = "Calcul des indicateurs en cours..."))
 ```
 
 ## show_DT
