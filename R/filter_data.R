@@ -144,12 +144,20 @@ filter_data <- function(input, output, session, data = NULL,
   
   ns <- session$ns
   
+  filterdata <- reactiveValues(data = NULL)
+  init <- reactiveVal(TRUE)
+  
   # reactive controls
   if (! shiny::is.reactive(data)) {
     get_data <- shiny::reactive(data)
   } else {
     get_data <- data
   }
+  
+  observe({
+    req(get_data())
+    init(TRUE)
+  })
   
   if (! shiny::is.reactive(columns_to_filter)) {
     get_columns_to_filter <- shiny::reactive(columns_to_filter)
@@ -214,7 +222,7 @@ filter_data <- function(input, output, session, data = NULL,
       if(!"data.table" %in% class(data)){
         data <- data.table::as.data.table(data)
       }
-      setcolorder(data, colnames(data)[order(colnames(data))])
+      # setcolorder(data, colnames(data)[order(colnames(data))])
     }
     data
   })
@@ -261,7 +269,7 @@ filter_data <- function(input, output, session, data = NULL,
       } else {
         data <- data_to_filter()[, .SD, .SDcols = columns_to_filter]
       }
-      setcolorder(data, colnames(data)[order(colnames(data))])
+      # setcolorder(data, colnames(data)[order(colnames(data))])
       values <- colnames(data)
       
       init_columns_to_filter <- get_columns_to_filter()
@@ -269,8 +277,17 @@ filter_data <- function(input, output, session, data = NULL,
         names(values) <- names(init_columns_to_filter)[match(values, unname(init_columns_to_filter))]
       }
       
-      selectInput(ns("chosenfilters"), "", 
-                  choices = values, selected = NULL, multiple = TRUE, width = "100%")
+      # selectInput(ns("chosenfilters"), "", 
+      #             choices = values, selected = NULL, multiple = TRUE, width = "100%")
+      
+      shinyWidgets::pickerInput(
+        inputId = ns("chosenfilters"), label = "",
+        choices = values,
+        selected = NULL, 
+        multiple = T, width = "100%",
+        options = list(`actions-box` = TRUE, `live-search` = TRUE)
+      )
+      
     }
   })
   
@@ -344,7 +361,7 @@ filter_data <- function(input, output, session, data = NULL,
             
             # check that the column is selected to display it (a little artificial, using its position in the input vector)
             conditionalPanel(condition = paste0('input["', ns("chosenfilters"), '"] !== null && input["', ns("chosenfilters"), '"] !== undefined && input["', ns("chosenfilters"), '"].includes("', colname, '")'),
-              # condition = paste0('output[["', ns(paste0("have_uifilter", colname)), '"]]'), 
+                             # condition = paste0('output[["', ns(paste0("have_uifilter", colname)), '"]]'), 
                              fluidRow(
                                column(width = 2, offset = 1,  
                                       h5(label_colname, style = "font-weight: bold;")
@@ -649,13 +666,17 @@ filter_data <- function(input, output, session, data = NULL,
     }
   })
   
-  filterdata <- reactiveValues(data = NULL)
   observeEvent(c(data_to_filter(), input$validateFilter, input$getAlldata), {
     data <- data_to_filter()
-    if (is.null(listfilters())) {
+    if(init()){
       filterdata$data <- data
+      init(FALSE)
     } else {
-      filterdata$data <- .filterDataTable(data, listfilters())
+      if (is.null(listfilters())) {
+        filterdata$data <- data
+      } else {
+        filterdata$data <- .filterDataTable(data, listfilters())
+      }
     }
   })
   
