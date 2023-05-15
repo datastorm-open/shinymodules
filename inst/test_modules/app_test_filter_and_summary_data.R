@@ -35,7 +35,8 @@ server <- function(input, output, session) {
   # call filter_data module getting back filtered data
   data_filtered <- callModule(module = filter_data, id = "id",
                               data = shiny::reactive(target_data$data),
-                              columns_to_filter = "all")
+                              columns_to_filter = "all", 
+                              file_filtering = TRUE)
   
   # used summary_data on data_filtered, output of filter_data
   callModule(module = summary_data, id = "idshow",

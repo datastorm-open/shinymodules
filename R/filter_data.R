@@ -16,6 +16,8 @@
 #' allow the user to filter (default is all)
 #' @param max_char_values \code{integer/reactive} Remove character / factor columns with more than \code{max_char_values} unique values
 #' @param default_multisel_n \code{integer/reactive} Number of choices  selected by default in case of multiple selection. Defaut 10
+#' @param file_filtering \code{logical/reactive} Enable importing .csv file for apply custom filtering ?
+#' 
 #' @param labels \code{list/reactive} Title / subtitle / message
 #' \itemize{
 #'  \item{"title"}{ : Module title.}
@@ -24,6 +26,7 @@
 #'  \item{"reinitialize"}{ : Reinit button.}
 #'  \item{"validate"}{ :  Validate filter button.}
 #'  \item{"complete_data"}{ :  Complete data button.}
+#'  \item{"file"}{ :  File filtering label.}
 #'}
 #'
 #' @return \code{reactiveValues} with filtered data
@@ -91,8 +94,17 @@ filter_data_UI <- function(id, titles = TRUE) {
     shiny::conditionalPanel(
       condition = paste0("output['", ns("have_data_filter"), "'] === true"),
       
+      shiny::conditionalPanel(
+        condition = paste0("output['", ns("is_data_file_filter"), "'] === true"),
+        shiny::fluidRow(
+          column(9, shiny::div(br(), uiOutput(ns("fileinput_ui")), align = "left")),
+          column(3, shiny::div(br(), shiny::actionButton(
+            ns("remove_file"), "", icon = icon("trash"), style = "margin-top:25px"), align = "center"))
+        )
+      ),
+      
       shiny::fluidRow(
-        column(2, div(br(), uiOutput(ns("ui_filter")), align = "center")),
+        column(2, div(br(), uiOutput(ns("ui_filter")), align = "left")),
         column(7, shiny::uiOutput(ns("choicefilter"))),
         column(3, shiny::div(br(), shiny::actionButton(
           ns("reinitializeFilter"), "Reinitialize filters"), align = "center"))
@@ -135,12 +147,14 @@ filter_data <- function(input, output, session, data = NULL,
                         columns_to_filter = "all", 
                         max_char_values = 1000,
                         default_multisel_n = 10, 
+                        file_filtering = FALSE,
                         labels = list(title = "Filters",
                                       no_data = "No data available", 
                                       filter = "Filter on :", 
                                       reinitialize = "Reinitialize filters", 
                                       validate = "Apply filtering on data", 
-                                      complete_data = "Get complete dataset")) {
+                                      complete_data = "Get complete dataset", 
+                                      file = "Import file with filters :")) {
   
   ns <- session$ns
   
@@ -177,6 +191,12 @@ filter_data <- function(input, output, session, data = NULL,
     get_default_multisel_n <- default_multisel_n
   }
   
+  if (! shiny::is.reactive(file_filtering)) {
+    get_file_filtering <- shiny::reactive(file_filtering)
+  } else {
+    get_file_filtering <- file_filtering
+  }
+  
   if (! shiny::is.reactive(labels)) {
     get_labels <- shiny::reactive(labels)
   } else {
@@ -184,15 +204,49 @@ filter_data <- function(input, output, session, data = NULL,
   }
   
   output$ui_title <- renderUI({
-    shiny::div(h2(get_labels()$title))
+    shiny::div(h2(ifelse(length(get_labels()$title) == 0, "Filters", get_labels()$title)))
   })
   output$ui_no_data <- renderUI({
-    shiny::div(h2(get_labels()$no_data))
+    shiny::div(h2(ifelse(length(get_labels()$no_data) == 0, "No data available", get_labels()$no_data)))
   })
   output$ui_filter <- renderUI({
-    shiny::h5(get_labels()$filter)
+    shiny::h5(ifelse(length(get_labels()$filter) == 0, "Filter on :", get_labels()$filter), style = "font-weight: bold;")
+  })
+
+  output$fileinput_ui <- renderUI({
+    input$remove_file
+    button_file_label <- get_labels()$file
+    if(length(button_file_label) == 0) button_file_label <- "Import file with filters :"
+    shiny::fileInput(ns("file_filters"), button_file_label, accept = ".csv", width  = "100%")
   })
   
+  filter_file_data <- reactiveVal(NULL)
+  
+  observeEvent(input$file_filters, {
+    
+    data_filter <-  try(fread(input$file_filters$datapath), silent = TRUE)
+    if("try-error" %in% class(data_filter)){
+      showModal(
+        modalDialog(
+          title = "Error importing data",
+          data_filter[[1]],
+          easyClose = TRUE,
+          footer = modalButton("OK"),
+        )
+      )
+      
+      filter_file_data(NULL)
+    
+    } else {
+      filter_file_data(data_filter)
+    }
+  }, ignoreNULL = TRUE)
+  
+
+  observeEvent(input$remove_file, {
+    filter_file_data(NULL)
+  }, ignoreInit = TRUE, ignoreNULL = TRUE)
+    
   observe({
     button_validate_label <- get_labels()$validate
     if(!is.null(button_validate_label)){
@@ -227,14 +281,20 @@ filter_data <- function(input, output, session, data = NULL,
     data
   })
   
+  output$is_data_file_filter <- shiny::reactive({
+    get_file_filtering()
+  })
+  shiny::outputOptions(output, "is_data_file_filter", suspendWhenHidden = FALSE)
+  
   output$have_data_filter <- shiny::reactive({
     !is.null(data_to_filter()) && "data.frame" %in% class(data_to_filter()) && nrow(data_to_filter()) > 0
   })
   shiny::outputOptions(output, "have_data_filter", suspendWhenHidden = FALSE)
   
   output$have_selected_filter <- shiny::reactive({
-    !is.null(input$chosenfilters) && length(input$chosenfilters) > 0
+    (!is.null(input$chosenfilters) && length(input$chosenfilters) > 0) | (length(filter_file_data()) > 0)
   })
+  
   shiny::outputOptions(output, "have_selected_filter", suspendWhenHidden = FALSE)
   
   filternames <- reactiveValues(filter = NULL)
@@ -328,7 +388,7 @@ filter_data <- function(input, output, session, data = NULL,
               }
               choices <- c("single select", "multiple select")
               
-            } else if (any(ctrlclass %in% c("numeric", "integer"))) {
+            } else if (any(ctrlclass %in% c("numeric", "integer", "integer64"))) {
               selectedtype <- "range slider"
               
               nb_unique_values <- length(unique(data[[colname]]))
@@ -412,7 +472,7 @@ filter_data <- function(input, output, session, data = NULL,
                                 na.rm = TRUE)
               }
               
-            } else if (any(ctrlclass %in% c("integer", "numeric", "POSIXct", "POSIXlt"))) {
+            } else if (any(ctrlclass %in% c("integer", "numeric", "integer64", "POSIXct", "POSIXlt"))) {
               if (selectedtype %in% c("single select", "multiple select")) {
                 values <- sort(unique(as.character(data[, get(filter)])))
                 
@@ -513,7 +573,7 @@ filter_data <- function(input, output, session, data = NULL,
                                 na.rm = TRUE)
               }
               
-            } else if (any(ctrlclass %in% c("integer", "numeric", "POSIXct", "POSIXlt"))) {
+            } else if (any(ctrlclass %in% c("integer", "numeric", "integer64", "POSIXct", "POSIXlt"))) {
               if (selectedtype %in% c("single select", "multiple select")) {
                 values <- sort(unique(as.character(data[, get(colname)])))
                 
@@ -668,17 +728,30 @@ filter_data <- function(input, output, session, data = NULL,
   
   observeEvent(c(data_to_filter(), input$validateFilter, input$getAlldata), {
     data <- data_to_filter()
+    data_filter <- filter_file_data()
     if(init()){
       filterdata$data <- data
       init(FALSE)
     } else {
       if (is.null(listfilters())) {
-        filterdata$data <- data
+        if(is.null(data_filter)){
+          filterdata$data <- data
+        } else {
+          filterdata$data <- .filterDataTableFile(data, data_filter)
+        }
       } else {
-        filterdata$data <- .filterDataTable(data, listfilters())
+        if(is.null(data_filter)){
+          filterdata$data <- .filterDataTable(data, listfilters())
+        } else {
+          tmp <- .filterDataTable(data, listfilters())
+          filterdata$data <- .filterDataTableFile(tmp, data_filter)
+        }
+       
       }
     }
   })
   
   return(filterdata)
 }
+
+
