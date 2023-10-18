@@ -58,6 +58,22 @@ transform_names <- function(old_names){
     values_ <- values_[!is.na(values_)]
     
     if(i %in% colnames(res)){
+      if(!isTRUE(all.equal(class(res[, get(i)]), class(values_)))){
+        if("integer64" %in% class(res[, get(i)])){
+          if("factor" %in% class(values_)) values_ <- as.character(values_)
+          values_ <- as.integer64(values_)
+        } else if("numeric" %in% class(res[, get(i)])){
+          if("factor" %in% class(values_)) values_ <- as.character(values_)
+          values_ <- as.numeric(values_)
+        } else if("character" %in% class(res[, get(i)])){
+          values_ <- as.character(values_)
+        } else if("factor" %in% class(res[, get(i)])){
+          values_ <- as.character(values_)
+        } else if("logical" %in% class(res[, get(i)])){
+          if("factor" %in% class(values_)) values_ <- as.character(values_)
+          values_ <- as.logical(values_)
+        }
+      }
       res <- res[get(i) %in% values_]
     } else {
       miss_col <- c(miss_col, i)
