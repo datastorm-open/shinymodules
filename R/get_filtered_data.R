@@ -56,8 +56,45 @@ transform_names <- function(old_names){
   for(i in colnames(data_filters)){
     values_ <- data_filters[, unique(get(i))]
     values_ <- values_[!is.na(values_)]
-    
+  
     if(i %in% colnames(res)){
+      if(!isTRUE(all.equal(class(res[, get(i)]), class(values_)))){
+        if("integer64" %in% class(res[, get(i)])){
+          if("factor" %in% class(values_)) values_ <- as.character(values_)
+          values_ <- as.integer64(values_)
+        } else if("numeric" %in% class(res[, get(i)])){
+          if("factor" %in% class(values_)) values_ <- as.character(values_)
+          values_ <- as.numeric(values_)
+        } else if("character" %in% class(res[, get(i)])){
+          values_ <- as.character(values_)
+        } else if("factor" %in% class(res[, get(i)])){
+          values_ <- as.character(values_)
+        } else if("logical" %in% class(res[, get(i)])){
+          if("factor" %in% class(values_)) values_ <- as.character(values_)
+          values_ <- as.logical(values_)
+        } else if("Date" %in% class(res[, get(i)])){
+          if("factor" %in% class(values_)) values_ <- as.character(values_)
+          pattern <- "^[[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}$"
+          if(regexpr(pattern, values_[1])[1] > -1){
+            values_ <- as.Date(values_, format = "%Y-%m-%d")
+          } 
+          
+          pattern <- "^[[:digit:]]{4}/[[:digit:]]{2}/[[:digit:]]{2}$"
+          if(regexpr(pattern, values_[1])[1] > -1){
+            values_ <- as.Date(values_, format = "%Y/%m/%d")
+          } 
+          
+          pattern <- "^[[:digit:]]{2}/[[:digit:]]{2}/[[:digit:]]{4}$"
+          if(regexpr(pattern, values_[1])[1] > -1){
+            values_ <- as.Date(values_, format = "%d/%m/%Y")
+          } 
+          
+          pattern <- "^[[:digit:]]{2}-[[:digit:]]{2}-[[:digit:]]{4}$"
+          if(regexpr(pattern, values_[1])[1] > -1){
+            values_ <- as.Date(values_, format = "%d-%m-%Y")
+          } 
+        }
+      }
       res <- res[get(i) %in% values_]
     } else {
       miss_col <- c(miss_col, i)
