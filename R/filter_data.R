@@ -140,7 +140,7 @@ filter_data_UI <- function(id, titles = TRUE) {
 }
 
 #' @export
-#' @import shiny data.table magrittr
+#' @import shiny data.table magrittr bit64
 #'
 #' @rdname filter_data_module
 filter_data <- function(input, output, session, data = NULL,

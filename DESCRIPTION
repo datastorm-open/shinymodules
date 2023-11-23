@@ -33,4 +33,5 @@ Imports:
     visNetwork,
     shinyWidgets,
     colourpicker,
-    rpart
+    rpart,
+    bit64
