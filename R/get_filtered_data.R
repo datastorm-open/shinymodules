@@ -19,7 +19,13 @@
         values <- paste0("c(", paste(values, collapse = ","), ")")
       }
     }
-
+    
+    if(x$fun == "=="){
+      if("integer64" %in% class(data[[x$column]])){
+        values <- paste0("as.integer64(", values, ")")
+      }
+    }
+    
     paste0("`", x$column, "`", x$fun, values)
     
   })), collapse = " & ")
