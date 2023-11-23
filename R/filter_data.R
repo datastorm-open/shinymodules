@@ -675,7 +675,7 @@ filter_data <- function(input, output, session, data = NULL,
             
           } else if(selectedtype %in% c("single slider", "single date")) {
             colname <- c(name)
-            fun <- c("==")
+            fun <- c("%in%")
             values <- c(list(filter[1]))
             
           } else if(selectedtype %in% c("multiple select", "single select")) {
@@ -700,7 +700,7 @@ filter_data <- function(input, output, session, data = NULL,
             
           } else if(selectedtype %in% c("equal to")) {
             colname <- c(name)
-            fun <- c("==")
+            fun <- c("%in%")
             values <- c(list(as.numeric(gsub(",", ".", filter, fixed = TRUE))))
             
           } else if(selectedtype %in% c("greater than or equal to")) {
