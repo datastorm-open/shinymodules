@@ -16,8 +16,8 @@ summary_data(
   nb_modal2show = 3,
   columns_to_show = "all",
   show_warnings = FALSE,
-  labels = list(title = "Descriptive statistics", num_var = "Numeric variables",
-    date_var = "Date variables", factor_var = "Factor variables", message =
+  labels = list(title = "Descriptive statistics", num_var = "Numeric variables", date_var
+    = "Date variables", factor_var = "Factor variables", message =
     "Calculation in progress...")
 )
 }

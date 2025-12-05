@@ -1,6 +1,6 @@
 Package: shinymodules
 Title: Shiny Module Tools for Exploring Data
-Version: 0.1.4
+Version: 0.1.5
 Authors@R: 
     person(given = "Datastorm",
            family = "Datastorm",
@@ -16,7 +16,7 @@ Suggests:
     testthat (>= 2.1.0),
     nycflights13,
     esquisse (>= 1.0.0)
-RoxygenNote: 7.1.1
+RoxygenNote: 7.3.3
 Imports: 
     shiny,
     data.table,

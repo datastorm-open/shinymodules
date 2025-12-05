@@ -24,7 +24,8 @@ monitoring_data(
     idc_button = "Display graphic", idc_progress = "Processing indicators",
     idc_plot_title = "Model's indicators", err_title = "Distribution of errors", err_aggr
     = "Aggregation column", err_type = "Error type choice", err_button =
-    "Display graphic", err_progress = "Processing boxplots",      err_ylab = "Values",
+    "Display graphic", err_progress = "Processing boxplots", 
+     err_ylab = "Values",
     error_xlab = "error : ", tree_title = "Decision tree", tree_y = "Y", tree_x = "X",
     tree_minsplit = "Minsplit", tree_cp = "Complexity (cp)", tree_maj_cp = "Update cp",
     tree_maj_params = "Update parameters", tree_cp_modal_titre = "Update cp",

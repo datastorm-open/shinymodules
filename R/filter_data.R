@@ -356,7 +356,6 @@ filter_data <- function(input, output, session, data = NULL,
     data <- data_to_filter()
     columns_to_filter <- get_columns_to_filter()
     init_columns_to_filter <- get_columns_to_filter()
-    
     isolate({
       if (! is.null(data)) {
         
@@ -427,12 +426,12 @@ filter_data <- function(input, output, session, data = NULL,
                                       h5(label_colname, style = "font-weight: bold;")
                                ),
                                column(2,
-                                      selectInput(ns(paste0("typefilter", colname)), NULL,
+                                      selectInput(ns(paste0("typefilter", gsub("[[:punct:]]", "", colname))), NULL,
                                                   choices = choices,
                                                   selectedtype)
                                ),
                                column(6, 
-                                      uiOutput(ns(paste0("uifilter", colname)))
+                                      uiOutput(ns(paste0("uifilter", gsub("[[:punct:]]", "", colname))))
                                )
                              )
             )
@@ -556,9 +555,9 @@ filter_data <- function(input, output, session, data = NULL,
         # })
         # shiny::outputOptions(output, paste0("have_uifilter", colname), suspendWhenHidden = FALSE)
         
-        output[[paste0("uifilter", colname)]] <- renderUI({
+        output[[paste0("uifilter", gsub("[[:punct:]]", "", colname))]] <- renderUI({
           
-          selectedtype <- input[[paste0("typefilter", colname)]]
+          selectedtype <- input[[paste0("typefilter", gsub("[[:punct:]]", "", colname))]]
           
           isolate({
             # colname <- colnames(data)[colnames(data) == var]
@@ -663,7 +662,7 @@ filter_data <- function(input, output, session, data = NULL,
         if (x %in% filters) {
           
           name <- x
-          selectedtype <- input[[paste0("typefilter", x)]]
+          selectedtype <- input[[paste0("typefilter", gsub("[[:punct:]]", "", x))]]
           filter <-  input[[paste0("filter", x)]]
           if("Date" %in% class(filter)){
             filter <- as.character(filter)

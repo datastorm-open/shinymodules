@@ -15,9 +15,10 @@ filter_data(
   columns_to_filter = "all",
   max_char_values = 1000,
   default_multisel_n = 10,
-  labels = list(title = "Filters", no_data = "No data available", filter =
-    "Filter on :", reinitialize = "Reinitialize filters", validate =
-    "Apply filtering on data", complete_data = "Get complete dataset")
+  file_filtering = FALSE,
+  labels = list(title = "Filters", no_data = "No data available", filter = "Filter on :",
+    reinitialize = "Reinitialize filters", validate = "Apply filtering on data",
+    complete_data = "Get complete dataset", file = "Import file with filters :")
 )
 }
 \arguments{
@@ -43,6 +44,8 @@ allow the user to filter (default is all)}
 
 \item{default_multisel_n}{\code{integer/reactive} Number of choices  selected by default in case of multiple selection. Defaut 10}
 
+\item{file_filtering}{\code{logical/reactive} Enable importing .csv file for apply custom filtering ?}
+
 \item{labels}{\code{list/reactive} Title / subtitle / message
 \itemize{
  \item{"title"}{ : Module title.}
@@ -51,6 +54,7 @@ allow the user to filter (default is all)}
  \item{"reinitialize"}{ : Reinit button.}
  \item{"validate"}{ :  Validate filter button.}
  \item{"complete_data"}{ :  Complete data button.}
+ \item{"file"}{ :  File filtering label.}
 }}
 }
 \value{
@@ -86,11 +90,11 @@ server = function(input, output, session) {
   columns_to_filter = c("Width" = "Petal.Width", "Length" = "Petal.Length"),
   labels = list(
       title = "Filtres",
-      no_data = "Pas de donnÃ©es disponibles", 
+      no_data = "Pas de données disponibles", 
       filter = "Filtrer sur les colonnes :", 
-      reinitialize = "RÃ©initialisation des filtres", 
-      validate = "Filtrer les donnÃ©es",
-      complete_data = "Jeu de donnÃ©es total"
+      reinitialize = "Réinitialisation des filtres", 
+      validate = "Filtrer les données",
+      complete_data = "Jeu de données total"
    ))
    
    shiny::observe({
