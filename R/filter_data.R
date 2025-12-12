@@ -380,6 +380,9 @@ filter_data <- function(input, output, session, data = NULL,
             if (any(ctrlclass %in% c("factor", "character", "logical"))) {
               values <- unique(data[, get(colname)])
               
+              if("character" %in% ctrlclass){
+                values <- iconv(values)
+              }
               if (length(values) <= 10) {
                 selectedtype <- "multiple select"
               } else {
@@ -457,14 +460,14 @@ filter_data <- function(input, output, session, data = NULL,
         reinit_filters <- intersect(input$chosenfilters, colnames(data))
         
         for (filter in reinit_filters) {
-          selectedtype <- input[[paste0("typefilter", filter)]]
+          selectedtype <- input[[paste0("typefilter", gsub("[[:punct:]]", "", filter))]]
           
           isolate({
             ctrlclass <- class(data[, get(filter)])
             
             if (any(ctrlclass %in% c("factor", "character", "logical"))) {
               if (selectedtype %in% c("single select", "multiple select")) {
-                values <- sort(unique(as.character(data[, get(filter)])))
+                values <- iconv(sort(unique(as.character(data[, get(filter)]))))
                 
               } else if (selectedtype %in% c("single slider", "range slider")) {
                 values <- range(as.numeric(as.character(data[, get(filter)])),
@@ -565,7 +568,7 @@ filter_data <- function(input, output, session, data = NULL,
             
             if (any(ctrlclass %in% c("factor", "character", "logical"))) {
               if (selectedtype %in% c("single select", "multiple select")) {
-                values <- sort(unique(as.character(data[, get(colname)])))
+                values <- iconv(sort(unique(as.character(data[, get(colname)]))))
                 
               } else if (selectedtype %in% c("single slider", "range slider")) {
                 values <- range(as.numeric(as.character(data[, get(colname)])), 
