@@ -54,6 +54,9 @@ show_DT_UI <- function(id, export = c("csv", "excel", "html")) {
 #' @param server : \code{logical}
 #' @param id : character. id
 #' @param export : character. Wanted export type ? Can be multiple
+#' @param f_csv : custom function(data, path_file) for .csv export
+#' @param f_xlsx : custom function(data, path_file) for .xlsx export
+#' @param f_html : custom function(data, path_file) for .html export
 #' 
 #' @import openxlsx htmlwidgets shiny
 #' @importFrom DT renderDT datatable DTOutput
@@ -78,13 +81,29 @@ show_DT_UI <- function(id, export = c("csv", "excel", "html")) {
 #' }
 #' shiny::shinyApp(ui = ui, server = server)
 #'   
+#' # custom export function
+#' f_csv = function(data, file){
+#'   write.table(data, file, sep = ",", dec = ".")
+#' }
+#' 
+#' server = function(input, output, session) {
+#'   callModule(module = show_DT, id = "iris_module", 
+#'    data = reactive(iris), 
+#'    dt = reactive(DT::datatable(iris)), 
+#'    file_name = paste0("Iris_export", format(Sys.time(), format = "%d%m%Y_%H%M%S")),
+#'    f_csv = f_csv
+#'    )
+#' }
+#' shiny::shinyApp(ui = ui, server = server)
+#' 
 #' }  
 #' 
 #' @export
 #' 
 #' @rdname show_DT_module
 #' 
-show_DT <- function(input, output, session, data, dt, file_name, row.names = FALSE, server = TRUE) {
+show_DT <- function(input, output, session, data, dt, file_name, row.names = FALSE, server = TRUE, 
+                    f_csv = NULL, f_xlsx = NULL, f_html = NULL) {
   
   # output DT
   output$table <- DT::renderDT({
@@ -97,7 +116,11 @@ show_DT <- function(input, output, session, data, dt, file_name, row.names = FAL
       paste0(file_name, '.csv')
     },
     content = function(con) {
-      write.table(data(), con, sep = ";", dec = ",", row.names = row.names, na = "", fileEncoding = "latin1")
+      if(length(f_csv) == 0){
+        write.table(data(), con, sep = ";", dec = ",", row.names = row.names, na = "", fileEncoding = "latin1")
+      } else {
+        f_csv(data(), con)
+      }
     }
   )
   
@@ -107,7 +130,11 @@ show_DT <- function(input, output, session, data, dt, file_name, row.names = FAL
       paste0(file_name, '.xlsx')
     },
     content = function(con) {
-      openxlsx::write.xlsx(data(), con, col.names=TRUE, row.names=row.names, keepNA = FALSE)
+      if(length(f_xlsx) == 0){
+        openxlsx::write.xlsx(data(), con, col.names=TRUE, row.names=row.names, keepNA = FALSE)
+      } else {
+        f_xlsx(data(), con)
+      }
     }
   )
   
@@ -117,9 +144,14 @@ show_DT <- function(input, output, session, data, dt, file_name, row.names = FAL
       paste0(file_name, '.html')
     },
     content = function(con) {
-      dt <- dt()
-      if(is.null(dt$width)) dt$width <- "100%"
-      htmlwidgets::saveWidget(dt, con, selfcontained = TRUE)
+      if(length(f_html) == 0){
+        dt <- dt()
+        if(is.null(dt$width)) dt$width <- "100%"
+        htmlwidgets::saveWidget(dt, con, selfcontained = TRUE)
+      } else {
+        f_html(dt(), con)
+      }
+
     }
   )
   return(TRUE)

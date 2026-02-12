@@ -15,7 +15,10 @@ show_DT(
   dt,
   file_name,
   row.names = FALSE,
-  server = TRUE
+  server = TRUE,
+  f_csv = NULL,
+  f_xlsx = NULL,
+  f_html = NULL
 )
 }
 \arguments{
@@ -41,6 +44,12 @@ Done by callModule automatically.}
 \item{row.names}{: \code{logical}}
 
 \item{server}{: \code{logical}}
+
+\item{f_csv}{: custom function(data, path_file) for .csv export}
+
+\item{f_xlsx}{: custom function(data, path_file) for .xlsx export}
+
+\item{f_html}{: custom function(data, path_file) for .html export}
 }
 \description{
 Show & export table using DT
@@ -64,6 +73,21 @@ server = function(input, output, session) {
 }
 shiny::shinyApp(ui = ui, server = server)
   
+# custom export function
+f_csv = function(data, file){
+  write.table(data, file, sep = ",", dec = ".")
+}
+
+server = function(input, output, session) {
+  callModule(module = show_DT, id = "iris_module", 
+   data = reactive(iris), 
+   dt = reactive(DT::datatable(iris)), 
+   file_name = paste0("Iris_export", format(Sys.time(), format = "\%d\%m\%Y_\%H\%M\%S")),
+   f_csv = f_csv
+   )
+}
+shiny::shinyApp(ui = ui, server = server)
+
 }  
 
 }
