@@ -105,8 +105,10 @@ filter_data_UI <- function(id, titles = TRUE) {
       
       shiny::fluidRow(
         column(2, div(br(), uiOutput(ns("ui_filter")), align = "left")),
-        column(7, shiny::uiOutput(ns("choicefilter"))),
-        column(3, shiny::div(br(), shiny::actionButton(
+        column(6, shiny::uiOutput(ns("choicefilter"))),
+        column(2, shiny::div(br(), shiny::actionButton(
+          ns("resetFilter"), "Reset"), align = "center")),
+        column(2, shiny::div(br(), shiny::actionButton(
           ns("reinitializeFilter"), "Reinitialize filters"), align = "center"))
       ),
       
@@ -152,6 +154,7 @@ filter_data <- function(input, output, session, data = NULL,
                                       no_data = "No data available", 
                                       filter = "Filter on :", 
                                       reinitialize = "Reinitialize filters", 
+                                      reset = "Reset",
                                       validate = "Apply filtering on data", 
                                       complete_data = "Get complete dataset", 
                                       file = "Import file with filters :")) {
@@ -262,6 +265,13 @@ filter_data <- function(input, output, session, data = NULL,
   })
   
   observe({
+    button_reset_label <- get_labels()$reset
+    if(!is.null(button_reset_label)){
+      updateActionButton(session, "reset", label = button_reset_label)
+    }
+  })
+  
+  observe({
     button_renit_label <- get_labels()$reinitialize
     if(!is.null(button_renit_label)){
       updateActionButton(session, "reinitializeFilter", label = button_renit_label)
@@ -297,7 +307,7 @@ filter_data <- function(input, output, session, data = NULL,
   
   shiny::outputOptions(output, "have_selected_filter", suspendWhenHidden = FALSE)
   
-  filternames <- reactiveValues(filter = NULL)
+  filternames <- reactiveValues(filter = NULL, values = NULL)
   
   output$choicefilter <- renderUI({
     columns_to_filter <- get_columns_to_filter()
@@ -339,6 +349,8 @@ filter_data <- function(input, output, session, data = NULL,
       
       # selectInput(ns("chosenfilters"), "", 
       #             choices = values, selected = NULL, multiple = TRUE, width = "100%")
+      
+      filternames$values <- values
       
       shinyWidgets::pickerInput(
         inputId = ns("chosenfilters"), label = "",
@@ -448,6 +460,15 @@ filter_data <- function(input, output, session, data = NULL,
     })
   })
   
+  # reset
+  observeEvent( input$resetFilter, {
+    shinyWidgets::updatePickerInput (
+      session = session,
+      inputId = "chosenfilters", 
+      choices = filternames$values,
+      selected = NULL
+    )
+  }, ignoreInit = TRUE)
   
   # reinitialize current filters
   observe({

@@ -17,8 +17,9 @@ filter_data(
   default_multisel_n = 10,
   file_filtering = FALSE,
   labels = list(title = "Filters", no_data = "No data available", filter = "Filter on :",
-    reinitialize = "Reinitialize filters", validate = "Apply filtering on data",
-    complete_data = "Get complete dataset", file = "Import file with filters :")
+    reinitialize = "Reinitialize filters", reset = "Reset", validate =
+    "Apply filtering on data", complete_data = "Get complete dataset", file =
+    "Import file with filters :")
 )
 }
 \arguments{
